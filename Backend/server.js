@@ -138,6 +138,8 @@ const startServer = async () => {
       app.listen(port,()=>{
           console.log(`Server started on http://localhost:${port}`)
       })
+    } else {
+      console.log("🚀 Server running on Vercel (serverless mode)")
     }
   } catch (error) {
     console.error("Failed to start server:", error);
@@ -147,10 +149,8 @@ const startServer = async () => {
   }
 };
 
-// Chỉ start server khi chạy local, không start trên Vercel
-if (process.env.NODE_ENV !== 'production') {
-  startServer();
-}
+// Start server cho cả local và Vercel
+startServer();
 
 // Export app cho Vercel serverless
 export default app;
