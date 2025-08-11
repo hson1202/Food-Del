@@ -4,7 +4,11 @@
   "main": "server.js",
   "type": "module",
   "engines": {
+<<<<<<< HEAD
     "node": ">=18.0.0"
+=======
+    "node": "18.x"
+>>>>>>> fd003d52863744d00f7adc3c4aa5c0966d3c0546
   },
   "scripts": {
     "start": "node server.js",
