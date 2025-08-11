@@ -1,5 +1,5 @@
 .header{
-    height: 34vw;
+    height: 33vw;
     margin: 30px auto;
     background: url('/header_img.png') no-repeat;
     background-size: contain;
@@ -41,14 +41,45 @@
     }
 }
 @media (max-width:750px) {
+    .header{
+        height: 40vw;
+        margin: 20px auto;
+    }
     .header-contents{
-        height: 65%;
-
+        max-width: 60%;
+        left: 4vw;
+        bottom: 8%;
+        gap: 2vw;
+    }
+    .header-contents h2{
+        font-size: max(5vw, 20px);
     }
     .header-contents p{
         display: none;
     }
     .header-contents button{
-        padding: 2vw 4vw;
+        padding: 2.5vw 5vw;
+        font-size: max(2.5vw, 14px);
+    }
+}
+
+@media (max-width: 500px) {
+    .header{
+        height: 40vw;
+        margin: 15px auto;
+    }
+    .header-contents{
+        max-width: 70%;
+        left: 3vw;
+        bottom: 5%;
+        gap: 2.5vw;
+    }
+    .header-contents h2{
+        font-size: max(6vw, 18px);
+        line-height: 1.2;
+    }
+    .header-contents button{
+        padding: 3vw 6vw;
+        font-size: max(3vw, 13px);
     }
 }

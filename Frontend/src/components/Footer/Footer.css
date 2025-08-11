@@ -21,6 +21,14 @@
     align-items: start;
     gap: 20px;
 }
+
+/* Logo styling in footer */
+.footer-content-left img {
+    width: 120px;
+    height: auto;
+    object-fit: contain;
+}
+
 .footer-content-left li  , .footer-content-right li   ,.footer-content-center li {
     list-style: none;
     margin-bottom: 10px;
@@ -49,5 +57,10 @@
     }
     .footer-copyright{
         text-align: center;
+    }
+    
+    /* Smaller logo on mobile */
+    .footer-content-left img {
+        width: 100px;
     }
 }

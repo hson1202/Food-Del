@@ -11,6 +11,7 @@ const StoreContextProvider =(props)=>{
     const url = "http://localhost:4000"
     const [token,setToken]=useState("")
     const [food_list,setFoodList]=useState([]);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const addToCart =async (itemId) =>{  
         if (!cartItems[itemId]) {  
@@ -39,7 +40,9 @@ const StoreContextProvider =(props)=>{
             {
                 if(cartItems[item]>0){
                 let itemInfo=food_list.find((product)=>product._id===item)
-                totalAmount+=itemInfo.price*cartItems[item];
+                // Sử dụng giá khuyến mãi nếu có, nếu không thì dùng giá gốc
+                const itemPrice = itemInfo.isPromotion && itemInfo.promotionPrice ? itemInfo.promotionPrice : itemInfo.price;
+                totalAmount+=itemPrice*cartItems[item];
                 }
             }
             return totalAmount;
@@ -54,12 +57,22 @@ const StoreContextProvider =(props)=>{
         setCartItems(response.data.cartData);
     }
 
+    // Debug function to check token status
+    const debugToken = () => {
+        console.log('🔍 Current token in context:', token);
+        console.log('🔍 Token in localStorage:', localStorage.getItem("token"));
+        console.log('🔍 Token exists in context:', !!token);
+        console.log('🔍 Token exists in localStorage:', !!localStorage.getItem("token"));
+    }
+
     useEffect(()=>{
         async function loadData(){
             await fetchFoodList();
         if (localStorage.getItem("token")) {
-            setToken(localStorage.getItem("token"));
-            await loadCartData(localStorage.getItem("token"));
+            const localToken = localStorage.getItem("token");
+            console.log('🔄 Loading token from localStorage:', localToken);
+            setToken(localToken);
+            await loadCartData(localToken);
         }
     }
     loadData();
@@ -74,7 +87,10 @@ const StoreContextProvider =(props)=>{
         getTotalCartAmount,
         url,
         token,
-        setToken
+        setToken,
+        isMobileMenuOpen,
+        setIsMobileMenuOpen,
+        debugToken
   
     } 
     return (

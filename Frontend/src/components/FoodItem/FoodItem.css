@@ -3,60 +3,313 @@
     margin: auto;  
     border-radius: 15px;  
     transition: 0.3s;  
-    animation: fadeIn 1s;  
+    animation: fadeIn 1s;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
 }
+
+.food-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
 .food-item-image{  
     width: 100%;  
-    border-radius: 15px 15px 0px Өpx;  
+    height: 200px;
+    object-fit: cover;
+    border-radius: 15px 15px 0px 0px;  
 }  
+
 .food-item-info{  
-    padding: 20px;  
+    padding: 15px;  
 }  
-.food-item-name-rating{  
-    display: flex;  
-    justify-content: space-between;  
-    align-items: canter;  
-    margin-bottom: 10px;  
+
+.food-item-name{  
+    margin-bottom: 8px;  
 }
-.food-item-name-rating p{  
-    font-size: 20px;  
-    font-weight: 500;  
+
+.food-item-name p{  
+    font-size: 16px;  
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    line-height: 1.3;
 }  
-.food-item-name-rating img{  
-    width: 70px;  
-}  
-.food-item-desc{  
-    color: #676767;  
-    font-size: 12px;  
+
+.food-item-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
 }
-.food-item-price{  
-    color: tomato;  
-    font-size: 22px;  
-    font-weight: 500;  
-    margin: 10px 0px;  
-}  
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #666;
+}
+
+.stat-icon {
+    font-size: 14px;
+}
+
+.stat-text {
+    font-size: 11px;
+}
+
+.food-item-pricing {
+    margin-top: 8px;
+}
+
+.regular-price {
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.promotion-pricing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.original-price {
+    color: #999;
+    font-size: 14px;
+    text-decoration: line-through;
+}
+
+.promotion-price {
+    color: #e74c3c;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.promotion-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #e74c3c;
+    color: white;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+}
+
 .food-item-img-container{  
     position: relative;  
 }  
-.food-item-img-container .add{  
-    width: 35px;  
-    position: absolute;  
-    bottom: 15px;  
-    right: 15px;  
-    cursor: pointer;  
-    border-radius: 56%;  
-}  
-.food-item-counter{  
-    position: absolute;  
-    bottom: 15px;  
-    right: 15px;  
-    display: flex;  
-    align-items: center;  
-    gap: 10px;  
-    padding: 6px;  
-    border-radius: 50px;  
-    background-color: white;  
+
+
+
+/* Bottom Actions */
+.food-item-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
 }
-.food-item-counter img{
-    width: 30px;
+
+.add-to-cart-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.add-to-cart-btn:hover {
+    background: linear-gradient(135deg, #20c997, #17a2b8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.add-to-cart-btn img {
+    width: 16px;
+    height: 16px;
+}
+
+.quantity-controls-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    background: #f8f9fa;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+}
+
+.quantity-controls-bottom .qty-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.quantity-controls-bottom .qty-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.05);
+}
+
+.quantity-controls-bottom .qty-btn img {
+    width: 18px;
+    height: 18px;
+}
+
+.quantity-controls-bottom .quantity {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+    min-width: 30px;
+    text-align: center;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .food-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  .food-item-img-container {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+  }
+
+  .food-item-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+  }
+
+  .promotion-badge {
+    top: 5px;
+    left: 5px;
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+
+  .quantity-indicator {
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .food-item-info {
+    flex: 1;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .food-item-name p {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  .food-item-stats {
+    display: none; /* Hide stats on mobile for cleaner look */
+  }
+
+  .food-item-pricing {
+    margin: 0;
+  }
+
+  .regular-price {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .promotion-pricing {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .original-price {
+    font-size: 12px;
+  }
+
+  .promotion-price {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .food-item-actions {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    width: auto;
+  }
+
+  .add-to-cart-btn {
+    width: auto;
+    padding: 8px 12px;
+    font-size: 12px;
+    min-width: 60px;
+  }
+
+  .quantity-controls-bottom {
+    padding: 6px 10px;
+    gap: 8px;
+    border-radius: 20px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+  }
+
+  .quantity-controls-bottom .qty-btn {
+    padding: 4px;
+  }
+
+  .quantity-controls-bottom .qty-btn img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .quantity-controls-bottom .quantity {
+    font-size: 14px;
+    min-width: 20px;
+  }
 }

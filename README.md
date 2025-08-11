@@ -67,3 +67,14 @@ npm run server
 ```
 
 - [ ] Remember to include your Database in db.js and your Stripe Secret Key in .env
+
+## Triển khai lên GitHub (chuẩn bị)
+
+1) Tạo file .gitignore ở thư mục gốc để bỏ qua thư mục build, node_modules và file môi trường
+
+2) Tạo Backend/.env.example để người khác biết biến môi trường cần thiết
+
+3) Thêm Backend/uploads/.gitkeep để giữ thư mục uploads rỗng trong repo
+
+4) Commit và push theo hướng dẫn ở cuối file
+

@@ -12,3 +12,39 @@
     gap: 30px;  
     row-gap: 50px;
 }
+
+@media (max-width: 750px) {
+    .food-display {
+        margin-top: 20px;
+        padding: 0 15px;
+    }
+    
+    .food-display h2 {
+        font-size: max(3vw, 20px);
+    }
+    
+    .food-display-list {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        row-gap: 30px;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 500px) {
+    .food-display {
+        margin-top: 15px;
+        padding: 0 10px;
+    }
+    
+    .food-display h2 {
+        font-size: max(4vw, 18px);
+    }
+    
+    .food-display-list {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+        row-gap: 25px;
+        margin-top: 15px;
+    }
+}

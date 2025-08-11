@@ -10,11 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tinymce/tinymce-react": "^6.3.0",
     "axios": "^1.7.2",
+    "flag-icons": "^7.5.0",
+    "i18next": "^25.3.2",
+    "i18next-browser-languagedetector": "^8.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^15.6.1",
     "react-router-dom": "^6.23.1",
-    "react-toastify": "^10.0.5"
+    "react-toastify": "^10.0.6",
+    "recharts": "^3.1.2",
+    "tinymce": "^8.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

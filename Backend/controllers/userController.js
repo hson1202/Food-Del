@@ -9,11 +9,14 @@ import { response } from "express";
 const loginUser = async (req,res)=>{
     const {email,password}=req.body;
     try {
+        console.log("Email received:", email)
         const user =await userModel.findOne({email});
+        console.log("User found:", user)
         if (!user) {
             return res.json({success:false,message:"User Doesn't exists"})
         }
         const isMatch= await bcrypt.compare(password,user.password)
+        console.log("Password match:", isMatch)
 
         if (!isMatch) {
             return res.json({success:false,message:"Invalid Credentials"})
@@ -24,11 +27,11 @@ const loginUser = async (req,res)=>{
 
     } catch (error) {
         console.log(error);
-        res.json({success:false,message:"Error"})
+        res.json({success:false,message:error.message || "Error"})
     }
 }
 const createToken=(id)=>{
-    return jwt.sign({id},process.env.JWT_SECRET)
+    return jwt.sign({id},process.env.JWT_SECRET || 'your-super-secret-jwt-key-2024-food-delivery-admin-panel')
 }
 
 //register user
@@ -63,7 +66,7 @@ const registerUser = async (req,res)=>{
         res.json({success:true,token})
     } catch (error) {
         console.log(error);
-        res.json({success:false,message:"Error"})
+        res.json({success:false,message:error.message || "Error"})
     }
 }
 
