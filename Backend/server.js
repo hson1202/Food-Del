@@ -13,7 +13,7 @@ import reservationRouter from "./routes/reservationRoute.js"
 import contactMessageRouter from "./routes/contactMessageRoute.js"
 import authMiddleware from "./middleware/auth.js"
 
-// Debug ENV
+// Debug ENV (in ra KEY, không in value)
 console.log("🔍 === ENVIRONMENT VARIABLES DEBUG ===")
 console.log("MONGODB_URL:", process.env.MONGODB_URL ? "✅ Found" : "❌ Not found")
 console.log("JWT_SECRET:", process.env.JWT_SECRET ? "✅ Found" : "❌ Not found")
@@ -22,7 +22,7 @@ console.log("All env keys:", Object.keys(process.env).filter(k => !k.startsWith(
 console.log("=======================================")
 
 const app = express()
-const port = 4000
+const port = process.env.PORT || 4000
 
 // Middleware
 app.use(cors())
@@ -33,11 +33,10 @@ app.use(express.urlencoded({ extended: true }))
 const startServer = async () => {
   try {
     await connectDB()
-    console.log("DB Connected")
+    console.log("✅ DB Connected Successfully")
 
     // Routes
     app.use("/api/food", foodRouter)
-    app.use("/images", express.static("uploads"))
     app.use("/api/user", userRouter)
     app.use("/api/cart", cartRouter)
     app.use("/api/order", orderRouter)
@@ -47,8 +46,23 @@ const startServer = async () => {
     app.use("/api/reservation", reservationRouter)
     app.use("/api/contact", contactMessageRouter)
 
+    // Root route
     app.get("/", (req, res) => {
-      res.send("API Working")
+      res.json({ 
+        message: "🚀 Food Delivery API is Working!",
+        status: "success",
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || "development"
+      })
+    })
+
+    // Health check route for Vercel
+    app.get("/health", (req, res) => {
+      res.json({ 
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+      })
     })
 
     // Test routes
@@ -61,7 +75,6 @@ const startServer = async () => {
       })
     })
 
-<<<<<<< HEAD
     app.get("/test-auth", authMiddleware, (req, res) => {
       res.json({
         message: "Auth middleware working",
@@ -72,81 +85,56 @@ const startServer = async () => {
     })
 
     app.get("/test-simple", (req, res) => {
-      res.json({ message: "Simple route working", headers: req.headers })
-    })
-
-    app.post("/test-multipart", (req, res) => {
-      res.json({
-        message: "Test multipart route working",
-        body: req.body,
-        files: req.files
+      res.json({ 
+        message: "Simple route working", 
+        headers: req.headers,
+        timestamp: new Date().toISOString()
       })
     })
 
-    // 404
+    // 404 handler
     app.use("*", (req, res) => {
-      res.status(404).json({ error: "Route not found" })
+      res.status(404).json({ 
+        error: "Route not found",
+        path: req.originalUrl,
+        method: req.method
+      })
     })
 
-    // Error handler (đặt cuối)
+    // Global error handler
     app.use((error, req, res, next) => {
       console.error("🚨 Global error handler triggered")
-      console.error("❌ Error:", error)
+      console.error("❌ Error:", error.message)
       console.error("📋 Request URL:", req.url)
       console.error("📋 Request method:", req.method)
+      
       const isDev = process.env.NODE_ENV === "development"
       res.status(500).json({
         error: "Internal server error",
         message: isDev ? error.message : "Something went wrong",
-        stack: isDev ? error.stack : undefined
+        timestamp: new Date().toISOString()
       })
     })
 
-    // Chỉ listen khi chạy local
+    // Only listen on local development
     if (process.env.NODE_ENV !== "production") {
       app.listen(port, () => {
-        console.log(`Server started on http://localhost:${port}`)
+        console.log(`🚀 Server started on http://localhost:${port}`)
       })
     } else {
       console.log("🚀 Server running on Vercel (serverless mode)")
-=======
-
-    // Vercel serverless: export app thay vì listen port
-    if (process.env.NODE_ENV !== 'production') {
-      app.listen(port,()=>{
-          console.log(`Server started on http://localhost:${port}`)
-      })
-    } else {
-      console.log("🚀 Server running on Vercel (serverless mode)")
-
-  // Chỉ listen khi local
-    if (process.env.NODE_ENV !== "production") {
-      app.listen(port, () => {
-        console.log(`Server started on http://localhost:${port}`);
-      });
-
->>>>>>> af73d3b2da2e0ff4a4be72599ffa5f32bff50bac
     }
   } catch (error) {
-    console.error("Failed to start server:", error)
+    console.error("❌ Failed to start server:", error.message)
+    // Don't exit on Vercel, just log the error
+    if (process.env.NODE_ENV !== "production") {
+      process.exit(1)
+    }
   }
 }
 
-<<<<<<< HEAD
-// Luôn gọi để init (cả trên Vercel)
+// Always call startServer for both local and Vercel
 startServer()
 
-// Export cho Vercel serverless (Express app là 1 request handler hợp lệ)
+// Export for Vercel serverless
 export default app
-=======
-
-startServer();
-
-
-
-// Export app cho Vercel serverless
-export default app;
-
-//mongodb+srv://greatstack:186312@cluster0.ovanjzw.mongodb.net/?
-//retryWrites=true&w=majority&appName=Cluster0
->>>>>>> af73d3b2da2e0ff4a4be72599ffa5f32bff50bac

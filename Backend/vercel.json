@@ -12,11 +12,15 @@
       "dest": "server.js"
     },
     {
-      "src": "/images/(.*)",
+      "src": "/health",
       "dest": "server.js"
     },
     {
       "src": "/test-(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/",
       "dest": "server.js"
     },
     {
@@ -28,5 +32,8 @@
     "server.js": {
       "maxDuration": 30
     }
+  },
+  "env": {
+    "NODE_ENV": "production"
   }
 }
