@@ -33,3 +33,7 @@ coverage/
 # Keep uploads out of repo but allow .gitkeep
 Backend/uploads/*
 !Backend/uploads/.gitkeep
+
+.env
+**/.env
+
