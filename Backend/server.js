@@ -133,11 +133,7 @@ const startServer = async () => {
   }
 }
 
-<<<<<<< HEAD
-// Always call startServer for both local and Vercel
-=======
-// Luôn gọi để init (cả trên Vercel)
->>>>>>> fd003d52863744d00f7adc3c4aa5c0966d3c0546
+
 startServer()
 
 // Export for Vercel serverless
