@@ -133,17 +133,14 @@ const startServer = async () => {
       })
     })
 
-    // Vercel serverless: export app thay vì listen port
-    if (process.env.NODE_ENV !== 'production') {
-      app.listen(port,()=>{
-          console.log(`Server started on http://localhost:${port}`)
-      })
+  // Chỉ listen khi local
+    if (process.env.NODE_ENV !== "production") {
+      app.listen(port, () => {
+        console.log(`Server started on http://localhost:${port}`);
+      });
     }
   } catch (error) {
     console.error("Failed to start server:", error);
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
-    }
   }
 };
 
