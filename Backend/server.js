@@ -133,16 +133,27 @@ const startServer = async () => {
       })
     })
 
-    app.listen(port,()=>{
-        console.log(`Server started on http://localhost:${port}`)
-    })
+    // Vercel serverless: export app thay vì listen port
+    if (process.env.NODE_ENV !== 'production') {
+      app.listen(port,()=>{
+          console.log(`Server started on http://localhost:${port}`)
+      })
+    }
   } catch (error) {
     console.error("Failed to start server:", error);
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
   }
 };
 
-startServer();
+// Chỉ start server khi chạy local, không start trên Vercel
+if (process.env.NODE_ENV !== 'production') {
+  startServer();
+}
+
+// Export app cho Vercel serverless
+export default app;
 
 //mongodb+srv://greatstack:186312@cluster0.ovanjzw.mongodb.net/?
 //retryWrites=true&w=majority&appName=Cluster0

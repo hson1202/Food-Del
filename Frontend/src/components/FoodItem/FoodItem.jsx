@@ -117,7 +117,7 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
                 className="add-to-cart-btn"
                 onClick={() => addToCart(id)}
               >
-                <img src={assets.add_icon_white} alt="" />
+                 
                 {t('food.addToCart')}
               </button>
             ) : (

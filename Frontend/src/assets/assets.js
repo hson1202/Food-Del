@@ -44,6 +44,24 @@ import food_30 from './food_30.png'
 import food_31 from './food_31.png'
 import food_32 from './food_32.png'
 
+// Background images for About Us page
+import back1 from './back1.jpg'
+import back2 from './back2.jpg'
+import back3 from './back3.jpg'
+import back4 from './back4.jpg'
+import back5 from './back5.jpg'
+import back6 from './back6.jpg'
+import back7 from './back7.jpg'
+import back8 from './back8.jpg'
+import back9 from './back9.jpg'
+import back10 from './back10.jpg'
+import back11 from './back11.jpg'
+import back12 from './back12.jpg'
+import back13 from './back13.jpg'
+import back14 from './back14.jpg'
+import back15 from './back15.jpg'
+import back16 from './back16.jpg'
+
 import add_icon_white from './add_icon_white.png'
 import add_icon_green from './add_icon_green.png'
 import remove_icon_red from './remove_icon_red.png'
@@ -80,6 +98,33 @@ export const assets = {
     logout_icon,
     bag_icon,
     parcel_icon
+}
+
+// Background images for About Us page
+export const aboutImages = {
+    back1,
+    back2,
+    back3,
+    back4,
+    back5,
+    back6,
+    back7,
+    back8,
+    back9,
+    back10,
+    back11,
+    back12,
+    back13,
+    back14,
+    back15,
+    back16
+}
+
+// Food images for team members
+export const teamImages = {
+    chef: food_1,
+    manager: food_2,
+    operations: food_3
 }
 
 export const menu_list = [

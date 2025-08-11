@@ -11,8 +11,10 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
   // Debug current language
   console.log('Current language:', i18n.language);
   console.log('Translation test:', t('successPopup.title'));
-
-
+  
+  // Debug popup state
+  console.log('SuccessPopup isOpen:', isOpen);
+  console.log('SuccessPopup props:', { trackingCode, phone, orderAmount });
 
   if (!isOpen) return null;
 

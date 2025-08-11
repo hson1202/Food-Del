@@ -46,9 +46,17 @@ const PlaceOrder = () => {
       return;
     }
 
-    // Validate phone number
+    // Validate phone number - minimum 10 digits, maximum unlimited
     if (data.phone.length < 10) {
-      alert('Please enter a valid phone number');
+      alert('Please enter a valid phone number (minimum 10 digits)');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // Remove any non-digit characters for validation
+    const phoneDigits = data.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      alert('Please enter a valid phone number (minimum 10 digits)');
       setIsSubmitting(false);
       return;
     }
@@ -117,7 +125,14 @@ const PlaceOrder = () => {
           orderAmount: finalAmount
         });
         
+        console.log('Setting popup data:', {
+          trackingCode: trackingCode,
+          phone: data.phone,
+          orderAmount: finalAmount
+        });
+        
         setShowSuccessPopup(true);
+        console.log('Setting showSuccessPopup to true');
         
         // Không xóa cart ngay lập tức, để popup hiển thị trước
         // Cart sẽ được xóa khi user đóng popup
@@ -165,6 +180,12 @@ const PlaceOrder = () => {
       }
     }
   }, []);
+
+  // Debug popup state changes
+  useEffect(() => {
+    console.log('showSuccessPopup changed to:', showSuccessPopup);
+    console.log('orderSuccessData changed to:', orderSuccessData);
+  }, [showSuccessPopup, orderSuccessData]);
 
 
   
@@ -277,9 +298,10 @@ const PlaceOrder = () => {
             value={data.phone} 
             type="tel" 
             placeholder={t('placeOrder.form.phone')}
-            pattern="[0-9]{10,}"
-            title="Please enter a valid phone number (at least 10 digits)"
+            pattern="[0-9]{10,20}"
+            title="Please enter a valid phone number (at least 10 digits, maximum unlimited)"
             autoComplete="tel"
+            maxLength="20"
           />
           
           {/* Thông báo về dò đơn hàng */}

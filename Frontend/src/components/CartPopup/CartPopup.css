@@ -98,6 +98,15 @@
   padding: 25px;
   max-height: calc(90vh - 80px);
   overflow-y: auto;
+  /* Đảm bảo scrollbar hoạt động tốt */
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+  /* Đảm bảo content có thể scroll */
+  overflow-x: hidden;
+  /* Cải thiện performance */
+  will-change: scroll-position;
+  /* Đảm bảo scrollbar luôn hiển thị khi cần */
+  scrollbar-gutter: stable;
 }
 
 /* Empty Cart */
@@ -142,6 +151,8 @@
 /* Cart Items Section */
 .cart-items-section {
   margin-bottom: 30px;
+  /* Đảm bảo section có thể scroll */
+  min-height: 0;
 }
 
 .cart-items-section h3 {
@@ -152,12 +163,23 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Đảm bảo header không bị scroll */
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  padding: 10px 0;
+  margin-top: -10px;
 }
 
 .cart-items-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  /* Đảm bảo list có thể scroll */
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
 .cart-item {
@@ -265,30 +287,47 @@
 
 /* Recommendations Section */
 .recommendations-section {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, #fff7e6, #fff3cd);
+  background: #f8f9fa;
   border-radius: 15px;
-  border: 2px solid #ffeaa7;
+  padding: 20px;
+  margin-bottom: 25px;
+  /* Đảm bảo section có thể scroll */
+  max-height: 40vh;
+  overflow-y: auto;
 }
 
 .recommendations-section h3 {
-  color: #d63031;
-  margin-bottom: 8px;
-  font-size: 1.2rem;
-  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  /* Đảm bảo header không bị scroll */
+  position: sticky;
+  top: 0;
+  background: #f8f9fa;
+  z-index: 10;
+  padding: 10px 0;
+  margin-top: -10px;
 }
 
 .recommendations-subtitle {
-  color: #636e72;
-  margin-bottom: 20px;
+  color: #7f8c8d;
   font-size: 0.9rem;
+  margin-bottom: 20px;
+  /* Đảm bảo subtitle không bị scroll */
+  position: sticky;
+  top: 40px;
+  background: #f8f9fa;
+  z-index: 10;
+  padding: 5px 0;
 }
 
 .recommended-items {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
+  /* Đảm bảo items có thể scroll */
+  padding-right: 5px;
 }
 
 .recommended-item {
@@ -450,39 +489,55 @@
 /* Mobile Design */
 @media (max-width: 768px) {
   .cart-popup-overlay {
-    padding: 0;
-    align-items: flex-end;
+    padding: 10px;
   }
 
   .cart-popup-modal {
+    max-height: 95vh;
     width: 100%;
-    max-height: 85vh;
-    border-radius: 20px 20px 0 0;
-    margin: 0;
+    border-radius: 15px;
     animation: slideUpMobile 0.3s ease-out;
   }
 
   @keyframes slideUpMobile {
     from {
       transform: translateY(100%);
+      opacity: 0;
     }
     to {
       transform: translateY(0);
+      opacity: 1;
     }
   }
 
   .cart-popup-header {
-    padding: 20px 25px;
-    border-radius: 20px 20px 0 0;
+    padding: 15px 20px;
   }
 
   .cart-popup-header h2 {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
 
   .cart-popup-content {
-    padding: 25px;
-    max-height: calc(85vh - 80px);
+    padding: 20px;
+    max-height: calc(95vh - 70px);
+    /* Đảm bảo scrollbar hoạt động tốt trên mobile */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cart-items-list {
+    /* Điều chỉnh max-height cho mobile */
+    max-height: 50vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .recommendations-section {
+    /* Điều chỉnh max-height cho mobile */
+    max-height: 35vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Better cart item layout for mobile */
@@ -636,11 +691,12 @@
 /* Small Mobile Design */
 @media (max-width: 576px) {
   .cart-popup-modal {
-    max-height: 90vh;
+    max-height: 98vh;
+    border-radius: 10px;
   }
 
   .cart-popup-header {
-    padding: 18px 20px;
+    padding: 12px 15px;
   }
 
   .cart-popup-header h2 {
@@ -653,14 +709,28 @@
   }
 
   .cart-popup-content {
-    padding: 20px;
-    max-height: calc(90vh - 70px);
+    padding: 15px;
+    max-height: calc(98vh - 60px);
+    /* Đảm bảo scrollbar hoạt động tốt trên mobile nhỏ */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .cart-items-section h3 {
-    font-size: 1.1rem;
+  .cart-items-list {
+    /* Điều chỉnh max-height cho mobile nhỏ */
+    max-height: 45vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
+  .recommendations-section {
+    /* Điều chỉnh max-height cho mobile nhỏ */
+    max-height: 30vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better cart item layout for mobile */
   .cart-item {
     grid-template-columns: 60px 1fr auto;
     gap: 12px;
@@ -771,19 +841,52 @@
 
 /* Scrollbar Styling */
 .cart-popup-content::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 .cart-popup-content::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 4px;
+  border-radius: 8px;
+  margin: 5px;
 }
 
 .cart-popup-content::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border-radius: 8px;
+  border: 2px solid #f1f1f1;
+  transition: all 0.3s ease;
 }
 
 .cart-popup-content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: linear-gradient(135deg, #218838, #1e7e34);
+  transform: scale(1.05);
+}
+
+.cart-popup-content::-webkit-scrollbar-corner {
+  background: #f1f1f1;
+}
+
+/* Firefox scrollbar */
+.cart-popup-content {
+  scrollbar-width: thin;
+  scrollbar-color: #28a745 #f1f1f1;
+}
+
+/* Đảm bảo scrollbar hiển thị trên mobile */
+@media (max-width: 768px) {
+  .cart-popup-content {
+    scrollbar-width: auto;
+    scrollbar-color: #28a745 #f1f1f1;
+  }
+  
+  .cart-popup-content::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .cart-popup-content::-webkit-scrollbar-thumb {
+    background: #28a745;
+    border-radius: 6px;
+  }
 }
