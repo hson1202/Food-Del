@@ -4,33 +4,11 @@
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "config": { "distDir": "dist" }
     }
   ],
   "routes": [
-    {
-<<<<<<< HEAD
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-=======
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
->>>>>>> ca669653a12ea72bdbec69c68e6e7167b9d25487
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-<<<<<<< HEAD
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-=======
->>>>>>> ca669653a12ea72bdbec69c68e6e7167b9d25487
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
