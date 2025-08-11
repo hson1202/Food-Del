@@ -4,7 +4,7 @@
     { "src": "server.js", "use": "@vercel/node@2" }
   ],
   "routes": [
-<<<<<<< HEAD
+
     {
       "src": "/api/(.*)",
       "dest": "server.js"
@@ -34,8 +34,8 @@
   "env": {
     "NODE_ENV": "production"
   }
-=======
+
     { "src": "/(.*)", "dest": "/server.js" }
   ]
->>>>>>> fd003d52863744d00f7adc3c4aa5c0966d3c0546
+
 }
