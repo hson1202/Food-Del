@@ -147,10 +147,8 @@ const startServer = async () => {
   }
 };
 
-// Chỉ start server khi chạy local, không start trên Vercel
-if (process.env.NODE_ENV !== 'production') {
-  startServer();
-}
+startServer();
+
 
 // Export app cho Vercel serverless
 export default app;
