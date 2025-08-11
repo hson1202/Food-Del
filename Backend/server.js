@@ -61,6 +61,7 @@ const startServer = async () => {
       })
     })
 
+<<<<<<< HEAD
     app.get("/test-auth", authMiddleware, (req, res) => {
       res.json({
         message: "Auth middleware working",
@@ -108,14 +109,44 @@ const startServer = async () => {
       })
     } else {
       console.log("🚀 Server running on Vercel (serverless mode)")
+=======
+
+    // Vercel serverless: export app thay vì listen port
+    if (process.env.NODE_ENV !== 'production') {
+      app.listen(port,()=>{
+          console.log(`Server started on http://localhost:${port}`)
+      })
+    } else {
+      console.log("🚀 Server running on Vercel (serverless mode)")
+
+  // Chỉ listen khi local
+    if (process.env.NODE_ENV !== "production") {
+      app.listen(port, () => {
+        console.log(`Server started on http://localhost:${port}`);
+      });
+
+>>>>>>> af73d3b2da2e0ff4a4be72599ffa5f32bff50bac
     }
   } catch (error) {
     console.error("Failed to start server:", error)
   }
 }
 
+<<<<<<< HEAD
 // Luôn gọi để init (cả trên Vercel)
 startServer()
 
 // Export cho Vercel serverless (Express app là 1 request handler hợp lệ)
 export default app
+=======
+
+startServer();
+
+
+
+// Export app cho Vercel serverless
+export default app;
+
+//mongodb+srv://greatstack:186312@cluster0.ovanjzw.mongodb.net/?
+//retryWrites=true&w=majority&appName=Cluster0
+>>>>>>> af73d3b2da2e0ff4a4be72599ffa5f32bff50bac
