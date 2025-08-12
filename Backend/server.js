@@ -172,11 +172,14 @@ app.use((error, req, res, next) => {
   })
 })
 
-// Local development server
-if (process.env.NODE_ENV !== "production") {
-  const port = process.env.PORT || 4000
+// Server startup
+const port = process.env.PORT || 4000
+
+// Start server for both development and production (Render needs this)
+if (process.env.VERCEL !== "1") {
   app.listen(port, () => {
-    console.log(`🚀 Local server: http://localhost:${port}`)
+    console.log(`🚀 Server running on port ${port}`)
+    console.log(`Environment: ${process.env.NODE_ENV || "development"}`)
   })
 }
 
