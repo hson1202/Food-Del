@@ -1,23 +1,48 @@
 import nodemailer from 'nodemailer'
 
 // Create transporter (you'll need to configure this with your email provider)
-const createTransporter = () => {
-  // For development/testing, you can use Gmail or other providers
-  // For production, use services like SendGrid, AWS SES, etc.
+export const createTransporter = () => {
+  // TEMPORARILY DISABLED - Email service is turned off
+  console.log('📧 Email service is temporarily disabled');
+  return null;
   
-  return nodemailer.createTransporter({
-    service: process.env.EMAIL_SERVICE || 'gmail', // 'gmail', 'outlook', 'yahoo', etc.
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD
-    }
-  })
+  // Uncomment this when you want to enable email service
+  /*
+  // Check if email configuration is available
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.log('⚠️ Email configuration not found. Emails will not be sent.');
+    return null;
+  }
+  
+  try {
+    return nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || 'gmail', // 'gmail', 'outlook', 'yahoo', etc.
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD
+      }
+    })
+  } catch (error) {
+    console.error('❌ Error creating email transporter:', error.message);
+    return null;
+  }
+  */
 }
 
 // Send reservation confirmation email
 export const sendReservationConfirmation = async (reservation) => {
   try {
     const transporter = createTransporter()
+    
+    // If no transporter available, return success but log warning
+    if (!transporter) {
+      console.log('⚠️ Email not sent: Email service not configured');
+      return { 
+        success: true, 
+        messageId: 'email_not_configured',
+        message: 'Reservation saved but email not sent (email service not configured)'
+      }
+    }
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -28,11 +53,11 @@ export const sendReservationConfirmation = async (reservation) => {
     }
     
     const result = await transporter.sendMail(mailOptions)
-    console.log('Confirmation email sent successfully:', result.messageId)
+    console.log('✅ Confirmation email sent successfully:', result.messageId)
     return { success: true, messageId: result.messageId }
     
   } catch (error) {
-    console.error('Error sending confirmation email:', error)
+    console.error('❌ Error sending confirmation email:', error)
     return { success: false, error: error.message }
   }
 }
@@ -41,6 +66,16 @@ export const sendReservationConfirmation = async (reservation) => {
 export const sendStatusUpdateEmail = async (reservation, oldStatus, newStatus) => {
   try {
     const transporter = createTransporter()
+    
+    // If no transporter available, return success but log warning
+    if (!transporter) {
+      console.log('⚠️ Email not sent: Email service not configured');
+      return { 
+        success: true, 
+        messageId: 'email_not_configured',
+        message: 'Status updated but email not sent (email service not configured)'
+      }
+    }
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -51,11 +86,11 @@ export const sendStatusUpdateEmail = async (reservation, oldStatus, newStatus) =
     }
     
     const result = await transporter.sendMail(mailOptions)
-    console.log('Status update email sent successfully:', result.messageId)
+    console.log('✅ Status update email sent successfully:', result.messageId)
     return { success: true, messageId: result.messageId }
     
   } catch (error) {
-    console.error('Error sending status update email:', error)
+    console.error('❌ Error sending status update email:', error)
     return { success: false, error: error.message }
   }
 }
@@ -64,6 +99,16 @@ export const sendStatusUpdateEmail = async (reservation, oldStatus, newStatus) =
 export const sendContactConfirmation = async (contactMessage, adminResponse = null) => {
   try {
     const transporter = createTransporter()
+    
+    // If no transporter available, return success but log warning
+    if (!transporter) {
+      console.log('⚠️ Email not sent: Email service not configured');
+      return { 
+        success: true, 
+        messageId: 'email_not_configured',
+        message: 'Contact message saved but email not sent (email service not configured)'
+      }
+    }
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -74,11 +119,11 @@ export const sendContactConfirmation = async (contactMessage, adminResponse = nu
     }
     
     const result = await transporter.sendMail(mailOptions)
-    console.log('Contact confirmation email sent successfully:', result.messageId)
+    console.log('✅ Contact confirmation email sent successfully:', result.messageId)
     return { success: true, messageId: result.messageId }
     
   } catch (error) {
-    console.error('Error sending contact confirmation email:', error)
+    console.error('❌ Error sending contact confirmation email:', error)
     return { success: false, error: error.message }
   }
 }
@@ -87,6 +132,16 @@ export const sendContactConfirmation = async (contactMessage, adminResponse = nu
 export const sendAdminNotification = async (contactMessage) => {
   try {
     const transporter = createTransporter()
+    
+    // If no transporter available, return success but log warning
+    if (!transporter) {
+      console.log('⚠️ Email not sent: Email service not configured');
+      return { 
+        success: true, 
+        messageId: 'email_not_configured',
+        message: 'Admin notification not sent (email service not configured)'
+      }
+    }
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -97,11 +152,11 @@ export const sendAdminNotification = async (contactMessage) => {
     }
     
     const result = await transporter.sendMail(mailOptions)
-    console.log('Admin notification email sent successfully:', result.messageId)
+    console.log('✅ Admin notification email sent successfully:', result.messageId)
     return { success: true, messageId: result.messageId }
     
   } catch (error) {
-    console.error('Error sending admin notification email:', error)
+    console.error('❌ Error sending admin notification email:', error)
     return { success: false, error: error.message }
   }
 }

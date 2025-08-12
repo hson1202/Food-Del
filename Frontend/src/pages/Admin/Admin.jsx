@@ -142,7 +142,7 @@ const Admin = () => {
           <div key={food._id} className="food-item">
             <div className="food-info">
               <img 
-                src={`http://localhost:4000/images/${food.image}`} 
+               src={food.image && food.image.startsWith('http') ? food.image : `http://localhost:4000/images/${food.image}`} 
                 alt={food.name}
                 className="food-image"
               />

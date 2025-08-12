@@ -31,7 +31,7 @@ const ExploreMenu = ({category, setCategory, categories, loading}) => {
                     {item.image ? (
                       <img 
                         className={category === item.name ? "active" : ""} 
-                        src={`http://localhost:4000/images/${item.image}`} 
+                        src={item.image && item.image.startsWith('http') ? item.image : `http://localhost:4000/images/${item.image}`}
                         alt={item.name}
                       />
                     ) : (

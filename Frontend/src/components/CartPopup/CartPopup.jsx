@@ -142,7 +142,7 @@ const CartPopup = ({ onClose }) => {
                   {cartItemsList.map((item) => (
                     <div key={item._id} className="cart-item">
                       <div className="cart-item-image">
-                        <img src={url + "/images/" + item.image} alt={getLocalizedName(item)} />
+                        <img src={(item.image && item.image.startsWith('http')) ? item.image : (url + "/images/" + item.image)} alt={getLocalizedName(item)} />
                       </div>
                       <div className="cart-item-info">
                         <h4>{getLocalizedName(item)}</h4>
@@ -183,7 +183,7 @@ const CartPopup = ({ onClose }) => {
                     {recommendedItems.map((item) => (
                       <div key={item._id} className="recommended-item">
                         <div className="recommended-image">
-                          <img src={url + "/images/" + item.image} alt={getLocalizedName(item)} />
+                          <img src={(item.image && item.image.startsWith('http')) ? item.image : (url + "/images/" + item.image)} alt={getLocalizedName(item)} />
                           {item.isPromotion && (
                             <div className="promo-badge">-{Math.round(((item.originalPrice - item.promotionPrice) / item.originalPrice) * 100)}%</div>
                           )}

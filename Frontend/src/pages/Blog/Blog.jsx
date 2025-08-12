@@ -86,7 +86,7 @@ const Blog = () => {
                 <div className="featured-image">
                   {featuredPost.image ? (
                     <img 
-                      src={`${API_URL}/uploads/${featuredPost.image}`} 
+                      src={featuredPost.image && featuredPost.image.startsWith('http') ? featuredPost.image : `${API_URL}/uploads/${featuredPost.image}`} 
                       alt={featuredPost.title}
                       onError={(e) => {
                         e.target.style.display = 'none'
@@ -146,7 +146,7 @@ const Blog = () => {
                     <div className="card-image">
                       {post.image ? (
                         <img 
-                          src={`${API_URL}/uploads/${post.image}`} 
+                          src={post.image && post.image.startsWith('http') ? post.image : `${API_URL}/uploads/${post.image}`} 
                           alt={post.title}
                           onError={(e) => {
                             e.target.style.display = 'none'

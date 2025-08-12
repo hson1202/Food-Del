@@ -7,19 +7,11 @@ import {
     deleteCategory,
     toggleCategoryStatus
 } from "../controllers/categoryController.js";
-import multer from "multer";
+import { upload } from "../middleware/upload.js";
 
 const categoryRouter = express.Router();
 
-// Image storage engine
-const storage = multer.diskStorage({
-    destination: "uploads",
-    filename: (req, file, cb) => {
-        return cb(null, `${Date.now()}${file.originalname}`);
-    }
-});
-
-const upload = multer({ storage: storage });
+// Using Cloudinary-backed multer storage from middleware
 
 // Public routes (for frontend)
 categoryRouter.get("/", getAllCategories);

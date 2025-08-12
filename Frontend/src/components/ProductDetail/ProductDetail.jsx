@@ -58,7 +58,7 @@ const ProductDetail = ({ product, onClose }) => {
         <div className="product-detail-content">
           <div className="product-detail-image">
             <img 
-              src={url + "/images/" + product.image} 
+              src={(product.image && product.image.startsWith('http')) ? product.image : (url + "/images/" + product.image)} 
               alt={getLocalizedName()}
               onError={(e) => {
                 e.target.src = assets.food_placeholder || '/placeholder-food.jpg';

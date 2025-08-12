@@ -9,9 +9,9 @@ const isValidEmail = (email) => {
 
 // Helper function to validate phone number
 const isValidPhone = (phone) => {
-  // Allow various phone formats: +1234567890, 123-456-7890, 123.456.7890, 1234567890
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-  return phoneRegex.test(phone.replace(/[\s\-\(\)\.]/g, ''))
+  // Remove all non-digit characters and check if we have at least 10 digits
+  const digitsOnly = phone.replace(/\D/g, '')
+  return digitsOnly.length >= 10
 }
 
 // Helper function to check if date is in the past
@@ -64,6 +64,7 @@ const generateAvailableTimeSlots = (date) => {
 // Create new reservation
 export const createReservation = async (req, res) => {
     try {
+        console.log('📝 Creating reservation with data:', req.body)
         const { customerName, phone, email, reservationDate, reservationTime, numberOfPeople, note } = req.body
 
         // Validate required fields
@@ -83,12 +84,15 @@ export const createReservation = async (req, res) => {
         }
 
         // Validate phone format
+        console.log('📞 Validating phone:', phone)
         if (!isValidPhone(phone)) {
+            console.log('❌ Phone validation failed for:', phone)
             return res.status(400).json({ 
                 success: false, 
                 message: "Please provide a valid phone number" 
             })
         }
+        console.log('✅ Phone validation passed')
 
         // Validate customer name (at least 2 characters)
         if (customerName.trim().length < 2) {
@@ -155,38 +159,50 @@ export const createReservation = async (req, res) => {
             note: note ? note.trim() : ''
         })
 
+        console.log('💾 Saving reservation to database...')
         await newReservation.save()
+        console.log('✅ Reservation saved successfully with ID:', newReservation._id)
 
         // Send confirmation email
         try {
-            await sendReservationConfirmation(newReservation)
-            console.log('Confirmation email sent successfully')
+            const emailResult = await sendReservationConfirmation(newReservation)
+            if (emailResult && emailResult.success) {
+                console.log('✅ Confirmation email sent successfully')
+            } else {
+                console.log('⚠️ Email not sent:', emailResult?.message || 'Unknown error')
+            }
         } catch (emailError) {
-            console.error('Error sending confirmation email:', emailError)
+            console.error('❌ Error sending confirmation email:', emailError)
             // Don't fail the reservation if email fails
         }
 
-        res.status(201).json({
+        const response = {
             success: true,
             message: "Reservation created successfully! We will confirm your booking within 2 hours. Please check your email for confirmation details.",
             data: newReservation
-        })
+        }
+        console.log('✅ Sending success response:', response)
+        res.status(201).json(response)
     } catch (error) {
-        console.error("Error creating reservation:", error)
+        console.error("❌ Error creating reservation:", error)
+        console.error("❌ Error stack:", error.stack)
         
         // Handle duplicate key errors
         if (error.code === 11000) {
+            console.log('⚠️ Duplicate key error detected')
             return res.status(400).json({
                 success: false,
                 message: "A reservation with this information already exists"
             })
         }
         
-        res.status(500).json({
+        const errorResponse = {
             success: false,
             message: "Internal server error. Please try again later.",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        })
+        }
+        console.log('❌ Sending error response:', errorResponse)
+        res.status(500).json(errorResponse)
     }
 }
 

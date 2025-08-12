@@ -20,7 +20,8 @@ const addFood = async (req, res) => {
     if (quantity === undefined || quantity === null || isNaN(Number(quantity)) || Number(quantity) < 0)
       return res.status(400).json({ success:false, message:"Valid quantity is required (must be >= 0)" });
 
-    const image_filename = req.file ? `${req.file.filename}` : "";
+    // Store Cloudinary secure_url if available, else fallback to filename
+    const image_filename = req.file ? (req.file.path || req.file.filename || "") : "";
 
     const isPromotionBool =
       isPromotion === true || isPromotion === "true" || isPromotion === 1 || isPromotion === "1";
@@ -157,9 +158,9 @@ const updateFood = async (req, res) => {
             soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0
         }
 
-        // If new image uploaded, update image field
+        // If new image uploaded, update image field (secure_url preferred)
         if (req.file) {
-            updateData.image = req.file.filename
+            updateData.image = req.file.path || req.file.filename
         }
 
         const updatedFood = await foodModel.findByIdAndUpdate(

@@ -421,6 +421,15 @@
   line-height: 1.5;
 }
 
+.success-content .email-note {
+  margin-top: 10px !important;
+  padding: 8px 12px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  color: #856404 !important;
+}
+
 .error-message {
   background: linear-gradient(135deg, #f8d7da, #f5c6cb);
   border: 1px solid #f5c6cb;

@@ -362,9 +362,6 @@
     }
     
     /* Respect original language switcher styling on mobile */
-    .mobile-lang-center .language-switcher {
-        /* Don't override the language switcher styles */
-    }
 
     .hamburger-menu {
         display: flex;

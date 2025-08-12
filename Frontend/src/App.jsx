@@ -7,6 +7,7 @@ import AboutUs from './pages/AboutUs/AboutUs'
 // import Blog from './pages/Blog/Blog'
 // import BlogDetail from './pages/Blog/BlogDetail'
 import ContactUs from './pages/ContactUs/ContactUs'
+import Reservation from './pages/Reservation/Reservation'
 import Cart from './pages/Cart/Cart'
 import PlaceOrder from './pages/PlaceOrder/PlaceOrder';
 import Footer from './components/Footer/Footer';
@@ -33,6 +34,7 @@ const App = () => {
         {/* <Route path='/blog' element={<Blog/>}/> */}
         {/* <Route path='/blog/:slug' element={<BlogDetail/>}/> */}
         <Route path='/contact' element={<ContactUs/>}/>
+        <Route path='/reservation' element={<Reservation/>}/>
         <Route path='/cart' element={<Cart/>}/>
         <Route path='/order' element={<PlaceOrder/>}/>
         <Route path='/myorders' element={<MyOrders />} />

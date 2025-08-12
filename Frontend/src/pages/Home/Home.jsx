@@ -42,7 +42,7 @@ const Home = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/category');
+      const response = await axios.get(`${config.BACKEND_URL}/api/category`);
       setCategories(response.data.data || response.data);
       setLoading(false);
     } catch (error) {

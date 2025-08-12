@@ -226,8 +226,8 @@ export const createBlog = async (req, res) => {
     
     // Handle image upload (only if file is provided)
     if (req.file) {
-      blogData.image = req.file.filename
-      console.log('✅ Image uploaded:', req.file.filename)
+      blogData.image = req.file.path || req.file.filename
+      console.log('✅ Image uploaded:', blogData.image)
     } else {
       console.log('ℹ️ No image uploaded')
     }
@@ -322,11 +322,11 @@ export const updateBlog = async (req, res) => {
     
     // Handle image upload
     if (req.file) {
-      updateData.image = req.file.filename
+      updateData.image = req.file.path || req.file.filename
       
-      // Delete old image if exists
+      // Delete old local image if exists and was local
       const oldBlog = await Blog.findById(req.params.id)
-      if (oldBlog && oldBlog.image) {
+      if (oldBlog && oldBlog.image && !/^https?:\/\//i.test(oldBlog.image)) {
         const oldImagePath = path.join(process.cwd(), 'uploads', oldBlog.image)
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath)
@@ -363,8 +363,8 @@ export const deleteBlog = async (req, res) => {
       return res.status(404).json({ error: 'Blog not found' })
     }
     
-    // Delete image if exists
-    if (blog.image) {
+    // Delete local image if exists and not a URL
+    if (blog.image && !/^https?:\/\//i.test(blog.image)) {
       const imagePath = path.join(process.cwd(), 'uploads', blog.image)
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath)

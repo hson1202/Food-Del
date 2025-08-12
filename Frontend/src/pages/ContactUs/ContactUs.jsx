@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import config from '../../config/config'
 import './ContactUs.css'
 // Load all hero images at once using Vite glob import
 // You can place hero images in `src/assets/` and select by file name
@@ -7,7 +8,7 @@ const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eag
 
 const ContactUs = () => {
   const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState('contact') // 'contact' or 'reservation'
+  // Removed reservation tab - now separate page
   
   const [formData, setFormData] = useState({
     name: '',
@@ -16,25 +17,10 @@ const ContactUs = () => {
     message: ''
   })
 
-  const [reservationData, setReservationData] = useState({
-    customerName: '',
-    phone: '',
-    email: '',
-    reservationDate: '',
-    reservationTime: '',
-    numberOfPeople: 1,
-    note: ''
-  })
-
   // Contact form states
   const [contactLoading, setContactLoading] = useState(false)
   const [contactErrors, setContactErrors] = useState({})
-  const [contactSuccess, setContactSuccess] = useState(false)
-
-  // Reservation form states
-  const [reservationLoading, setReservationLoading] = useState(false)
-  const [reservationErrors, setReservationErrors] = useState({})
-  const [reservationSuccess, setReservationSuccess] = useState(false)
+  const [contactSuccess] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -52,21 +38,7 @@ const ContactUs = () => {
     }
   }
 
-  const handleReservationChange = (e) => {
-    const { name, value } = e.target
-    setReservationData({
-      ...reservationData,
-      [name]: value
-    })
-    
-    // Clear error when user starts typing
-    if (reservationErrors[name]) {
-      setReservationErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }))
-    }
-  }
+
 
   // Client-side validation for contact form
   const validateContactForm = () => {
@@ -97,49 +69,7 @@ const ContactUs = () => {
     return errors
   }
 
-  // Client-side validation for reservation form
-  const validateReservationForm = () => {
-    const errors = {}
-    
-    if (!reservationData.customerName.trim()) {
-      errors.customerName = t('contact.reservation.validation.fullNameRequired')
-    } else if (reservationData.customerName.trim().length < 2) {
-      errors.customerName = t('contact.reservation.validation.nameMinLength')
-    }
-    
-    if (!reservationData.phone.trim()) {
-      errors.phone = t('contact.reservation.validation.phoneRequired')
-    } else if (!/^[\+]?[1-9][\d\s\-\(\)\.]{9,15}$/.test(reservationData.phone.trim())) {
-      errors.phone = t('contact.reservation.validation.phoneInvalid')
-    }
-    
-    if (!reservationData.email.trim()) {
-      errors.email = t('contact.reservation.validation.emailRequired')
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reservationData.email.trim())) {
-      errors.email = t('contact.reservation.validation.emailInvalid')
-    }
-    
-    if (!reservationData.reservationDate) {
-      errors.reservationDate = t('contact.reservation.validation.dateRequired')
-    } else {
-      const selectedDate = new Date(reservationData.reservationDate)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      if (selectedDate < today) {
-        errors.reservationDate = t('contact.reservation.validation.datePast')
-      }
-    }
-    
-    if (!reservationData.reservationTime) {
-      errors.reservationTime = t('contact.reservation.validation.timeRequired')
-    }
-    
-    if (!reservationData.numberOfPeople || reservationData.numberOfPeople < 1) {
-      errors.numberOfPeople = t('contact.reservation.validation.peopleRequired')
-    }
-    
-    return errors
-  }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -155,7 +85,7 @@ const ContactUs = () => {
       setContactLoading(true)
       setContactErrors({})
       
-      const response = await fetch('http://localhost:4000/api/contact', {
+      const response = await fetch(`${config.BACKEND_URL}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,118 +123,11 @@ const ContactUs = () => {
     }
   }
 
-  const handleReservationSubmit = async (e) => {
-    e.preventDefault()
-    
-    // Validate form
-    const errors = validateReservationForm()
-    if (Object.keys(errors).length > 0) {
-      setReservationErrors(errors)
-      return
-    }
 
-    try {
-      setReservationLoading(true)
-      setReservationErrors({})
-      
-      const response = await fetch('http://localhost:4000/api/reservation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reservationData)
-      })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || t('contact.reservation.errors.submissionFailed'))
-      }
 
-      const result = await response.json()
-      
-      if (result.success) {
-        setReservationSuccess(true)
-        setReservationData({
-          customerName: '',
-          phone: '',
-          email: '',
-          reservationDate: '',
-          reservationTime: '',
-          numberOfPeople: 1,
-          note: ''
-        })
-        
-        // Reset success message after 5 seconds
-        setTimeout(() => {
-          setReservationSuccess(false)
-        }, 5000)
-      }
-    } catch (error) {
-      console.error('Reservation error:', error)
-      setReservationErrors({
-        general: error.message
-      })
-    } finally {
-      setReservationLoading(false)
-    }
-  }
 
-  // Generate available time slots based on business hours
-  const generateTimeSlots = (selectedDate) => {
-    if (!selectedDate) return []
-    
-    const date = new Date(selectedDate)
-    const dayOfWeek = date.getDay()
-    
-    let startHour = 11 // 11:00 AM
-    let endHour = 20 // 8:00 PM
-    
-    // Sunday: 11:00 AM - 5:00 PM
-    if (dayOfWeek === 0) {
-      endHour = 17 // 5:00 PM
-    }
-    
-    const timeSlots = []
-    for (let hour = startHour; hour < endHour; hour++) {
-      timeSlots.push(`${hour.toString().padStart(2, '0')}:00`)
-      timeSlots.push(`${hour.toString().padStart(2, '0')}:30`)
-    }
-    
-    return timeSlots
-  }
 
-  // Get minimum date (today)
-  const getMinDate = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  }
-
-  // Get business hours text for selected date
-  const getBusinessHoursText = (selectedDate) => {
-    if (!selectedDate) return ''
-    
-    const date = new Date(selectedDate)
-    const dayOfWeek = date.getDay()
-    
-    if (dayOfWeek === 0) {
-      return t('contact.reservation.businessHours.sunday')
-    } else {
-      return t('contact.reservation.businessHours.weekdays')
-    }
-  }
-
-  // Update time slots when date changes
-  const handleDateChange = (e) => {
-    const { value } = e.target
-    setReservationData(prev => ({
-      ...prev,
-      reservationDate: value,
-      reservationTime: '' // Reset time when date changes
-    }))
-  }
-
-  // Generate time slots for selected date
-  const timeSlots = generateTimeSlots(reservationData.reservationDate)
 
   return (
     <div className="contact-page">
@@ -327,30 +150,12 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <div className="container">
-          <div className="tab-buttons">
-            <button 
-              className={`tab-btn ${activeTab === 'contact' ? 'active' : ''}`}
-              onClick={() => setActiveTab('contact')}
-            >
-              {t('contact.tabs.contactUs')}
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'reservation' ? 'active' : ''}`}
-              onClick={() => setActiveTab('reservation')}
-            >
-              {t('contact.tabs.makeReservation')}
-            </button>
-          </div>
-        </div>
-      </div>
+
 
       {/* Contact Content */}
       <div className="contact-content">
         <div className="container">
-          {activeTab === 'contact' ? (
+
             <div className="contact-grid">
               {/* Contact Information */}
               <div className="contact-info">
@@ -481,6 +286,9 @@ const ContactUs = () => {
                       <div className="success-content">
                         <h3>{t('contact.form.success.title')}</h3>
                         <p>{t('contact.form.success.message')}</p>
+                        <p className="email-note">
+                          <small>📧 Note: Email confirmation is temporarily unavailable. We'll respond to your message soon.</small>
+                        </p>
                       </div>
                     </div>
                   )}
@@ -497,174 +305,7 @@ const ContactUs = () => {
                 </form>
               </div>
             </div>
-          ) : (
-            /* Reservation Form */
-            <div className="reservation-container">
-              <div className="reservation-form">
-                <h2>{t('contact.reservation.form.title')}</h2>
-                
-                {/* Success Message */}
-                {reservationSuccess && (
-                  <div className="success-message">
-                    <div className="success-icon">✅</div>
-                    <div className="success-content">
-                      <h3>{t('contact.reservation.success.title')}</h3>
-                      <p>{t('contact.reservation.success.message')}</p>
-                    </div>
-                  </div>
-                )}
 
-                {/* Error Message */}
-                {reservationErrors.general && (
-                  <div className="error-message">
-                    <div className="error-icon">❌</div>
-                    <div className="error-content">
-                      <p>{reservationErrors.general}</p>
-                    </div>
-                  </div>
-                )}
-
-                <form onSubmit={handleReservationSubmit}>
-                  <div className="form-group">
-                    <label htmlFor="customerName">{t('contact.reservation.form.fullName')} *</label>
-                    <input
-                      type="text"
-                      id="customerName"
-                      name="customerName"
-                      value={reservationData.customerName}
-                      onChange={handleReservationChange}
-                      required
-                      placeholder={t('contact.reservation.form.fullNamePlaceholder')}
-                      className={reservationErrors.customerName ? 'error' : ''}
-                    />
-                    {reservationErrors.customerName && (
-                      <span className="error-text">{reservationErrors.customerName}</span>
-                    )}
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="phone">{t('contact.reservation.form.phoneNumber')} *</label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={reservationData.phone}
-                      onChange={handleReservationChange}
-                      required
-                      placeholder={t('contact.reservation.form.phonePlaceholder')}
-                      className={reservationErrors.phone ? 'error' : ''}
-                    />
-                    {reservationErrors.phone && (
-                      <span className="error-text">{reservationErrors.phone}</span>
-                    )}
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="email">{t('contact.reservation.form.emailAddress')} *</label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={reservationData.email}
-                      onChange={handleReservationChange}
-                      required
-                      placeholder={t('contact.reservation.form.emailPlaceholder')}
-                      className={reservationErrors.email ? 'error' : ''}
-                    />
-                    {reservationErrors.email && (
-                      <span className="error-text">{reservationErrors.email}</span>
-                    )}
-                  </div>
-                  
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="reservationDate">{t('contact.reservation.form.date')} *</label>
-                      <input
-                        type="date"
-                        id="reservationDate"
-                        name="reservationDate"
-                        value={reservationData.reservationDate}
-                        onChange={handleDateChange}
-                        required
-                        min={getMinDate()}
-                        className={reservationErrors.reservationDate ? 'error' : ''}
-                      />
-                      {reservationErrors.reservationDate && (
-                        <span className="error-text">{reservationErrors.reservationDate}</span>
-                      )}
-                      {reservationData.reservationDate && (
-                        <div className="business-hours-info">
-                          <small>📅 {getBusinessHoursText(reservationData.reservationDate)}</small>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="reservationTime">{t('contact.reservation.form.time')} *</label>
-                      <select
-                        id="reservationTime"
-                        name="reservationTime"
-                        value={reservationData.reservationTime}
-                        onChange={handleReservationChange}
-                        required
-                        className={reservationErrors.reservationTime ? 'error' : ''}
-                        disabled={!reservationData.reservationDate}
-                      >
-                        <option value="">
-                          {reservationData.reservationDate ? t('contact.reservation.form.selectTime') : t('contact.reservation.form.selectDateFirst')}
-                        </option>
-                        {timeSlots.map((time) => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-                      {reservationErrors.reservationTime && (
-                        <span className="error-text">{reservationErrors.reservationTime}</span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="numberOfPeople">{t('contact.reservation.form.numberOfPeople')} *</label>
-                    <select
-                      id="numberOfPeople"
-                      name="numberOfPeople"
-                      value={reservationData.numberOfPeople}
-                      onChange={handleReservationChange}
-                      required
-                      className={reservationErrors.numberOfPeople ? 'error' : ''}
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                        <option key={num} value={num}>{num} {num === 1 ? t('contact.reservation.form.person') : t('contact.reservation.form.people')}</option>
-                      ))}
-                    </select>
-                    {reservationErrors.numberOfPeople && (
-                      <span className="error-text">{reservationErrors.numberOfPeople}</span>
-                    )}
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="note">{t('contact.reservation.form.specialRequests')}</label>
-                    <textarea
-                      id="note"
-                      name="note"
-                      value={reservationData.note}
-                      onChange={handleReservationChange}
-                      rows="4"
-                      placeholder={t('contact.reservation.form.specialRequestsPlaceholder')}
-                    ></textarea>
-                  </div>
-                  
-                  <button 
-                    type="submit" 
-                    className={`submit-btn ${reservationLoading ? 'loading' : ''}`}
-                    disabled={reservationLoading}
-                  >
-                    {reservationLoading ? t('contact.reservation.form.submitting') : t('contact.reservation.form.bookTable')}
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

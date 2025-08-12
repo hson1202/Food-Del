@@ -47,6 +47,7 @@ const resources = {
       'nav.myOrders': 'Đơn hàng của tôi',
       'nav.account': 'Tài khoản',
       'nav.trackOrder': 'Dò Đơn Hàng',
+      'nav.booking': 'Đặt bàn',
 
       // Menu
       'menu.explore': 'Khám phá thực đơn của chúng tôi',
@@ -330,6 +331,7 @@ const resources = {
       'nav.myOrders': 'My Orders',
       'nav.account': 'Account',
       'nav.trackOrder': 'Track Order',
+      'nav.booking': 'Booking',
 
       // Menu
       'menu.explore': 'Explore our menu',

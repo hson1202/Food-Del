@@ -187,7 +187,7 @@ const Menu = () => {
               >
                 {category.image ? (
                   <img 
-                    src={`http://localhost:4000/images/${category.image}`} 
+                   src={category.image && category.image.startsWith('http') ? category.image : `http://localhost:4000/images/${category.image}`} 
                     alt={category.name}
                     className="category-icon"
                   />

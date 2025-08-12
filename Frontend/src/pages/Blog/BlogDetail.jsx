@@ -110,7 +110,7 @@ const BlogDetail = () => {
           {blogPost.image && (
             <div className="blog-image">
               <img 
-                src={`${API_URL}/uploads/${blogPost.image}`} 
+                src={blogPost.image && blogPost.image.startsWith('http') ? blogPost.image : `${API_URL}/uploads/${blogPost.image}`} 
                 alt={blogPost.title}
                 onError={(e) => {
                   e.target.style.display = 'none'

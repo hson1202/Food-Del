@@ -25,6 +25,12 @@
     color: white;
     font-size: 1vw;
 }
+.header-buttons {
+    display: flex;
+    gap: 1vw;
+    flex-wrap: wrap;
+}
+
 .header-contents button{
     border: none;
     color: #747474;
@@ -33,6 +39,23 @@
     background-color: white;
     font-size: max(1vw,13px);
     border-radius: 50px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.view-menu-btn {
+    background-color: white !important;
+    color: #747474 !important;
+}
+
+.booking-btn {
+    background-color: #ff6b35 !important;
+    color: white !important;
+}
+
+.header-contents button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 @media (max-width:1050px) {
     
@@ -57,6 +80,10 @@
     .header-contents p{
         display: none;
     }
+    .header-buttons {
+        gap: 2vw;
+    }
+    
     .header-contents button{
         padding: 2.5vw 5vw;
         font-size: max(2.5vw, 14px);
@@ -78,6 +105,10 @@
         font-size: max(6vw, 18px);
         line-height: 1.2;
     }
+    .header-buttons {
+        gap: 2.5vw;
+    }
+    
     .header-contents button{
         padding: 3vw 6vw;
         font-size: max(3vw, 13px);

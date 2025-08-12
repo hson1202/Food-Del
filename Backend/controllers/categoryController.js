@@ -29,7 +29,8 @@ const getAllCategoriesAdmin = async (req, res) => {
 const addCategory = async (req, res) => {
     try {
         const { name, description, sortOrder } = req.body;
-        let image_filename = req.file ? `${req.file.filename}` : '';
+        // Prefer Cloudinary secure_url
+        let image_filename = req.file ? (req.file.path || req.file.filename || '') : '';
 
         const categoryData = {
             name,
@@ -57,7 +58,7 @@ const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, sortOrder, isActive } = req.body;
-        let image_filename = req.file ? `${req.file.filename}` : '';
+        let image_filename = req.file ? (req.file.path || req.file.filename || '') : '';
 
         const updateData = {
             name,
@@ -88,7 +89,8 @@ const deleteCategory = async (req, res) => {
         const { id } = req.params;
         const category = await categoryModel.findById(id);
         
-        if (category && category.image) {
+        // Delete local file only if it's a local filename (not a URL)
+        if (category && category.image && !/^https?:\/\//i.test(category.image)) {
             fs.unlink(`uploads/${category.image}`, () => { });
         }
 

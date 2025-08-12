@@ -1,6 +1,5 @@
 import express from "express"
-import multer from "multer"
-import path from "path"
+import { upload } from "../middleware/upload.js"
 import {
   getAllBlogs,
   getPublicBlogs,
@@ -16,45 +15,13 @@ import {
 
 const router = express.Router()
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    console.log('📁 Multer destination called for file:', file.originalname)
-    cb(null, 'uploads/')
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    const filename = 'blog_' + uniqueSuffix + path.extname(file.originalname)
-    console.log('📝 Generated filename:', filename)
-    cb(null, filename)
-  }
-})
-
-const upload = multer({ 
-  storage: storage,
-  fileFilter: function (req, file, cb) {
-    console.log('🔍 File filter called for:', file.originalname, 'MIME type:', file.mimetype)
-    // Accept only image files
-    if (file.mimetype.startsWith('image/')) {
-      console.log('✅ File accepted:', file.originalname)
-      cb(null, true)
-    } else {
-      console.log('❌ File rejected:', file.originalname, 'MIME type:', file.mimetype)
-      cb(new Error('Only image files are allowed!'), false)
-    }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
-})
-
-// Error handling middleware for multer
+// Error handling middleware for upload
 const handleMulterError = (error, req, res, next) => {
   console.log('🔍 Multer error handler called')
   console.log('Error type:', error.constructor.name)
   console.log('Error message:', error.message)
   
-  if (error instanceof multer.MulterError) {
+  if (error && error.name === 'MulterError') {
     console.log('⚠️ Multer error detected:', error.code)
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' })

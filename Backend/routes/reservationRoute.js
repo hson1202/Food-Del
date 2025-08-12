@@ -13,7 +13,7 @@ import authMiddleware, { verifyAdmin } from "../middleware/auth.js"
 const router = express.Router()
 
 // Public routes
-router.post("/create", createReservation)
+router.post("/", createReservation)
 router.get("/:id", getReservationById)
 router.get("/time-slots/:date", getAvailableTimeSlots)
 

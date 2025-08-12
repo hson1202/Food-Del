@@ -30,6 +30,7 @@ const Navbar = ({setShowLogin}) => {
         else if (path === '/about') setMenu("about");
         // else if (path === '/blog') setMenu("blog");
         else if (path === '/contact') setMenu("contact");
+        else if (path === '/reservation') setMenu("reservation");
         else if (path === '/track-order') setMenu("track");
         else setMenu("");
     }, [location]);
@@ -79,6 +80,7 @@ const Navbar = ({setShowLogin}) => {
                 <Link to='/about' onClick={()=>setMenu("about")} className={menu==="about"?"active":""}>{t('nav.about')}</Link>
                 {/* <Link to='/blog' onClick={()=>setMenu("blog")} className={menu==="blog"?"active":""}>{t('nav.blog')}</Link> */}
                 <Link to='/contact' onClick={()=>setMenu("contact")} className={menu==="contact"?"active":""}>{t('nav.contact')}</Link>
+                <Link to='/reservation' onClick={()=>setMenu("reservation")} className={menu==="reservation"?"active":""}>{t('nav.booking')}</Link>
                 {token && <Link to='/admin' onClick={()=>setMenu("admin")} className={menu==="admin"?"active":""}>Admin</Link>}
             </ul>
             
@@ -90,6 +92,7 @@ const Navbar = ({setShowLogin}) => {
                     <Link to='/about' onClick={() => handleNavLinkClick("about")} className={menu==="about"?"active":""}>{t('nav.about')}</Link>
                     {/* <Link to='/blog' onClick={() => handleNavLinkClick("blog")} className={menu==="blog"?"active":""}>{t('nav.blog')}</Link> */}
                     <Link to='/contact' onClick={() => handleNavLinkClick("contact")} className={menu==="contact"?"active":""}>{t('nav.contact')}</Link>
+                    <Link to='/reservation' onClick={() => handleNavLinkClick("reservation")} className={menu==="reservation"?"active":""}>{t('nav.booking')}</Link>
                     
                     {/* Account Section in Mobile Menu */}
                     <div className="mobile-account-section">

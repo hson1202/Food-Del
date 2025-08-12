@@ -75,7 +75,7 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
   return (
     <div className='food-item' onClick={handleCardClick}>
         <div className="food-item-img-container">
-            <img className='food-item-image' src={url+"/images/"+image} alt={getLocalizedName()}/>
+            <img className='food-item-image' src={(image && image.startsWith('http')) ? image : (url+"/images/"+image)} alt={getLocalizedName()}/>
             {isPromotion && (
               <div className="promotion-badge">
                 -{calculateDiscount()}%
