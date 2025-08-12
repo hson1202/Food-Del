@@ -1,5 +1,6 @@
 import { createContext,useEffect,useState } from "react";
 import axios from "axios"
+import config from "../config/config"
 
 
 export const StoreContext= createContext(null)
@@ -8,7 +9,7 @@ const StoreContextProvider =(props)=>{
 
     
     const [cartItems,setCartItems] = useState({});  
-    const url = "http://localhost:4000"
+    const url = config.BACKEND_URL
     const [token,setToken]=useState("")
     const [food_list,setFoodList]=useState([]);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -40,16 +41,24 @@ const StoreContextProvider =(props)=>{
             {
                 if(cartItems[item]>0){
                 let itemInfo=food_list.find((product)=>product._id===item)
-                // Sử dụng giá khuyến mãi nếu có, nếu không thì dùng giá gốc
-                const itemPrice = itemInfo.isPromotion && itemInfo.promotionPrice ? itemInfo.promotionPrice : itemInfo.price;
-                totalAmount+=itemPrice*cartItems[item];
+                if (itemInfo) {
+                    // Sử dụng giá khuyến mãi nếu có, nếu không thì dùng giá gốc
+                    let itemPrice = itemInfo.isPromotion && itemInfo.promotionPrice ? itemInfo.promotionPrice : itemInfo.price;
+                    
+                    // Kiểm tra giá có hợp lệ không
+                    if (!itemPrice || isNaN(Number(itemPrice)) || Number(itemPrice) <= 0) {
+                        itemPrice = 0;
+                    }
+                    
+                    totalAmount += Number(itemPrice) * cartItems[item];
+                }
                 }
             }
             return totalAmount;
     }
 
     const fetchFoodList=async ()=>{
-        const response= await axios.get(url+"/api/food/list")
+        const response= await axios.get(url+"/api/food/list?forUser=true")
         setFoodList(response.data.data)
     }
     const loadCartData = async (token) => {

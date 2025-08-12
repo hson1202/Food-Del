@@ -861,8 +861,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'vi', // Set default language to Vietnamese
-    fallbackLng: 'vi',
+    lng: 'en', // Set default language to English
+    fallbackLng: 'en',
     debug: false, // Disable debug for production
     interpolation: {
       escapeValue: false,

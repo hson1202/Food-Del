@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Blog.css'
 import axios from 'axios'
+import config from '../../config/config'
 
 const Blog = () => {
   const navigate = useNavigate()
@@ -11,22 +12,24 @@ const Blog = () => {
   const [error, setError] = useState(null)
 
   // API URL - thay đổi theo backend của bạn
-  const API_URL = 'http://localhost:4000' // hoặc URL thật của backend
+  const API_URL = config.BACKEND_URL
 
   // Fetch blog posts từ API
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`${API_URL}/api/blog/public?status=published`)
+        const { data } = await axios.get(`${API_URL}/api/blog/public`, {
+          params: { status: 'published' } // có thể thêm language nếu cần
+        });
         
-        // Backend trả về { data: blogs }
-        const publishedBlogs = response.data.data.filter(blog => blog.status === 'published')
+        // Backend trả về { success, data, pagination }
+        const list = Array.isArray(data?.data) ? data.data : [];
         
         // Debug: log blog data để xem có slug không
-        console.log('Blog data received:', publishedBlogs)
+        console.log('Blog data received:', list)
         
-        setBlogPosts(publishedBlogs)
+        setBlogPosts(list)
         setError(null)
       } catch (err) {
         console.error('Error fetching blog posts:', err)

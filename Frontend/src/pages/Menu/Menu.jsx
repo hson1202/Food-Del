@@ -101,12 +101,17 @@ const Menu = () => {
   }
 
   const formatPrice = (price) => {
+    // Kiểm tra price có hợp lệ không
+    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
+      return '€0';
+    }
+    
     const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
-    }).format(price);
+    }).format(Number(price));
     
     // Remove .00 if it's a whole number
     return formatted.replace(/\.00$/, '');

@@ -24,20 +24,25 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
   };
   
   const formatPrice = (price) => {
+    // Kiểm tra price có hợp lệ không
+    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
+      return '€0';
+    }
+    
     const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
-    }).format(price);
+    }).format(Number(price));
     
     // Remove .00 if it's a whole number
     return formatted.replace(/\.00$/, '');
   };
 
   const calculateDiscount = () => {
-    if (!isPromotion || !originalPrice || !promotionPrice) return 0;
-    return Math.round(((originalPrice - promotionPrice) / originalPrice) * 100);
+    if (!isPromotion || !price || !promotionPrice) return 0;
+    return Math.round(((price - promotionPrice) / price) * 100);
   };
 
   const handleCardClick = (e) => {
@@ -100,9 +105,9 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
           </div>
           
           <div className="food-item-pricing">
-            {isPromotion ? (
+            {isPromotion && promotionPrice ? (
               <div className="promotion-pricing">
-                <span className="original-price">{formatPrice(originalPrice)}</span>
+                <span className="original-price">{formatPrice(price)}</span>
                 <span className="promotion-price">{formatPrice(promotionPrice)}</span>
               </div>
             ) : (

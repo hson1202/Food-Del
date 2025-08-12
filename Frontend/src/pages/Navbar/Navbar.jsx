@@ -79,7 +79,6 @@ const Navbar = ({setShowLogin}) => {
                 <Link to='/about' onClick={()=>setMenu("about")} className={menu==="about"?"active":""}>{t('nav.about')}</Link>
                 {/* <Link to='/blog' onClick={()=>setMenu("blog")} className={menu==="blog"?"active":""}>{t('nav.blog')}</Link> */}
                 <Link to='/contact' onClick={()=>setMenu("contact")} className={menu==="contact"?"active":""}>{t('nav.contact')}</Link>
-                <Link to='/track-order' onClick={()=>setMenu("track")} className={menu==="track"?"active":""}>{t('nav.trackOrder')}</Link>
                 {token && <Link to='/admin' onClick={()=>setMenu("admin")} className={menu==="admin"?"active":""}>Admin</Link>}
             </ul>
             
@@ -91,7 +90,6 @@ const Navbar = ({setShowLogin}) => {
                     <Link to='/about' onClick={() => handleNavLinkClick("about")} className={menu==="about"?"active":""}>{t('nav.about')}</Link>
                     {/* <Link to='/blog' onClick={() => handleNavLinkClick("blog")} className={menu==="blog"?"active":""}>{t('nav.blog')}</Link> */}
                     <Link to='/contact' onClick={() => handleNavLinkClick("contact")} className={menu==="contact"?"active":""}>{t('nav.contact')}</Link>
-                    <Link to='/track-order' onClick={() => handleNavLinkClick("track")} className={menu==="track"?"active":""}>{t('nav.trackOrder')}</Link>
                     
                     {/* Account Section in Mobile Menu */}
                     <div className="mobile-account-section">

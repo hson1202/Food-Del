@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import './BlogDetail.css'
+import config from '../../config/config'
 
 const BlogDetail = () => {
   const { slug } = useParams()
@@ -10,7 +11,7 @@ const BlogDetail = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const API_URL = 'http://localhost:4000'
+  const API_URL = config.BACKEND_URL
 
   useEffect(() => {
     const fetchBlogPost = async () => {

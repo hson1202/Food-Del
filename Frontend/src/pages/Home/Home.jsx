@@ -6,6 +6,7 @@ import ExploreMenu from '../../components/ExploreMenu/ExploreMenu';
 import FoodDisplay from '../../components/FoodDisplay/FoodDisplay';
 import ProductDetail from '../../components/ProductDetail/ProductDetail';
 import { aboutImages, teamImages } from '../../assets/assets';
+import config from '../../config/config';
 
 import axios from 'axios';
 
