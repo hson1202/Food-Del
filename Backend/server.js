@@ -1,6 +1,7 @@
 // server.js
 import express from "express"
 import cors from "cors"
+import mongoose from "mongoose"
 import "dotenv/config"
 import { connectDB } from "./config/db.js"
 import foodRouter from "./routes/foodRoute.js"
@@ -61,6 +62,18 @@ app.use("/api/cloudinary", cloudinarySignRouter)
 
 app.get("/", (req, res) => res.json({ message: "🚀 Food Delivery API is Working!" }))
 app.get("/health", (req, res) => res.json({ status: "healthy", ts: new Date().toISOString() }))
+app.get("/debug", async (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+    res.json({ 
+      db: dbStatus,
+      env: process.env.NODE_ENV,
+      mongoUrl: process.env.MONGODB_URL ? "set" : "missing"
+    })
+  } catch (error) {
+    res.json({ error: error.message })
+  }
+})
 
 app.use("*", (req, res) => res.status(404).json({ error: "Route not found" }))
 
