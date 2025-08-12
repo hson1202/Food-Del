@@ -74,7 +74,18 @@ app.use("/api/food", (req, res, next) => {
   }
 })
 
-app.use("/images", express.static("uploads")) // Serve static images
+// Serve static images only on local development
+if (process.env.NODE_ENV !== "production") {
+  app.use("/images", express.static("uploads"))
+} else {
+  // On Vercel, handle image requests differently
+  app.use("/images", (req, res) => {
+    res.status(404).json({ 
+      error: "Image not found",
+      message: "File uploads not supported on Vercel. Use cloud storage instead."
+    })
+  })
+}
 
 app.use("/api/user", (req, res, next) => {
   try {

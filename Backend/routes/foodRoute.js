@@ -3,34 +3,60 @@ import { addFood, listFood, removeFood, updateFoodStatus, updateFood } from "../
 import multer from "multer"//img storage system
 
 const foodRouter = express.Router();
-//img storage engine
-const storage = multer.diskStorage({
-    destination: "uploads",
-    filename: (req, file, cb) => {
-        return cb(null, `${Date.now()}${file.originalname}`)
-    }
-})
 
-const upload = multer({ 
-    storage: storage,
-    fileFilter: (req, file, cb) => {
+// Create multer storage only when needed (not on import)
+const createMulterStorage = () => {
+  try {
+    // On Vercel, use memory storage instead of disk storage
+    if (process.env.NODE_ENV === "production") {
+      return multer.memoryStorage()
+    }
+    
+    // On local development, use disk storage
+    return multer.diskStorage({
+      destination: "uploads",
+      filename: (req, file, cb) => {
+        return cb(null, `${Date.now()}${file.originalname}`)
+      }
+    })
+  } catch (error) {
+    console.error("Error creating multer storage:", error)
+    // Fallback to memory storage
+    return multer.memoryStorage()
+  }
+}
+
+// Create upload middleware only when needed
+const createUpload = () => {
+  try {
+    const storage = createMulterStorage()
+    
+    return multer({ 
+      storage: storage,
+      fileFilter: (req, file, cb) => {
         console.log('=== MULTER FILE FILTER ===')
         console.log('File received:', file)
         console.log('File mimetype:', file.mimetype)
         
         // Accept images only
         if (file.mimetype.startsWith('image/')) {
-            console.log('File accepted')
-            cb(null, true)
+          console.log('File accepted')
+          cb(null, true)
         } else {
-            console.log('File rejected - not an image')
-            cb(new Error('Only image files are allowed'), false)
+          console.log('File rejected - not an image')
+          cb(new Error('Only image files are allowed'), false)
         }
-    },
-    limits: {
+      },
+      limits: {
         fileSize: 5 * 1024 * 1024 // 5MB limit
-    }
-})
+      }
+    })
+  } catch (error) {
+    console.error("Error creating multer upload:", error)
+    // Return a basic multer instance
+    return multer()
+  }
+}
 
 // Add error handling middleware for multer
 const handleMulterError = (error, req, res, next) => {
@@ -58,7 +84,7 @@ const handleMulterError = (error, req, res, next) => {
 }
 
 // Test route for multer
-foodRouter.post("/test-upload", upload.single("image"), (req, res) => {
+foodRouter.post("/test-upload", createUpload().single("image"), (req, res) => {
     console.log('=== TEST UPLOAD ROUTE ===')
     console.log('Request body:', req.body)
     console.log('Request file:', req.file)
@@ -243,10 +269,10 @@ foodRouter.post("/test-multilingual", async (req, res) => {
     }
 })
 
-foodRouter.post("/add", upload.single("image"), handleMulterError, addFood)
+foodRouter.post("/add", createUpload().single("image"), handleMulterError, addFood)
 foodRouter.get("/list", listFood)
 foodRouter.delete("/remove", removeFood)
 foodRouter.put("/status", updateFoodStatus)
-foodRouter.put("/edit/:id", upload.single("image"), handleMulterError, updateFood)
+foodRouter.put("/edit/:id", createUpload().single("image"), handleMulterError, updateFood)
 
 export default foodRouter;
