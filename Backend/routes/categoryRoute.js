@@ -7,7 +7,7 @@ import {
     deleteCategory,
     toggleCategoryStatus
 } from "../controllers/categoryController.js";
-import { upload } from "../middleware/upload.js";
+import { localUpload } from "../middleware/localUpload.js";
 
 const categoryRouter = express.Router();
 
@@ -18,8 +18,8 @@ categoryRouter.get("/", getAllCategories);
 
 // Admin routes
 categoryRouter.get("/admin", getAllCategoriesAdmin);
-categoryRouter.post("/", upload.single("image"), addCategory);
-categoryRouter.put("/:id", upload.single("image"), updateCategory);
+categoryRouter.post("/", localUpload.single("image"), addCategory);
+categoryRouter.put("/:id", localUpload.single("image"), updateCategory);
 categoryRouter.delete("/:id", deleteCategory);
 categoryRouter.put("/:id/toggle", toggleCategoryStatus);
 

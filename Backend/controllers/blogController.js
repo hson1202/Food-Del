@@ -226,7 +226,7 @@ export const createBlog = async (req, res) => {
     
     // Handle image upload (only if file is provided)
     if (req.file) {
-      blogData.image = req.file.path || req.file.filename
+      blogData.image = req.file.filename  // Use local filename
       console.log('✅ Image uploaded:', blogData.image)
     } else {
       console.log('ℹ️ No image uploaded')

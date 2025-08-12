@@ -14,6 +14,7 @@ import blogRouter from "./routes/blogRoute.js"
 import reservationRouter from "./routes/reservationRoute.js"
 import contactMessageRouter from "./routes/contactMessageRoute.js"
 import uploadRouter from "./routes/uploadRoute.js"
+import localUploadRouter from "./routes/localUploadRoute.js"
 import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 
 const app = express()
@@ -79,14 +80,13 @@ app.use("/api/category", categoryRouter)
 app.use("/api/blog", blogRouter)
 app.use("/api/reservation", reservationRouter)
 app.use("/api/contact", contactMessageRouter)
-app.use("/api/upload", uploadRouter)
+app.use("/api/upload", localUploadRouter)
+app.use("/api/upload-cloud", uploadRouter)  // Keep Cloudinary as backup
 app.use("/api/cloudinary", cloudinarySignRouter)
 
-// Only serve local uploads in non-production (Vercel filesystem is ephemeral)
-if (process.env.NODE_ENV !== "production") {
-  app.use("/uploads", express.static("uploads"))
-  app.use("/images", express.static("uploads"))
-}
+// Serve local uploads (Render has persistent filesystem, unlike Vercel)
+app.use("/uploads", express.static("uploads"))
+app.use("/images", express.static("uploads"))
 
 // Health check endpoints
 app.get("/", (req, res) => {
