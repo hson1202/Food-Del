@@ -42,20 +42,25 @@ const ensureDbConnection = async () => {
   }
 }
 
-// Database middleware - ensure connection before processing requests
-app.use(async (req, res, next) => {
-  try {
-    await ensureDbConnection()
-    next()
-  } catch (error) {
-    console.error("Database middleware error:", error.message)
-    return res.status(503).json({ 
-      success: false,
-      error: "Database unavailable", 
-      message: error.message 
-    })
-  }
+// Database connection - initialize once at startup
+ensureDbConnection().catch(error => {
+  console.error("Initial database connection failed:", error.message)
 })
+
+// Optional: Database middleware for critical routes only (commented out for now)
+// app.use(async (req, res, next) => {
+//   try {
+//     await ensureDbConnection()
+//     next()
+//   } catch (error) {
+//     console.error("Database middleware error:", error.message)
+//     return res.status(503).json({ 
+//       success: false,
+//       error: "Database unavailable", 
+//       message: error.message 
+//     })
+//   }
+// })
 
 // API Routes
 app.use("/api/food", foodRouter)
