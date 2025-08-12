@@ -19,13 +19,11 @@ import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 const app = express()
 
 // Middleware
-app.use(cors({
-  origin: ["https://yourdomain.com", "http://localhost:3000", "http://localhost:5173"],
-  credentials: true
-}))
+app.use(cors())
 app.use(express.json({ limit: "50mb" }))
 app.use(express.urlencoded({ extended: true, limit: "50mb" }))
-
+//db connection
+connectDB();
 // Database connection state
 let isConnected = false
 
@@ -128,17 +126,49 @@ app.get("/health", async (req, res) => {
   }
 })
 
+app.get("/test-food", async (req, res) => {
+  try {
+    const foodModel = (await import("./models/foodModel.js")).default
+    const foods = await foodModel.find().limit(5)
+    res.json({
+      success: true,
+      message: "Direct DB query test",
+      count: foods.length,
+      data: foods
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "DB query failed",
+      message: error.message
+    })
+  }
+})
+
 app.get("/debug", async (req, res) => {
   try {
     const dbStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+    
+    // Test database query
+    let foodCount = 0
+    let testQuery = "failed"
+    try {
+      const foodModel = (await import("./models/foodModel.js")).default
+      foodCount = await foodModel.countDocuments()
+      testQuery = "success"
+    } catch (dbError) {
+      testQuery = dbError.message
+    }
+    
     res.json({
       success: true,
       database: dbStatus,
+      foodCount: foodCount,
+      testQuery: testQuery,
       environment: process.env.NODE_ENV,
       mongoUrl: process.env.MONGODB_URL ? "configured" : "missing",
       nodeVersion: process.version,
-      platform: process.platform,
-      routes: app._router.stack.map(r => r.route?.path).filter(Boolean)
+      platform: process.platform
     })
   } catch (error) {
     res.status(500).json({ 
