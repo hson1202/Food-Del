@@ -1,18 +1,18 @@
-// api/index.js
+// server.js
 import express from "express"
 import cors from "cors"
 import "dotenv/config"
-import { connectDB } from "../../config/db.js"
-import foodRouter from "../../routes/foodRoute.js"
-import userRouter from "../../routes/userRoute.js"
-import cartRouter from "../../routes/cartRoute.js"
-import orderRouter from "../../routes/orderRoute.js"
-import adminRouter from "../../routes/adminRoute.js"
-import categoryRouter from "../../routes/categoryRoute.js"
-import blogRouter from "../../routes/blogRoute.js"
-import reservationRouter from "../../routes/reservationRoute.js"
-import contactMessageRouter from "../../routes/contactMessageRoute.js"
-import authMiddleware from "../../middleware/auth.js"
+import { connectDB } from "./config/db.js"
+import foodRouter from "./routes/foodRoute.js"
+import userRouter from "./routes/userRoute.js"
+import cartRouter from "./routes/cartRoute.js"
+import orderRouter from "./routes/orderRoute.js"
+import adminRouter from "./routes/adminRoute.js"
+import categoryRouter from "./routes/categoryRoute.js"
+import blogRouter from "./routes/blogRoute.js"
+import reservationRouter from "./routes/reservationRoute.js"
+import contactMessageRouter from "./routes/contactMessageRoute.js"
+import authMiddleware from "./middleware/auth.js"
 
 const app = express()
 app.use(cors())
@@ -53,8 +53,8 @@ app.use("/api/reservation", reservationRouter)
 app.use("/api/contact", contactMessageRouter)
 
 // Cloudinary upload and signature endpoints
-import uploadRouter from "../../routes/uploadRoute.js"
-import cloudinarySignRouter from "../../routes/cloudinarySignRoute.js"
+import uploadRouter from "./routes/uploadRoute.js"
+import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 
 app.use("/api/upload", uploadRouter)
 app.use("/api/cloudinary", cloudinarySignRouter)
@@ -70,4 +70,4 @@ if (process.env.NODE_ENV !== "production") {
   app.listen(port, () => console.log(`🚀 Local: http://localhost:${port}`))
 }
 
-export default (req, res) => app(req, res)
+export default app
