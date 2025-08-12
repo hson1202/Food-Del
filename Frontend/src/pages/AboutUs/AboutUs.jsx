@@ -1,8 +1,10 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import './AboutUs.css'
 import { aboutImages, teamImages } from '../../assets/assets'
 
 const AboutUs = () => {
+  const navigate = useNavigate()
   // 🖼️ EASY IMAGE REPLACEMENT - Thay đổi hình ảnh ở đây
   // Có sẵn: back1, back2, back3, back4, back5, back6, back7, back8, back9, back10, back11, back12, back13, back14, back15, back16
   // Team: food_1, food_2, food_3, food_4, food_5, food_6, food_7, food_8, food_9, food_10, food_11, food_12, food_13, food_14, food_15, food_16, food_17, food_18, food_19, food_20, food_21, food_22, food_23, food_24, food_25, food_26, food_27, food_28, food_29, food_30, food_31, food_32
@@ -239,7 +241,7 @@ const AboutUs = () => {
         <div className="cta-content">
           <h3>Ready to Experience Authentic Vietnamese Cuisine?</h3>
           <p>Order now and taste the difference that tradition makes</p>
-          <button className="cta-button">Order Now</button>
+          <button className="cta-button" onClick={() => navigate('/menu')}>Order Now</button>
         </div>
       </div>
     </div>

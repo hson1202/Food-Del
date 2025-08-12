@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import './Home.css'
 import Header from '../../components/Header/Header';
 import ExploreMenu from '../../components/ExploreMenu/ExploreMenu';
@@ -12,6 +13,7 @@ import axios from 'axios';
 
 const Home = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [category, setCategory] = useState("All");
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -274,7 +276,7 @@ const Home = () => {
           <div className="cta-content">
             <h3>Ready to Experience Authentic Vietnamese Cuisine?</h3>
             <p>Order now and taste the difference that tradition makes</p>
-            <button className="cta-button">Order Now</button>
+            <button className="cta-button" onClick={() => navigate('/menu')}>Order Now</button>
           </div>
         </div>
       </div>
