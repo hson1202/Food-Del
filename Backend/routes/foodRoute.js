@@ -4,6 +4,13 @@ import { upload } from "../middleware/upload.js"
 
 const foodRouter = express.Router();
 
+// Debug middleware cho foodRouter
+foodRouter.use((req, res, next) => {
+  console.log(`=== FOOD ROUTER DEBUG ===`)
+  console.log(`Food route called: ${req.method} ${req.path}`)
+  next()
+})
+
 // Add error handling middleware for upload
 const handleMulterError = (error, req, res, next) => {
     console.log('=== MULTER ERROR HANDLER ===')

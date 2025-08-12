@@ -60,6 +60,14 @@ ensureDbConnection().catch(error => {
 //   }
 // })
 
+// Debug middleware to track all requests
+app.use((req, res, next) => {
+  console.log(`=== REQUEST DEBUG ===`)
+  console.log(`${req.method} ${req.path}`)
+  console.log(`Original URL: ${req.originalUrl}`)
+  next()
+})
+
 // API Routes
 app.use("/api/food", foodRouter)
 app.use("/api/user", userRouter)
