@@ -65,6 +65,7 @@ app.use((req, res, next) => {
   console.log(`=== REQUEST DEBUG ===`)
   console.log(`${req.method} ${req.path}`)
   console.log(`Original URL: ${req.originalUrl}`)
+  console.log(`Headers:`, req.headers)
   next()
 })
 
@@ -155,17 +156,19 @@ app.get("/test-food", async (req, res) => {
 
 app.get("/debug", async (req, res) => {
   try {
-    const dbStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected"
-    
-    // Test database query
+    // Test actual database connectivity instead of connection state
+    let dbStatus = "disconnected"
     let foodCount = 0
     let testQuery = "failed"
+    
     try {
       const foodModel = (await import("./models/foodModel.js")).default
       foodCount = await foodModel.countDocuments()
       testQuery = "success"
+      dbStatus = "connected" // If query works, DB is connected
     } catch (dbError) {
       testQuery = dbError.message
+      dbStatus = "error"
     }
     
     res.json({
@@ -176,7 +179,8 @@ app.get("/debug", async (req, res) => {
       environment: process.env.NODE_ENV,
       mongoUrl: process.env.MONGODB_URL ? "configured" : "missing",
       nodeVersion: process.version,
-      platform: process.platform
+      platform: process.platform,
+      mongooseState: mongoose.connection.readyState
     })
   } catch (error) {
     res.status(500).json({ 
