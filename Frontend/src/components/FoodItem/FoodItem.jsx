@@ -75,7 +75,22 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
   return (
     <div className='food-item' onClick={handleCardClick}>
         <div className="food-item-img-container">
-            <img className='food-item-image' src={(image && image.startsWith('http')) ? image : (url+"/images/"+image)} alt={getLocalizedName()}/>
+            <img 
+              className='food-item-image' 
+              src={
+                image && image.startsWith('http') 
+                  ? image 
+                  : image 
+                    ? (url + "/images/" + image) 
+                    : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn42dIE5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='
+              }
+              alt={getLocalizedName()}
+              onError={(e) => {
+                // Fallback to SVG placeholder if image fails to load
+                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn5qrIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
+                e.target.onerror = null; // Prevent infinite loop
+              }}
+            />
             {isPromotion && (
               <div className="promotion-badge">
                 -{calculateDiscount()}%
