@@ -565,7 +565,7 @@ const Blog = ({ url }) => {
               <div key={blog._id} className="blog-card">
                 <div className="blog-image">
                   {blog.image ? (
-                    <img src={`${url}/images/${blog.image}`} alt={blog.title} />
+                    <img src={`${url}/uploads/${blog.image}`} alt={blog.title} />
                   ) : (
                     <div className="no-image">{t('blog.noImage')}</div>
                   )}
@@ -764,7 +764,7 @@ const Blog = ({ url }) => {
                   />
                   {editingBlog.image && (
                     <div className="current-image">
-                      <img src={`${url}/images/${editingBlog.image}`} alt="Current" style={{ width: '100px', height: '60px', objectFit: 'cover', marginTop: '5px' }} />
+                      <img src={`${url}/uploads/${editingBlog.image}`} alt="Current" style={{ width: '100px', height: '60px', objectFit: 'cover', marginTop: '5px' }} />
                     </div>
                   )}
                 </div>

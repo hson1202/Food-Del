@@ -45,6 +45,10 @@ const Sidebar = () => {
           <div className="sidebar-icon">📅</div>
           <p>Reservations</p>
         </NavLink>
+        <NavLink to='/admin/messages' className="sidebar-option">
+          <div className="sidebar-icon">💬</div>
+          <p>Messages</p>
+        </NavLink>
       </div>
     </div>
   )

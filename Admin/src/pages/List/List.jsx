@@ -2,10 +2,17 @@ import React, { useEffect, useState } from 'react'
 import './List.css'
 import axios from "axios"
 import {toast} from "react-toastify"
+
 const List = ({url}) => {
-
-
   const [list,setList]=useState([]);
+  const [editingFood, setEditingFood] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    price: '',
+    description: '',
+    category: '',
+    sku: ''
+  });
 
   const fetchList=async ()=>{
     const response=await axios.get(`${url}/api/food/list`);
@@ -27,6 +34,61 @@ const List = ({url}) => {
       toast.error("Error");
     }
   }
+
+  const handleEdit = (food) => {
+    setEditingFood(food);
+    setEditForm({
+      name: food.name || '',
+      price: food.price || '',
+      description: food.description || '',
+      category: food.category || '',
+      sku: food.sku || ''
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingFood(null);
+    setEditForm({
+      name: '',
+      price: '',
+      description: '',
+      category: '',
+      sku: ''
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await axios.put(`${url}/api/food/edit/${editingFood._id}`, editForm);
+      
+      if (response.data.success) {
+        toast.success('Product updated successfully!');
+        setEditingFood(null);
+        setEditForm({
+          name: '',
+          price: '',
+          description: '',
+          category: '',
+          sku: ''
+        });
+        fetchList(); // Refresh list
+      } else {
+        toast.error('Failed to update product: ' + response.data.message);
+      }
+    } catch (error) {
+      toast.error('Error updating product: ' + error.message);
+    }
+  };
 
   useEffect(()=>{
     fetchList();
@@ -53,12 +115,93 @@ const List = ({url}) => {
               <p>{item.name}</p>
               <p>{item.category}</p>
               <p>€{item.price}</p>
-              <p onClick={()=>removeFood(item._id)} className='cursor'>X</p>
+              <div className="action-buttons">
+                <button onClick={() => handleEdit(item)} className="edit-btn">Edit</button>
+                <button onClick={()=>removeFood(item._id)} className='delete-btn'>X</button>
+              </div>
               </div>
           )
         })}
       </div>
 
+      {/* Edit Modal */}
+      {editingFood && (
+        <div className="edit-modal">
+          <div className="edit-modal-content">
+            <h3>Edit Product: {editingFood.name}</h3>
+            
+            <form onSubmit={handleSubmitEdit}>
+              <div className="form-group">
+                <label>Name:</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editForm.name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>SKU:</label>
+                <input
+                  type="text"
+                  name="sku"
+                  value={editForm.sku}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Price:</label>
+                <input
+                  type="number"
+                  name="price"
+                  value={editForm.price}
+                  onChange={handleInputChange}
+                  step="0.01"
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Category:</label>
+                <input
+                  type="text"
+                  name="category"
+                  value={editForm.category}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Description:</label>
+                <textarea
+                  name="description"
+                  value={editForm.description}
+                  onChange={handleInputChange}
+                  rows="3"
+                />
+              </div>
+              
+              <div className="form-actions">
+                <button type="submit" className="save-btn">
+                  Save Changes
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleCancelEdit}
+                  className="cancel-btn"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

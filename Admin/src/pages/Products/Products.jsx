@@ -4,6 +4,9 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../i18n'
+import EditProductPopup from '../../components/EditProductPopup/EditProductPopup'
+import InventoryStatus from '../../components/InventoryStatus/InventoryStatus'
+import OrderProcessor from '../../components/OrderProcessor/OrderProcessor'
 
 const Products = ({ url }) => {
   const { t } = useTranslation();
@@ -12,8 +15,23 @@ const Products = ({ url }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'inactive'
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [editForm, setEditForm] = useState({
+    sku: '',
+    name: '',
+    nameVI: '',
+    nameEN: '',
+    nameSK: '',
+    description: '',
+    price: '',
+    category: '',
+    quantity: 0,
+    isPromotion: false,
+    promotionPrice: '',
+    soldCount: 0
+  })
   const [error, setError] = useState(null)
   const [newProduct, setNewProduct] = useState({
     sku: '',
@@ -26,12 +44,10 @@ const Products = ({ url }) => {
     price: '',
     category: '',
     image: null,
+    quantity: 0,
     isPromotion: false,
-    originalPrice: '',
     promotionPrice: '',
-    soldCount: 0,
-    likes: 0,
-    language: 'vi'
+    soldCount: 0
   })
 
   useEffect(() => {
@@ -45,7 +61,6 @@ const Products = ({ url }) => {
     try {
       const params = {};
       const response = await axios.get(`${url}/api/food/list`, { params })
-      console.log('Food list response:', response.data) // Debug log
       if (response.data && response.data.data) {
         setFoodList(response.data.data)
       } else {
@@ -100,6 +115,97 @@ const Products = ({ url }) => {
       }
     }
   }
+
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+    setEditForm({
+      sku: product.sku || '',
+      name: product.name || '',
+      nameVI: product.nameVI || '',
+      nameEN: product.nameEN || '',
+      nameSK: product.nameSK || '',
+      description: product.description || '',
+      price: product.price || '',
+      category: product.category || '',
+      quantity: product.quantity || 0,
+      isPromotion: product.isPromotion || false,
+      promotionPrice: product.promotionPrice || '',
+      soldCount: product.soldCount || 0
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProduct(null);
+    setEditForm({
+      sku: '',
+      name: '',
+      nameVI: '',
+      nameEN: '',
+      nameSK: '',
+      description: '',
+      price: '',
+      category: '',
+      quantity: 0,
+      isPromotion: false,
+      originalPrice: '',
+      promotionPrice: '',
+      soldCount: 0,
+      likes: 0
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+    
+    console.log('🔍 Submitting edit for product:', editingProduct._id);
+    console.log('🔍 Edit form data:', editForm);
+    
+    try {
+      const response = await axios.put(`${url}/api/food/edit/${editingProduct._id}`, editForm);
+      
+      console.log('🔍 Response status:', response.status);
+      console.log('🔍 Response data:', response.data);
+      
+      if (response.data.success) {
+        toast.success('Product updated successfully!');
+        setEditingProduct(null);
+            setEditForm({
+      sku: '',
+      name: '',
+      nameVI: '',
+      nameEN: '',
+      nameSK: '',
+      description: '',
+      price: '',
+      category: '',
+      quantity: 0,
+      isPromotion: false,
+      promotionPrice: '',
+      soldCount: 0
+    });
+        fetchFoodList(); // Refresh list
+      } else {
+        toast.error('Failed to update product: ' + response.data.message);
+      }
+    } catch (error) {
+      console.error('❌ Edit error:', error);
+      if (error.response) {
+        console.error('❌ Response status:', error.response.status);
+        console.error('❌ Response data:', error.response.data);
+        toast.error(`Error ${error.response.status}: ${error.response.data?.message || error.response.data?.error || 'Unknown error'}`);
+      } else {
+        toast.error('Error updating product: ' + error.message);
+      }
+    }
+  };
 
   const handleStatusToggle = async (productId, currentStatus) => {
     try {
@@ -156,22 +262,27 @@ const Products = ({ url }) => {
       toast.error('Promotion price must be less than regular price')
       return
     }
+    
+    if (newProduct.quantity === undefined || newProduct.quantity === null || isNaN(Number(newProduct.quantity)) || Number(newProduct.quantity) < 0) {
+      toast.error('Valid quantity is required (must be >= 0)')
+      return
+    }
 
     const formData = new FormData()
-    formData.append('sku', newProduct.sku)
-    formData.append('name', newProduct.name)
-    formData.append('nameVI', newProduct.nameVI)
-    formData.append('nameEN', newProduct.nameEN)
-    formData.append('nameSK', newProduct.nameSK)
-    formData.append('slug', newProduct.slug)
-    formData.append('description', newProduct.description)
+          formData.append('sku', newProduct.sku)
+      formData.append('name', newProduct.name)
+      formData.append('nameVI', newProduct.nameVI)
+      formData.append('nameEN', newProduct.nameEN)
+      formData.append('nameSK', newProduct.nameSK)
+      formData.append('slug', newProduct.slug)
+      formData.append('description', newProduct.description)
     formData.append('price', newProduct.price)
-    formData.append('category', newProduct.category)
-    formData.append('isPromotion', newProduct.isPromotion)
-    formData.append('language', newProduct.language)
+            formData.append('category', newProduct.category)
+        formData.append('quantity', newProduct.quantity)
+        formData.append('isPromotion', newProduct.isPromotion)
     
     if (newProduct.isPromotion) {
-      formData.append('originalPrice', newProduct.originalPrice || newProduct.price)
+      // originalPrice removed - using regular price as base
       formData.append('promotionPrice', newProduct.promotionPrice)
     }
     
@@ -200,12 +311,10 @@ const Products = ({ url }) => {
           price: '',
           category: '',
           image: null,
+          quantity: 0,
           isPromotion: false,
-          originalPrice: '',
           promotionPrice: '',
-          soldCount: 0,
-          likes: 0,
-          language: 'vi'
+          soldCount: 0
         })
         setShowAddForm(false)
         fetchFoodList()
@@ -235,7 +344,6 @@ const Products = ({ url }) => {
     setNewProduct({
       ...newProduct,
       isPromotion: !newProduct.isPromotion,
-      originalPrice: newProduct.isPromotion ? '' : newProduct.price,
       promotionPrice: newProduct.isPromotion ? '' : ''
     })
   }
@@ -253,13 +361,89 @@ const Products = ({ url }) => {
                          (product.nameSK && product.nameSK.toLowerCase().includes(searchTermLower)) ||
                          product.category.toLowerCase().includes(searchTermLower)
     const matchesCategory = filterCategory === 'all' || product.category === filterCategory
-    return matchesSearch && matchesCategory
+    
+    // Improved status filtering with fallback
+    let matchesStatus = true
+    if (statusFilter !== 'all') {
+      // Normalize status to handle case sensitivity and whitespace
+      const productStatus = product.status ? product.status.toString().toLowerCase().trim() : ''
+      const filterStatus = statusFilter.toLowerCase().trim()
+      
+      // Debug log
+      if (product.name === 'test') {
+        console.log(`DEBUG - Product: ${product.name}, Raw status: "${product.status}", Normalized: "${productStatus}", Filter: "${filterStatus}"`)
+      }
+      
+      if (filterStatus === 'active') {
+        matchesStatus = productStatus === 'active' || productStatus === ''
+      } else if (filterStatus === 'inactive') {
+        matchesStatus = productStatus === 'inactive'
+        if (product.name === 'test') {
+          console.log(`DEBUG - Inactive check for ${product.name}: ${matchesStatus}`)
+        }
+      }
+    }
+    
+    return matchesSearch && matchesCategory && matchesStatus
+  }).sort((a, b) => {
+    // Sort by quantity: low stock first, then by name
+    const quantityA = a.quantity || 0
+    const quantityB = b.quantity || 0
+    
+    if (quantityA <= 5 && quantityB > 5) return -1
+    if (quantityA > 5 && quantityB <= 5) return 1
+    if (quantityA === 0 && quantityB > 0) return -1
+    if (quantityA > 0 && quantityB === 0) return 1
+    
+    return a.name.localeCompare(b.name)
   })
 
   const getStatusBadge = (status) => {
+    if (!status) {
+      return (
+        <span className="status-badge undefined">
+          <span className="status-icon">❓</span>
+          Undefined
+        </span>
+      )
+    }
+    
+    // Normalize status
+    const normalizedStatus = status.toString().toLowerCase().trim()
+    
+    const statusConfig = {
+      active: {
+        icon: '✅',
+        label: 'Active',
+        className: 'active'
+      },
+      inactive: {
+        icon: '⏸️',
+        label: 'Inactive',
+        className: 'inactive'
+      },
+      draft: {
+        icon: '📝',
+        label: 'Draft',
+        className: 'draft'
+      },
+      archived: {
+        icon: '📦',
+        label: 'Archived',
+        className: 'archived'
+      }
+    }
+    
+    const config = statusConfig[normalizedStatus] || {
+      icon: '❓',
+      label: status.toString().charAt(0).toUpperCase() + status.toString().slice(1),
+      className: 'unknown'
+    }
+    
     return (
-      <span className={`status-badge ${status}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span className={`status-badge ${config.className}`}>
+        <span className="status-icon">{config.icon}</span>
+        {config.label}
       </span>
     )
   }
@@ -277,18 +461,7 @@ const Products = ({ url }) => {
         </button>
       </div>
 
-      {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{ padding: '10px', background: '#f0f0f0', margin: '10px 0', fontSize: '12px' }}>
-          <strong>Debug Info:</strong><br/>
-          URL: {url}<br/>
-          Food List Count: {foodList.length}<br/>
-          Categories Count: {categories.length}<br/>
-          Loading: {isLoading ? 'Yes' : 'No'}<br/>
-          Search Term: {searchTerm}<br/>
-          Filter Category: {filterCategory}
-        </div>
-      )}
+    
 
       {/* Error State */}
       {error && (
@@ -362,25 +535,7 @@ const Products = ({ url }) => {
                                 onChange={(e) => setNewProduct({...newProduct, nameSK: e.target.value})}
                             />
                         </div>
-                        <div className="form-group">
-                            <label>{t('products.slug') || 'Slug'}</label>
-                            <input
-                                type="text"
-                                value={newProduct.slug}
-                                onChange={(e) => setNewProduct({...newProduct, slug: e.target.value})}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>{t('products.language') || 'Language'}</label>
-                            <select
-                                value={newProduct.language}
-                                onChange={(e) => setNewProduct({...newProduct, language: e.target.value})}
-                            >
-                                <option value="vi">🇻🇳 Vietnamese</option>
-                                <option value="en">🇬🇧 English</option>
-                                <option value="sk">🇸🇰 Slovak</option>
-                            </select>
-                        </div>
+
                     </div>
 
                     <div className="form-row">
@@ -427,8 +582,35 @@ const Products = ({ url }) => {
                   step="0.01"
                   required
                 />
+                                      </div>
+                        <div className="form-group">
+                            <label>{t('products.slug') || 'Slug'}</label>
+                            <input
+                                type="text"
+                                value={newProduct.slug}
+                                onChange={(e) => setNewProduct({...newProduct, slug: e.target.value})}
+                                placeholder="Auto-generated from name"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="quantity">{t('products.quantity') || 'Quantity'} *</label>
+                <input
+                  type="number"
+                  id="quantity"
+                  value={newProduct.quantity}
+                  onChange={(e) => setNewProduct({ ...newProduct, quantity: parseInt(e.target.value) || 0 })}
+                  placeholder="Enter quantity"
+                  min="0"
+                  step="1"
+                  required
+                />
               </div>
             </div>
+
+
 
             <div className="form-row">
               <div className="form-group">
@@ -458,18 +640,7 @@ const Products = ({ url }) => {
               {newProduct.isPromotion && (
                 <div className="promotion-fields">
                   <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="originalPrice">{t('products.originalPrice')}</label>
-                      <input
-                        type="number"
-                        id="originalPrice"
-                        value={newProduct.originalPrice}
-                        onChange={(e) => setNewProduct({ ...newProduct, originalPrice: e.target.value })}
-                        placeholder="Original price"
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
+
                     <div className="form-group">
                       <label htmlFor="promotionPrice">{t('products.promotionPrice')} *</label>
                       <input
@@ -484,10 +655,10 @@ const Products = ({ url }) => {
                       />
                     </div>
                   </div>
-                  {newProduct.originalPrice && newProduct.promotionPrice && (
+                  {newProduct.promotionPrice && (
                     <div className="discount-info">
                       <span className="discount-badge">
-                        -{calculateDiscount(parseFloat(newProduct.originalPrice), parseFloat(newProduct.promotionPrice))}% OFF
+                        Promotion Active! Save €{(parseFloat(newProduct.price) - parseFloat(newProduct.promotionPrice)).toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -510,6 +681,42 @@ const Products = ({ url }) => {
           </form>
         </div>
       )}
+
+      {/* Status Filter Tabs */}
+      <div className="status-filter-tabs">
+        <button
+          className={`status-tab ${statusFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('all')}
+        >
+          <span className="tab-icon">📦</span>
+          All Products
+          <span className="tab-count">({foodList.length})</span>
+        </button>
+        <button
+          className={`status-tab ${statusFilter === 'active' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('active')}
+        >
+          <span className="tab-icon">✅</span>
+          Active
+          <span className="tab-count">({foodList.filter(p => {
+            const status = p.status ? p.status.toString().toLowerCase().trim() : ''
+            return status === 'active' || status === ''
+          }).length})</span>
+        </button>
+        <button
+          className={`status-tab ${statusFilter === 'inactive' ? 'active' : ''}`}
+          onClick={() => setStatusFilter('inactive')}
+        >
+          <span className="tab-icon">⏸️</span>
+          Inactive
+          <span className="tab-count">({foodList.filter(p => {
+            const status = p.status ? p.status.toString().toLowerCase().trim() : ''
+            return status === 'inactive'
+          }).length})</span>
+        </button>
+      </div>
+      
+
 
       {/* Filters and Search */}
       <div className="filters-section">
@@ -544,20 +751,21 @@ const Products = ({ url }) => {
           <div className="loading">Loading products...</div>
         ) : (
           <div className="products-grid">
-            {filteredProducts.map((product) => (
-              <div key={product._id} className="product-card">
+            {filteredProducts.map((product) => {
+              // Debug log for test product
+              if (product.name === 'test') {
+                console.log(`DEBUG - Rendering test product: ${product.name}, status: "${product.status}", filter: ${statusFilter}`)
+              }
+              return (
+                <div key={product._id} className="product-card">
                 <div className="product-image">
-                  {process.env.NODE_ENV === 'development' && (
-                    <div style={{ fontSize: '10px', color: 'red', padding: '2px' }}>
-                      Debug: {product.image ? `${url}/images/${product.image}` : 'No image'}
-                    </div>
-                  )}
+                
                   <img 
-                    src={product.image ? `${url}/images/${product.image}` : 'https://via.placeholder.com/300x200?text=No+Image'} 
+                    src={product.image ? `${url}/images/${product.image}` : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='} 
                     alt={product.name || 'Product'} 
                     onError={(e) => {
                       console.error('Image failed to load:', e.target.src);
-                      e.target.src = 'https://via.placeholder.com/300x200?text=Image+Error';
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlsaT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBFcnJvcjwvdGV4dD48L3N2Zz4=';
                       e.target.onerror = null;
                     }}
                     style={{ width: '100%', height: '200px', objectFit: 'cover' }}
@@ -569,6 +777,12 @@ const Products = ({ url }) => {
                     >
                       {getStatusBadge(product.status)}
                     </button>
+                    {(product.quantity || 0) === 0 && (
+                      <div className="out-of-stock-badge">
+                        <span className="out-of-stock-icon">🚫</span>
+                        Out of Stock
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="product-content">
@@ -582,14 +796,17 @@ const Products = ({ url }) => {
                     {product.nameSK && <p className="product-name-sk">🇸🇰 {product.nameSK}</p>}
                     <p className="product-category">📁 {product.category || 'No Category'}</p>
                     <p className="product-description">📝 {product.description || 'No description'}</p>
+                    <div className="product-inventory">
+                      <InventoryStatus quantity={product.quantity || 0} />
+                    </div>
                   </div>
                   <div className="product-pricing">
-                    {product.isPromotion && product.originalPrice && product.promotionPrice ? (
+                    {product.isPromotion && product.promotionPrice ? (
                       <div className="promotion-pricing">
-                        <div className="original-price">€{product.originalPrice}</div>
+                        <div className="original-price">€{product.price}</div>
                         <div className="promotion-price">€{product.promotionPrice}</div>
                         <div className="discount-badge">
-                          -{calculateDiscount(product.originalPrice, product.promotionPrice)}% OFF
+                          Save €{(parseFloat(product.price) - parseFloat(product.promotionPrice)).toFixed(2)}
                         </div>
                       </div>
                     ) : (
@@ -598,7 +815,7 @@ const Products = ({ url }) => {
                   </div>
                   <div className="product-actions">
                     <button
-                      onClick={() => setEditingProduct(product)}
+                      onClick={() => handleEdit(product)}
                       className="btn-edit"
                     >
                       {t('common.edit')}
@@ -612,10 +829,22 @@ const Products = ({ url }) => {
                   </div>
                 </div>
               </div>
-            ))}
+            )
+          })}
           </div>
         )}
       </div>
+
+      {/* Edit Product Popup */}
+      <EditProductPopup
+        isOpen={!!editingProduct}
+        product={editingProduct}
+        editForm={editForm}
+        onInputChange={handleInputChange}
+        onSubmit={handleSubmitEdit}
+        onCancel={handleCancelEdit}
+        categories={categories}
+      />
 
       {/* Summary Stats */}
       <div className="products-summary">
@@ -632,10 +861,28 @@ const Products = ({ url }) => {
           <p>{categories.length}</p>
         </div>
         <div className="summary-card">
+          <h3>Total Stock</h3>
+          <p>{foodList.reduce((sum, product) => sum + (product.quantity || 0), 0)}</p>
+        </div>
+        <div className="summary-card">
+          <h3>Low Stock Items</h3>
+          <p>{foodList.filter(product => (product.quantity || 0) <= 5 && (product.quantity || 0) > 0).length}</p>
+        </div>
+        <div className="summary-card">
+          <h3>Out of Stock</h3>
+          <p>{foodList.filter(product => (product.quantity || 0) === 0).length}</p>
+        </div>
+        <div className="summary-card">
           <h3>Average Price</h3>
           <p>€{foodList.length > 0 ? (foodList.reduce((sum, product) => sum + product.price, 0) / foodList.length).toFixed(2) : '0.00'}</p>
         </div>
       </div>
+
+      {/* Order Processor for Testing */}
+      <OrderProcessor 
+        url={url} 
+        onOrderProcessed={fetchFoodList}
+      />
     </div>
   )
 }
