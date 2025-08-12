@@ -198,14 +198,14 @@ router.post("/image", (req, res) => {
 
 ### **1. Test Cloudinary connection:**
 ```bash
-curl https://your-backend-url.vercel.app/debug-cloudinary
+curl https://food-del-backend-4jjf.onrender.com/debug-cloudinary
 ```
 
 ### **2. Test file upload:**
 ```bash
 curl -X POST \
   -F "image=@test-image.jpg" \
-  https://your-backend-url.vercel.app/test-upload
+  https://food-del-backend-4jjf.onrender.com/test-upload
 ```
 
 ### **3. Test via Frontend:**

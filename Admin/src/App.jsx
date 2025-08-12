@@ -19,7 +19,7 @@ import './i18n';
 
 const App = () => {
   const url = process.env.NODE_ENV === 'production' 
-    ? process.env.REACT_APP_BACKEND_URL || 'https://food-del-backend-orcin.vercel.app'
+    ? process.env.REACT_APP_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com'
     : 'http://localhost:4000'
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);

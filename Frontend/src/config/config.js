@@ -2,7 +2,7 @@
 const config = {
   // Backend URL - change this based on environment
   BACKEND_URL: process.env.NODE_ENV === 'production' 
-    ? process.env.REACT_APP_BACKEND_URL || 'https://food-del-backend-orcin.vercel.app'  // Use env var or replace with your actual backend URL
+    ? process.env.REACT_APP_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com'  // Use env var or replace with your actual backend URL
     : 'http://localhost:4000',
   
   // API endpoints
