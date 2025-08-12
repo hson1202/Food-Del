@@ -30,7 +30,8 @@ const Products = ({ url }) => {
     quantity: 0,
     isPromotion: false,
     promotionPrice: '',
-    soldCount: 0
+    soldCount: 0,
+    image: null
   })
   const [error, setError] = useState(null)
   const [newProduct, setNewProduct] = useState({
@@ -135,6 +136,11 @@ const Products = ({ url }) => {
   };
 
   const handleCancelEdit = () => {
+    // Clean up preview URL if exists
+    if (editForm.imagePreview) {
+      URL.revokeObjectURL(editForm.imagePreview);
+    }
+    
     setEditingProduct(null);
     setEditForm({
       sku: '',
@@ -150,7 +156,9 @@ const Products = ({ url }) => {
       originalPrice: '',
       promotionPrice: '',
       soldCount: 0,
-      likes: 0
+      likes: 0,
+      image: null,
+      imagePreview: null
     });
   };
 
@@ -162,6 +170,19 @@ const Products = ({ url }) => {
     }));
   };
 
+  const handleEditImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setEditForm(prev => ({
+        ...prev,
+        image: file,
+        imagePreview: previewUrl  // Add preview URL
+      }));
+    }
+  };
+
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     
@@ -169,28 +190,52 @@ const Products = ({ url }) => {
     console.log('🔍 Edit form data:', editForm);
     
     try {
-      const response = await axios.put(`${url}/api/food/edit/${editingProduct._id}`, editForm);
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      // Append all form fields
+      Object.keys(editForm).forEach(key => {
+        if (key === 'image' && editForm[key] instanceof File) {
+          formData.append('image', editForm[key]);
+        } else if (key !== 'image') {
+          formData.append(key, editForm[key]);
+        }
+      });
+      
+      const response = await axios.put(`${url}/api/food/edit/${editingProduct._id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       
       console.log('🔍 Response status:', response.status);
       console.log('🔍 Response data:', response.data);
       
       if (response.data.success) {
         toast.success('Product updated successfully!');
+        
+        // Clean up preview URL if exists
+        if (editForm.imagePreview) {
+          URL.revokeObjectURL(editForm.imagePreview);
+        }
+        
         setEditingProduct(null);
-            setEditForm({
-      sku: '',
-      name: '',
-      nameVI: '',
-      nameEN: '',
-      nameSK: '',
-      description: '',
-      price: '',
-      category: '',
-      quantity: 0,
-      isPromotion: false,
-      promotionPrice: '',
-      soldCount: 0
-    });
+        setEditForm({
+          sku: '',
+          name: '',
+          nameVI: '',
+          nameEN: '',
+          nameSK: '',
+          description: '',
+          price: '',
+          category: '',
+          quantity: 0,
+          isPromotion: false,
+          promotionPrice: '',
+          soldCount: 0,
+          image: null,
+          imagePreview: null
+        });
         fetchFoodList(); // Refresh list
       } else {
         toast.error('Failed to update product: ' + response.data.message);
@@ -850,6 +895,8 @@ const Products = ({ url }) => {
         onSubmit={handleSubmitEdit}
         onCancel={handleCancelEdit}
         categories={categories}
+        onImageChange={handleEditImageChange}
+        url={url}
       />
 
       {/* Summary Stats */}

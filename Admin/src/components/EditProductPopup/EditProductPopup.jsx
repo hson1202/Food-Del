@@ -8,7 +8,9 @@ const EditProductPopup = ({
   onInputChange, 
   onSubmit, 
   onCancel, 
-  categories 
+  categories,
+  onImageChange,
+  url
 }) => {
   if (!isOpen || !product) return null;
 
@@ -150,6 +152,46 @@ const EditProductPopup = ({
                 rows="4"
                 placeholder="Enter product description..."
               />
+            </div>
+
+            {/* Image Upload Section */}
+            <div className="form-group full-width">
+              <label>Product Image</label>
+              <div className="image-upload-section">
+                {/* Show preview if new image selected, otherwise show current image */}
+                {(editForm.imagePreview || product.image) && (
+                  <div className="current-image">
+                    <img 
+                      src={
+                        editForm.imagePreview || // Show preview first if available
+                        (product.image && product.image.startsWith('http')
+                          ? product.image
+                          : product.image 
+                            ? `${url}/images/${product.image}`
+                            : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn42dIE5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==')
+                      }
+                      alt={editForm.imagePreview ? "New image preview" : "Current product image"} 
+                      className="current-product-image"
+                    />
+                    <p className="image-label">
+                      {editForm.imagePreview ? "New Image Preview" : "Current Image"}
+                    </p>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  id="edit-image-upload"
+                  onChange={onImageChange}
+                  accept="image/*"
+                  className="image-input"
+                />
+                <label htmlFor="edit-image-upload" className="image-upload-label">
+                  📁 Choose New Image
+                </label>
+                <small className="form-help">
+                  Upload a new image to replace the current one (optional)
+                </small>
+              </div>
             </div>
 
             <div className="form-group">
