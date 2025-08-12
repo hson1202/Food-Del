@@ -26,9 +26,13 @@ let isConnected = false
 const ensureDbConnection = async () => {
   if (!isConnected) {
     try {
-      await connectDB()
-      isConnected = true
-      console.log("✅ DB Connected Successfully")
+      const connected = await connectDB()
+      if (connected) {
+        isConnected = true
+        console.log("✅ DB Connected Successfully")
+      } else {
+        console.log("⚠️ DB connection failed, but continuing...")
+      }
     } catch (error) {
       console.error("❌ DB Connection failed:", error.message)
       // Don't throw error on Vercel, just log it
@@ -60,17 +64,89 @@ app.use(async (req, res, next) => {
   }
 })
 
-// Routes
-app.use("/api/food", foodRouter)
+// Routes with error handling
+app.use("/api/food", (req, res, next) => {
+  try {
+    foodRouter(req, res, next)
+  } catch (error) {
+    console.error("Food route error:", error)
+    res.status(500).json({ error: "Food route error" })
+  }
+})
+
 app.use("/images", express.static("uploads")) // Serve static images
-app.use("/api/user", userRouter)
-app.use("/api/cart", cartRouter)
-app.use("/api/order", orderRouter)
-app.use("/api/admin", adminRouter)
-app.use("/api/category", categoryRouter)
-app.use("/api/blog", blogRouter)
-app.use("/api/reservation", reservationRouter)
-app.use("/api/contact", contactMessageRouter)
+
+app.use("/api/user", (req, res, next) => {
+  try {
+    userRouter(req, res, next)
+  } catch (error) {
+    console.error("User route error:", error)
+    res.status(500).json({ error: "User route error" })
+  }
+})
+
+app.use("/api/cart", (req, res, next) => {
+  try {
+    cartRouter(req, res, next)
+  } catch (error) {
+    console.error("Cart route error:", error)
+    res.status(500).json({ error: "Cart route error" })
+  }
+})
+
+app.use("/api/order", (req, res, next) => {
+  try {
+    orderRouter(req, res, next)
+  } catch (error) {
+    console.error("Order route error:", error)
+    res.status(500).json({ error: "Order route error" })
+  }
+})
+
+app.use("/api/admin", (req, res, next) => {
+  try {
+    adminRouter(req, res, next)
+  } catch (error) {
+    console.error("Admin route error:", error)
+    res.status(500).json({ error: "Admin route error" })
+  }
+})
+
+app.use("/api/category", (req, res, next) => {
+  try {
+    categoryRouter(req, res, next)
+  } catch (error) {
+    console.error("Category route error:", error)
+    res.status(500).json({ error: "Category route error" })
+  }
+})
+
+app.use("/api/blog", (req, res, next) => {
+  try {
+    blogRouter(req, res, next)
+  } catch (error) {
+    console.error("Blog route error:", error)
+    res.status(500).json({ error: "Blog route error" })
+  }
+})
+
+app.use("/api/reservation", (req, res, next) => {
+  try {
+    reservationRouter(req, res, next)
+  } catch (error) {
+    console.error("Reservation route error:", error)
+    res.status(500).json({ error: "Reservation route error" })
+  }
+})
+
+app.use("/api/contact", (req, res, next) => {
+  try {
+    contactMessageRouter(req, res, next)
+  } catch (error) {
+    console.error("Contact route error:", error)
+    res.status(500).json({ error: "Contact route error" })
+  }
+})
 
 // Root route
 app.get("/", (req, res) => {
