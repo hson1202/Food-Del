@@ -66,6 +66,9 @@ const addFood = async (req, res) => {
 //list food items
 const listFood = async (req, res) => {
     try {
+      console.log('=== LIST FOOD DEBUG ===')
+      console.log('Query params:', req.query)
+      
       const { status = 'all', search, category, forUser = false } = req.query
       const filter = {}
   
@@ -85,11 +88,14 @@ const listFood = async (req, res) => {
         ]
       }
   
+      console.log('Filter applied:', filter)
       const foods = await foodModel.find(filter).sort({ createdAt: -1 })
-      res.json({ success: true, data: foods })
+      console.log('Foods found:', foods.length)
+      
+      res.json({ success: true, data: foods, filter: filter, count: foods.length })
     } catch (error) {
       console.error('Error listing foods:', error)
-      res.status(500).json({ success: false, message: "Error listing foods" })
+      res.status(500).json({ success: false, message: "Error listing foods", error: error.message })
     }
   }
   
