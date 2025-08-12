@@ -31,6 +31,11 @@ const ensureDbConnection = async () => {
       console.log("✅ DB Connected Successfully")
     } catch (error) {
       console.error("❌ DB Connection failed:", error.message)
+      // Don't throw error on Vercel, just log it
+      if (process.env.NODE_ENV === "production") {
+        console.error("Production mode: Continuing without DB connection")
+        return
+      }
       throw error
     }
   }
@@ -42,10 +47,16 @@ app.use(async (req, res, next) => {
     await ensureDbConnection()
     next()
   } catch (error) {
-    res.status(500).json({
-      error: "Database connection failed",
-      message: error.message
-    })
+    // On Vercel, don't crash the function
+    if (process.env.NODE_ENV === "production") {
+      console.error("DB connection failed, but continuing:", error.message)
+      next()
+    } else {
+      res.status(500).json({
+        error: "Database connection failed",
+        message: error.message
+      })
+    }
   }
 })
 
@@ -145,6 +156,10 @@ const startServer = async () => {
     }
   } catch (error) {
     console.error("❌ Failed to start server:", error.message)
+    // Don't exit on Vercel
+    if (process.env.NODE_ENV !== "production") {
+      process.exit(1)
+    }
   }
 }
 
