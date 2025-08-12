@@ -1,5 +1,5 @@
 import express from "express"
-import { addFood, listFood, removeFood, updateFoodStatus } from "../controllers/foodController.js"
+import { addFood, listFood, removeFood, updateFoodStatus, updateFood } from "../controllers/foodController.js"
 import multer from "multer"//img storage system
 
 const foodRouter = express.Router();
@@ -247,5 +247,6 @@ foodRouter.post("/add", upload.single("image"), handleMulterError, addFood)
 foodRouter.get("/list", listFood)
 foodRouter.delete("/remove", removeFood)
 foodRouter.put("/status", updateFoodStatus)
+foodRouter.put("/edit/:id", upload.single("image"), handleMulterError, updateFood)
 
 export default foodRouter;

@@ -95,4 +95,72 @@ const updateFoodStatus = async (req, res) => {
     }
 }
 
-export { addFood, listFood, removeFood, updateFoodStatus }
+//update food item (edit product)
+const updateFood = async (req, res) => {
+    try {
+        const { id } = req.params
+        const {
+            sku, name, description, price, category, language,
+            nameVI, nameEN, nameSK,
+            isPromotion, originalPrice, promotionPrice,
+            soldCount, likes
+        } = req.body
+
+        // Validate required fields
+        if (!sku?.trim()) return res.status(400).json({ success: false, message: "SKU is required" })
+        if (!name?.trim()) return res.status(400).json({ success: false, message: "Name is required" })
+        if (price === undefined || price === null || isNaN(Number(price)))
+            return res.status(400).json({ success: false, message: "Valid price is required" })
+        if (!category?.trim())
+            return res.status(400).json({ success: false, message: "Category is required" })
+
+        // Handle image update
+        let updateData = {
+            sku: sku.trim(),
+            name: name.trim(),
+            nameVI: nameVI?.trim(),
+            nameEN: nameEN?.trim(),
+            nameSK: nameSK?.trim(),
+            description: description?.trim() || "No description provided",
+            price: Number(price),
+            category: category.trim(),
+            isPromotion: isPromotion === true || isPromotion === "true" || isPromotion === 1 || isPromotion === "1",
+            originalPrice: isPromotion ? Number(originalPrice ?? price) : undefined,
+            promotionPrice: isPromotion ? Number(promotionPrice) : undefined,
+            soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
+            likes: Number.isFinite(Number(likes)) ? Number(likes) : 0,
+            language: (language || "vi").trim()
+        }
+
+        // If new image uploaded, update image field
+        if (req.file) {
+            updateData.image = req.file.filename
+        }
+
+        const updatedFood = await foodModel.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        )
+
+        if (!updatedFood) {
+            return res.status(404).json({ success: false, message: "Food not found" })
+        }
+
+        res.json({ success: true, message: "Food updated successfully", data: updatedFood })
+
+    } catch (error) {
+        console.error('UPDATE FOOD ERROR:', error)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern || {})[0] || "unique field"
+            return res.status(400).json({ success: false, message: `Duplicate ${field}` })
+        }
+        if (error.name === "ValidationError") {
+            const details = Object.values(error.errors).map(e => e.message)
+            return res.status(400).json({ success: false, message: "Validation error", details })
+        }
+        return res.status(500).json({ success: false, message: "Internal server error" })
+    }
+}
+
+export { addFood, listFood, removeFood, updateFoodStatus, updateFood }

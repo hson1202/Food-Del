@@ -80,6 +80,7 @@ const Navbar = ({setShowLogin}) => {
                 {/* <Link to='/blog' onClick={()=>setMenu("blog")} className={menu==="blog"?"active":""}>{t('nav.blog')}</Link> */}
                 <Link to='/contact' onClick={()=>setMenu("contact")} className={menu==="contact"?"active":""}>{t('nav.contact')}</Link>
                 <Link to='/track-order' onClick={()=>setMenu("track")} className={menu==="track"?"active":""}>{t('nav.trackOrder')}</Link>
+                {token && <Link to='/admin' onClick={()=>setMenu("admin")} className={menu==="admin"?"active":""}>Admin</Link>}
             </ul>
             
             {/* Mobile Menu Overlay */}

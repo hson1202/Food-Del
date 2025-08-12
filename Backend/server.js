@@ -51,6 +51,7 @@ app.use(async (req, res, next) => {
 
 // Routes
 app.use("/api/food", foodRouter)
+app.use("/images", express.static("uploads")) // Serve static images
 app.use("/api/user", userRouter)
 app.use("/api/cart", cartRouter)
 app.use("/api/order", orderRouter)
@@ -130,13 +131,25 @@ app.use((error, req, res, next) => {
   })
 })
 
-// For local development
-if (process.env.NODE_ENV !== "production") {
-  const port = process.env.PORT || 4000
-  app.listen(port, () => {
-    console.log(`🚀 Server started on http://localhost:${port}`)
-  })
+// Start server function
+const startServer = async () => {
+  try {
+    // For local development
+    if (process.env.NODE_ENV !== "production") {
+      const port = process.env.PORT || 4000
+      app.listen(port, () => {
+        console.log(`🚀 Server started on http://localhost:${port}`)
+      })
+    } else {
+      console.log("🚀 Server running on Vercel (serverless mode)")
+    }
+  } catch (error) {
+    console.error("❌ Failed to start server:", error.message)
+  }
 }
+
+// Start server for both local and Vercel
+startServer()
 
 // Export for Vercel serverless
 export default app

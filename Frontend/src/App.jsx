@@ -13,6 +13,7 @@ import Footer from './components/Footer/Footer';
 import LoginPopup from'./components/LoginPopup/LoginPopup';
 import MyOrders from './pages/MyOrders/MyOrders'
 import TrackOrder from './pages/TrackOrder/TrackOrder'
+import Admin from './pages/Admin/Admin'
 import FloatingCartBtn from './components/FloatingCartBtn/FloatingCartBtn'
 import './i18n';
 
@@ -36,6 +37,7 @@ const App = () => {
         <Route path='/order' element={<PlaceOrder/>}/>
         <Route path='/myorders' element={<MyOrders />} />
         <Route path='/track-order' element={<TrackOrder />} />
+        <Route path='/admin' element={<Admin />} />
 
       </Routes>
     </div>

@@ -5,14 +5,18 @@
   "main": "server.js",
   "type": "module",
   "engines": {
-    "node": "18.x"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "echo 'No build step required'",
-    "vercel-build": "echo 'Vercel build completed'"
+    "build": "echo 'No build step required for Node.js backend'",
+    "vercel-build": "echo 'Vercel build completed'",
+    "test": "echo 'No tests specified'"
   },
+  "author": "Food Delivery Team",
+  "license": "ISC",
+  "description": "Backend API for Food Delivery Application",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
@@ -27,5 +31,12 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "keywords": [
+    "food-delivery",
+    "api",
+    "express",
+    "mongodb",
+    "vercel"
+  ]
 }
