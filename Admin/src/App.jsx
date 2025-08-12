@@ -77,6 +77,7 @@ const App = () => {
           <Route path='/admin/messages' element={<Messages url={url}/>}/>
           <Route path='/admin/add' element={<Add url={url}/>}/>
           <Route path='/admin/login' element={<Navigate to="/admin" replace />}/>
+          <Route path='*' element={<Navigate to="/admin" replace />}/>
         </Routes>
       </div>
     </div>
