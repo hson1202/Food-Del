@@ -13,37 +13,52 @@ import categoryRouter from "./routes/categoryRoute.js"
 import blogRouter from "./routes/blogRoute.js"
 import reservationRouter from "./routes/reservationRoute.js"
 import contactMessageRouter from "./routes/contactMessageRoute.js"
-import authMiddleware from "./middleware/auth.js"
+import uploadRouter from "./routes/uploadRoute.js"
+import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 
 const app = express()
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
 
+// Middleware
+app.use(cors({
+  origin: ["https://yourdomain.com", "http://localhost:3000", "http://localhost:5173"],
+  credentials: true
+}))
+app.use(express.json({ limit: "50mb" }))
+app.use(express.urlencoded({ extended: true, limit: "50mb" }))
+
+// Database connection state
 let isConnected = false
+
 const ensureDbConnection = async () => {
   if (!isConnected) {
-    await connectDB()
-    isConnected = true
+    try {
+      await connectDB()
+      isConnected = true
+      console.log("✅ Database connected successfully")
+    } catch (error) {
+      console.error("❌ Database connection failed:", error.message)
+      throw error
+    }
   }
 }
 
-// đảm bảo DB sẵn sàng; nếu không, trả 503 thay vì crash
+// Database middleware - ensure connection before processing requests
 app.use(async (req, res, next) => {
   try {
     await ensureDbConnection()
     next()
-  } catch (e) {
-    return res.status(503).json({ error: "Database unavailable", message: e.message })
+  } catch (error) {
+    console.error("Database middleware error:", error.message)
+    return res.status(503).json({ 
+      success: false,
+      error: "Database unavailable", 
+      message: error.message 
+    })
   }
 })
 
+// API Routes
 app.use("/api/food", foodRouter)
-// Only serve local uploads in non-production (Vercel filesystem is ephemeral)
-if (process.env.NODE_ENV !== "production") {
-  app.use("/uploads", express.static("uploads"))
-  app.use("/images", express.static("uploads"))
-}
 app.use("/api/user", userRouter)
 app.use("/api/cart", cartRouter)
 app.use("/api/order", orderRouter)
@@ -52,38 +67,118 @@ app.use("/api/category", categoryRouter)
 app.use("/api/blog", blogRouter)
 app.use("/api/reservation", reservationRouter)
 app.use("/api/contact", contactMessageRouter)
-
-// Cloudinary upload and signature endpoints
-import uploadRouter from "./routes/uploadRoute.js"
-import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
-
 app.use("/api/upload", uploadRouter)
 app.use("/api/cloudinary", cloudinarySignRouter)
 
-app.get("/", (req, res) => res.json({ message: "🚀 Food Delivery API is Working!" }))
-app.get("/health", (req, res) => res.json({ status: "healthy", ts: new Date().toISOString() }))
-app.get("/debug", async (req, res) => {
+// Only serve local uploads in non-production (Vercel filesystem is ephemeral)
+if (process.env.NODE_ENV !== "production") {
+  app.use("/uploads", express.static("uploads"))
+  app.use("/images", express.static("uploads"))
+}
+
+// Health check endpoints
+app.get("/", (req, res) => {
+  res.json({ 
+    success: true,
+    message: "🚀 Food Delivery API is Working!",
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || "development"
+  })
+})
+
+app.get("/api", (req, res) => {
+  res.json({ 
+    success: true,
+    message: "🍕 Food Delivery API v1.0",
+    endpoints: [
+      "/api/food",
+      "/api/user", 
+      "/api/cart",
+      "/api/order",
+      "/api/admin",
+      "/api/category",
+      "/api/blog",
+      "/api/reservation",
+      "/api/contact"
+    ]
+  })
+})
+
+app.get("/health", async (req, res) => {
   try {
     const dbStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected"
     res.json({ 
-      db: dbStatus,
-      env: process.env.NODE_ENV,
-      mongoUrl: process.env.MONGODB_URL ? "set" : "missing"
+      success: true,
+      status: "healthy",
+      database: dbStatus,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
     })
   } catch (error) {
-    res.json({ error: error.message })
+    res.status(500).json({ 
+      success: false,
+      status: "unhealthy",
+      error: error.message 
+    })
   }
 })
 
-app.use("*", (req, res) => res.status(404).json({ error: "Route not found" }))
+app.get("/debug", async (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+    res.json({
+      success: true,
+      database: dbStatus,
+      environment: process.env.NODE_ENV,
+      mongoUrl: process.env.MONGODB_URL ? "configured" : "missing",
+      nodeVersion: process.version,
+      platform: process.platform,
+      routes: app._router.stack.map(r => r.route?.path).filter(Boolean)
+    })
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    })
+  }
+})
 
-// Local dev mới listen; Vercel sẽ gọi app như 1 handler
+// 404 handler - phải để cuối cùng
+app.use("*", (req, res) => {
+  res.status(404).json({ 
+    success: false,
+    error: "Route not found",
+    path: req.originalUrl,
+    method: req.method,
+    message: "Endpoint không tồn tại",
+    availableRoutes: [
+      "/api/food", 
+      "/api/user", 
+      "/api/cart", 
+      "/api/order",
+      "/api/admin",
+      "/api/category"
+    ]
+  })
+})
+
+// Error handling middleware
+app.use((error, req, res, next) => {
+  console.error("Global error handler:", error)
+  res.status(500).json({
+    success: false,
+    error: "Internal server error",
+    message: error.message
+  })
+})
+
+// Local development server
 if (process.env.NODE_ENV !== "production") {
   const port = process.env.PORT || 4000
-  app.listen(port, () => console.log(`🚀 Local: http://localhost:${port}`))
+  app.listen(port, () => {
+    console.log(`🚀 Local server: http://localhost:${port}`)
+  })
 }
 
 // Export for Vercel serverless function
-export default (req, res) => {
-  return app(req, res)
-}
+export default app
