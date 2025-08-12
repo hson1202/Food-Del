@@ -190,6 +190,85 @@ app.get("/debug", async (req, res) => {
   }
 })
 
+app.get("/debug-cloudinary", async (req, res) => {
+  try {
+    const cloudinary = (await import("./config/cloudinary.js")).default
+    
+    // Test cloudinary config
+    const config = {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET ? "***configured***" : "missing"
+    }
+    
+    // Test API call
+    const result = await cloudinary.api.ping()
+    
+    res.json({
+      success: true,
+      message: "Cloudinary connection working",
+      config: config,
+      ping: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      config: {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "missing",
+        api_key: process.env.CLOUDINARY_API_KEY ? "***configured***" : "missing",
+        api_secret: process.env.CLOUDINARY_API_SECRET ? "***configured***" : "missing"
+      }
+    })
+  }
+})
+
+app.post("/test-upload", async (req, res) => {
+  try {
+    const { upload } = await import("./middleware/upload.js")
+    const uploadSingle = upload.single("image")
+    
+    uploadSingle(req, res, (err) => {
+      if (err) {
+        console.error("=== UPLOAD ERROR ===", err)
+        return res.status(500).json({
+          success: false,
+          error: "Upload failed: " + err.message,
+          details: err
+        })
+      }
+      
+      console.log("=== UPLOAD TEST DEBUG ===")
+      console.log("File received:", req.file ? "YES" : "NO")
+      console.log("File details:", req.file)
+      
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: "No file uploaded"
+        })
+      }
+      
+      res.json({
+        success: true,
+        message: "Upload successful",
+        file: {
+          url: req.file.path,
+          public_id: req.file.filename,
+          size: req.file.size,
+          originalname: req.file.originalname
+        }
+      })
+    })
+  } catch (error) {
+    console.error("Test upload error:", error)
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+})
+
 // 404 handler - phải để cuối cùng
 app.use("*", (req, res) => {
   res.status(404).json({ 
