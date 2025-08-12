@@ -3,6 +3,7 @@ import multer from "multer"
 import path from "path"
 import {
   getAllBlogs,
+  getPublicBlogs,
   getBlogById,
   getBlogBySlug,
   createBlog,
@@ -113,7 +114,7 @@ const validateBlogData = (req, res, next) => {
 
 // Blog routes
 router.get('/list', getAllBlogs)
-router.get('/public', getAllBlogs) // Public route for frontend
+router.get('/public', getPublicBlogs) // Public route for frontend
 router.get('/stats', getBlogStats)
 router.get('/slug/:slug', getBlogBySlug) // New route for slug-based lookup
 router.get('/:id', getBlogById)

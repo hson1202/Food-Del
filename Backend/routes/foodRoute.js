@@ -1,5 +1,5 @@
 import express from "express"
-import { addFood, listFood, removeFood, updateFoodStatus, updateFood } from "../controllers/foodController.js"
+import { addFood, listFood, removeFood, updateFoodStatus, updateFood, updateFoodQuantity, processOrder } from "../controllers/foodController.js"
 import multer from "multer"//img storage system
 
 const foodRouter = express.Router();
@@ -117,16 +117,15 @@ foodRouter.post("/test-minimal", async (req, res) => {
         const uniqueSku = `TEST-${timestamp}`
         const uniqueSlug = `test-food-${timestamp}`
         
-        const minimalFoodData = {
-            sku: req.body.sku || uniqueSku,
-            name: req.body.name || 'Test Food',
-            slug: req.body.slug || uniqueSlug,
-            description: req.body.description || 'Test description',
-            price: parseFloat(req.body.price) || 10.00,
-            image: '',
-            category: req.body.category || 'Test Category',
-            language: req.body.language || 'vi'
-        }
+                 const minimalFoodData = {
+             sku: req.body.sku || uniqueSku,
+             name: req.body.name || 'Test Food',
+             slug: req.body.slug || uniqueSlug,
+             description: req.body.description || 'Test description',
+             price: parseFloat(req.body.price) || 10.00,
+             image: '',
+             category: req.body.category || 'Test Category'
+         }
         
         console.log('Minimal food data:', minimalFoodData)
         
@@ -173,16 +172,15 @@ foodRouter.post("/test-manual-slug", async (req, res) => {
             .replace(/-+/g, '-')
             .trim('-') + `-${timestamp}`
         
-        const foodData = {
-            sku: `MANUAL-${timestamp}`,
-            name: name,
-            slug: manualSlug,
-            description: req.body.description || 'Test description',
-            price: parseFloat(req.body.price) || 10.00,
-            image: '',
-            category: req.body.category || 'Test Category',
-            language: req.body.language || 'vi'
-        }
+                 const foodData = {
+             sku: `MANUAL-${timestamp}`,
+             name: name,
+             slug: manualSlug,
+             description: req.body.description || 'Test description',
+             price: parseFloat(req.body.price) || 10.00,
+             image: '',
+             category: req.body.category || 'Test Category'
+         }
         
         console.log('Manual slug food data:', foodData)
         
@@ -229,19 +227,18 @@ foodRouter.post("/test-multilingual", async (req, res) => {
             .replace(/-+/g, '-')
             .trim('-') + `-${timestamp}`
         
-        const foodData = {
-            sku: `MULTI-${timestamp}`,
-            name: name,
-            nameVI: req.body.nameVI || `Món ăn ${timestamp}`,
-            nameEN: req.body.nameEN || `Food ${timestamp}`,
-            nameSK: req.body.nameSK || `Jedlo ${timestamp}`,
-            slug: manualSlug,
-            description: req.body.description || 'Test description',
-            price: parseFloat(req.body.price) || 10.00,
-            image: '',
-            category: req.body.category || 'Test Category',
-            language: req.body.language || 'vi'
-        }
+                 const foodData = {
+             sku: `MULTI-${timestamp}`,
+             name: name,
+             nameVI: req.body.nameVI || `Món ăn ${timestamp}`,
+             nameEN: req.body.nameEN || `Food ${timestamp}`,
+             nameSK: req.body.nameSK || `Jedlo ${timestamp}`,
+             slug: manualSlug,
+             description: req.body.description || 'Test description',
+             price: parseFloat(req.body.price) || 10.00,
+             image: '',
+             category: req.body.category || 'Test Category'
+         }
         
         console.log('Multilingual food data:', foodData)
         
@@ -274,5 +271,7 @@ foodRouter.get("/list", listFood)
 foodRouter.delete("/remove", removeFood)
 foodRouter.put("/status", updateFoodStatus)
 foodRouter.put("/edit/:id", createUpload().single("image"), handleMulterError, updateFood)
+foodRouter.put("/quantity", updateFoodQuantity)
+foodRouter.post("/process-order", processOrder)
 
 export default foodRouter;

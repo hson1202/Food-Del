@@ -35,16 +35,63 @@ export const getAllBlogs = async (req, res) => {
     const count = await Blog.countDocuments(query)
     
     res.json({
+      success: true,
       data: blogs,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-      totalBlogs: count
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(count / limit),
+        total: count
+      }
     })
   } catch (error) {
     console.error('Error fetching blogs:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ success: false, message: 'Internal server error' })
   }
 }
+
+// Get public blogs (published only)
+export const getPublicBlogs = async (req, res) => {
+  try {
+    const { page = 1, limit = 12, language = 'all', status = 'published', search } = req.query;
+
+    const filter = {};
+    // chỉ trả published (hoặc all nếu bạn muốn hiển thị cả draft cho preview—mặc định published)
+    filter.status = status === 'all' ? 'published' : status;
+
+    if (language !== 'all') filter.language = language;
+
+    if (search) {
+      // optional: search cho FE
+      filter.$text = { $search: search };
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [blogs, total] = await Promise.all([
+      Blog.find(filter)
+        .sort({ featured: -1, publishedAt: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .select(
+          'title titleVI titleEN titleSK slug excerpt author category tags image language readTime featured createdAt publishedAt views status'
+        ),
+      Blog.countDocuments(filter)
+    ]);
+
+    res.json({
+      success: true,
+      data: blogs,
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        total
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching public blogs:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
 
 // Get single blog by ID
 export const getBlogById = async (req, res) => {
@@ -53,17 +100,17 @@ export const getBlogById = async (req, res) => {
     
     const blog = await Blog.findById(req.params.id)
     if (!blog) {
-      return res.status(404).json({ error: 'Blog not found' })
+      return res.status(404).json({ success: false, message: 'Blog not found' })
     }
     
     // Increment views
     blog.views += 1
     await blog.save()
     
-    res.json({ data: blog })
+    res.json({ success: true, data: blog })
   } catch (error) {
     console.error('Error fetching blog:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ success: false, message: 'Internal server error' })
   }
 }
 
@@ -82,17 +129,17 @@ export const getBlogBySlug = async (req, res) => {
     }
     
     if (!blog) {
-      return res.status(404).json({ error: 'Blog not found' })
+      return res.status(404).json({ success: false, message: 'Blog not found' })
     }
     
     // Increment views
     blog.views += 1
     await blog.save()
     
-    res.json({ data: blog })
+    res.json({ success: true, data: blog })
   } catch (error) {
     console.error('Error fetching blog:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ success: false, message: 'Internal server error' })
   }
 }
 

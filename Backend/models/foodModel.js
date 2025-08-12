@@ -11,13 +11,12 @@ const foodSchema = new mongoose.Schema({
   price: { type: Number, required: true, min: 0 },
   image: { type: String, default: "" },
   category: { type: String, required: true, trim: true },
+  quantity: { type: Number, required: true, default: 0, min: 0 },
   isPromotion: { type: Boolean, default: false },
-  originalPrice: { type: Number },
+      // originalPrice removed - using regular price as base
   promotionPrice: { type: Number },
   soldCount: { type: Number, default: 0, min: 0 },
-  likes: { type: Number, default: 0, min: 0 },
-  status: { type: String, enum: ["active", "inactive"], default: "active" },
-  language: { type: String, enum: ["vi", "en", "sk"], default: "vi", required: true }
+  status: { type: String, enum: ["active", "inactive"], default: "active" }
 }, { timestamps: true });
 
 // ---- helpers ----
@@ -56,8 +55,17 @@ async function makeUniqueSlug(Model, base, currentId) {
 // Tạo/validate slug & đảm bảo unique (một bản duy nhất, không theo language)
 foodSchema.pre("validate", async function (next) {
   try {
-    if (this.isModified("slug") && this.slug) this.slug = cleanSlug(this.slug);
-    if (!this.slug || this.isModified("name")) this.slug = createSlug(this.name);
+    // Nếu slug được cung cấp, làm sạch nó
+    if (this.slug && this.isModified("slug")) {
+      this.slug = cleanSlug(this.slug);
+    }
+    
+    // Nếu không có slug hoặc name thay đổi, tạo slug mới từ name
+    if (!this.slug || this.isModified("name")) {
+      this.slug = createSlug(this.name);
+    }
+    
+    // Đảm bảo slug unique
     this.slug = await makeUniqueSlug(this.constructor, this.slug, this._id);
     next();
   } catch (e) { next(e); }

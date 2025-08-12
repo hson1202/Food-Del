@@ -76,6 +76,11 @@ app.use("/api/food", (req, res, next) => {
 
 // Serve static images - always enable on local
 console.log("🔍 NODE_ENV:", process.env.NODE_ENV)
+console.log("🔍 Setting up /uploads route with uploads directory")
+app.use("/uploads", express.static("uploads"))
+console.log("✅ /uploads route configured")
+
+// Also serve images from uploads directory for backward compatibility
 console.log("🔍 Setting up /images route with uploads directory")
 app.use("/images", express.static("uploads"))
 console.log("✅ /images route configured")
@@ -193,6 +198,15 @@ app.get("/test-auth", authMiddleware, (req, res) => {
 app.get("/test-simple", (req, res) => {
   res.json({ 
     message: "Simple route working", 
+    headers: req.headers,
+    timestamp: new Date().toISOString()
+  })
+})
+
+// Test contact API route
+app.get("/test-contact", (req, res) => {
+  res.json({ 
+    message: "Contact API route working",
     headers: req.headers,
     timestamp: new Date().toISOString()
   })
