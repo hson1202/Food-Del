@@ -29,6 +29,14 @@ const Sidebar = () => {
           <div className="sidebar-icon">🍽️</div>
           <p>{t('nav.products')}</p>
         </NavLink>
+        <NavLink to='/admin/reservations' className="sidebar-option">
+          <div className="sidebar-icon">📅</div>
+          <p>Reservations</p>
+        </NavLink>
+        <NavLink to='/admin/messages' className="sidebar-option">
+          <div className="sidebar-icon">💬</div>
+          <p>Messages</p>
+        </NavLink>
         <NavLink to='/admin/users' className="sidebar-option">
           <div className="sidebar-icon">👥</div>
           <p>{t('nav.users')}</p>
@@ -41,14 +49,7 @@ const Sidebar = () => {
           <div className="sidebar-icon">📝</div>
           <p>{t('nav.blog')}</p>
         </NavLink>
-        <NavLink to='/admin/reservations' className="sidebar-option">
-          <div className="sidebar-icon">📅</div>
-          <p>Reservations</p>
-        </NavLink>
-        <NavLink to='/admin/messages' className="sidebar-option">
-          <div className="sidebar-icon">💬</div>
-          <p>Messages</p>
-        </NavLink>
+      
       </div>
     </div>
   )

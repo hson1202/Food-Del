@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import i18n from '../../i18n'
 import EditProductPopup from '../../components/EditProductPopup/EditProductPopup'
 import InventoryStatus from '../../components/InventoryStatus/InventoryStatus'
-import OrderProcessor from '../../components/OrderProcessor/OrderProcessor'
+
 
 const Products = ({ url }) => {
   const { t } = useTranslation();
@@ -931,11 +931,7 @@ const Products = ({ url }) => {
         </div>
       </div>
 
-      {/* Order Processor for Testing */}
-      <OrderProcessor 
-        url={url} 
-        onOrderProcessed={fetchFoodList}
-      />
+
     </div>
   )
 }
