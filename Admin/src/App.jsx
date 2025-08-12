@@ -18,7 +18,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import './i18n';
 
 const App = () => {
-  const url="http://localhost:4000"
+  const url = process.env.NODE_ENV === 'production' 
+    ? process.env.REACT_APP_BACKEND_URL || 'https://food-del-backend-orcin.vercel.app'
+    : 'http://localhost:4000'
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
