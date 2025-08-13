@@ -65,7 +65,7 @@ const Messages = () => {
 
       console.log('🔍 Fetching messages with params:', params.toString()); // Debug log
 
-             const response = await axios.get(`http://localhost:4000/api/contact?${params.toString()}`, {
+             const response = await axios.get(`${url}/api/contact?${params.toString()}`, {
         headers: { 
           token,
           'Content-Type': 'application/json'
@@ -93,7 +93,7 @@ const Messages = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('adminToken'); // Sửa từ 'token' thành 'adminToken'
-      const response = await axios.get('http://localhost:4000/api/contact/stats', {
+      const response = await axios.get(`${url}/api/contact/stats`, {
         headers: { token }
       });
 
@@ -116,7 +116,7 @@ const Messages = () => {
   const updateMessageStatus = async (messageId, newStatus) => {
     try {
       const token = localStorage.getItem('adminToken'); // Sửa từ 'token' thành 'adminToken'
-      const response = await axios.put(`http://localhost:4000/api/contact/${messageId}/status`, {
+      const response = await axios.put(`${url}/api/contact/${messageId}/status`, {
         status: newStatus
       }, {
         headers: { token }
@@ -137,7 +137,7 @@ const Messages = () => {
   const addAdminResponse = async (messageId, response) => {
     try {
       const token = localStorage.getItem('adminToken'); // Sửa từ 'token' thành 'adminToken'
-      const adminResponse = await axios.put(`http://localhost:4000/api/contact/${messageId}/response`, {
+      const adminResponse = await axios.put(`${url}/api/contact/${messageId}/response`, {
         adminResponse: response
       }, {
         headers: { token }
@@ -161,7 +161,7 @@ const Messages = () => {
 
     try {
       const token = localStorage.getItem('adminToken'); // Sửa từ 'token' thành 'adminToken'
-      const response = await axios.delete(`http://localhost:4000/api/contact/${messageId}`, {
+      const response = await axios.delete(`${url}/api/contact/${messageId}`, {
         headers: { token }
       });
 

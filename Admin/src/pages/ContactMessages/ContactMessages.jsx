@@ -37,7 +37,7 @@ const ContactMessages = () => {
         ...(searchTerm && { search: searchTerm })
       })
 
-      const response = await fetch(`http://localhost:4000/api/contact?${params}`, {
+      const response = await fetch(`${url}/api/contact?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -68,7 +68,7 @@ const ContactMessages = () => {
       if (priority) updateData.priority = priority
       if (tags) updateData.tags = tags
 
-      const response = await fetch(`http://localhost:4000/api/contact/${id}/status`, {
+      const response = await fetch(`${url}/api/contact/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ const ContactMessages = () => {
       setUpdatingStatus(true)
       const token = localStorage.getItem('adminToken')
       
-      const response = await fetch(`http://localhost:4000/api/contact/${id}/response`, {
+      const response = await fetch(`${url}/api/contact/${id}/response`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ const ContactMessages = () => {
       setDeletingId(id)
       const token = localStorage.getItem('adminToken')
       
-      const response = await fetch(`http://localhost:4000/api/contact/${id}`, {
+      const response = await fetch(`${url}/api/contact/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

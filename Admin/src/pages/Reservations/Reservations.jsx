@@ -27,7 +27,7 @@ const Reservations = () => {
       setLoading(true)
       setError(null)
       const token = localStorage.getItem('adminToken')
-      const response = await fetch('http://localhost:4000/api/reservation', {
+      const response = await fetch(`${url}/api/reservation`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -57,7 +57,7 @@ const Reservations = () => {
       const requestBody = { status, adminNote }
       console.log('Request body:', requestBody)
       
-      const response = await fetch(`http://localhost:4000/api/reservation/${id}/status`, {
+      const response = await fetch(`${url}/api/reservation/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ const Reservations = () => {
     try {
       setDeletingId(id)
       const token = localStorage.getItem('adminToken')
-      const response = await fetch(`http://localhost:4000/api/reservation/${id}`, {
+      const response = await fetch(`${url}/api/reservation/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

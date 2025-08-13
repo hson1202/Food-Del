@@ -276,6 +276,14 @@
   font-weight: 600;
   transition: all 0.2s ease;
   min-width: 70px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-view:disabled, .btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .btn-view {
@@ -295,9 +303,43 @@
   box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
 }
 
-.btn-delete:hover {
+.btn-delete:hover:not(.deleting):not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+/* Loading states for buttons */
+.btn-delete.deleting,
+.btn-update.updating {
+  opacity: 0.7;
+  cursor: not-allowed;
+  position: relative;
+  pointer-events: none;
+}
+
+.btn-delete.deleting::after,
+.btn-update.updating::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: button-loading-spinner 1s ease infinite;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes button-loading-spinner {
+  from {
+    transform: translate(-50%, -50%) rotate(0turn);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(1turn);
+  }
 }
 
 .no-reservations {
@@ -644,14 +686,9 @@
   box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
-.btn-update:hover:not(.updating) {
+.btn-update:hover:not(.updating):not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
-}
-
-.btn-update.updating {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 /* ===== LOADING & ERROR STATES ===== */
@@ -669,26 +706,114 @@
   color: #e74c3c;
 }
 
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #fdf2f2 0%, #fce4e4 100%);
+  border-radius: 15px;
+  margin: 20px;
+  box-shadow: 0 10px 30px rgba(231, 76, 60, 0.1);
+  border: 2px solid #fecaca;
+}
+
+.error-icon {
+  font-size: 48px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.error-container h3 {
+  color: #dc2626;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.error-container p {
+  color: #991b1b;
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.retry-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
   padding: 60px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 15px;
+  margin: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  width: 60px;
+  height: 60px;
+  border: 5px solid #f3f4f6;
+  border-top: 5px solid #3498db;
+  border-right: 5px solid #2ecc71;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 1.2s ease-in-out infinite;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% { 
+    transform: rotate(0deg);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+  }
+  100% { 
+    transform: rotate(360deg);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  }
+}
+
+.loading-container p {
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
