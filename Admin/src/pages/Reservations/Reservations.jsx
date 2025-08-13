@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import './Reservations.css'
 
-const Reservations = () => {
+const Reservations = ({ url }) => {
   const { t } = useTranslation()
   const [reservations, setReservations] = useState([])
   const [loading, setLoading] = useState(true)

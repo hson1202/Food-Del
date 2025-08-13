@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import './ContactMessages.css'
 
-const ContactMessages = () => {
+const ContactMessages = ({ url }) => {
   const { t } = useTranslation()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
