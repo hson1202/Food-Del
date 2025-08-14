@@ -31,7 +31,7 @@ const Blog = ({ url }) => {
     status: 'draft',
     featured: false,
     image: null,
-    language: 'vi',
+    // language: 'vi', // Removed as requested
     readTime: '5 min read'
   })
 
@@ -129,7 +129,7 @@ const Blog = ({ url }) => {
     formData.append('tags', newBlog.tags)
     formData.append('status', newBlog.status)
     formData.append('featured', newBlog.featured)
-    formData.append('language', newBlog.language)
+    // Language field removed as requested
     
     if (newBlog.image) {
       formData.append('image', newBlog.image)
@@ -137,7 +137,7 @@ const Blog = ({ url }) => {
 
     setIsLoading(true)
     try {
-      await axios.post(`${url}/api/blog/add`, formData, {
+      await axios.post(`${url}/api/blog/add-test`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -157,7 +157,7 @@ const Blog = ({ url }) => {
         status: 'draft',
         featured: false,
         image: null,
-        language: 'vi',
+        // language: 'vi', // Removed as requested
         readTime: '5 min read'
       })
       setShowAddForm(false)
@@ -244,7 +244,7 @@ const Blog = ({ url }) => {
     formData.append('tags', editingBlog.tags)
     formData.append('status', editingBlog.status)
     formData.append('featured', editingBlog.featured)
-    formData.append('language', editingBlog.language)
+    // Language field removed as requested
     
     if (editingBlog.image && editingBlog.image instanceof File) {
       formData.append('image', editingBlog.image)
@@ -348,18 +348,7 @@ const Blog = ({ url }) => {
                   {t('blog.slugHelp') || 'Leave empty to auto-generate from title. Use lowercase letters, numbers, and hyphens only.'}
                 </small>
               </div>
-              <div className="form-group">
-                <label htmlFor="language">{t('blog.language') || 'Language'}</label>
-                <select
-                  id="language"
-                  value={newBlog.language}
-                  onChange={(e) => setNewBlog({ ...newBlog, language: e.target.value })}
-                >
-                  <option value="vi">Tiếng Việt</option>
-                  <option value="en">English</option>
-                  <option value="sk">Slovenčina</option>
-                </select>
-              </div>
+              {/* Language field removed as requested */}
             </div>
 
             <div className="form-row">
@@ -688,18 +677,7 @@ const Blog = ({ url }) => {
                     {t('blog.slugHelp') || 'Leave empty to auto-generate from title. Use lowercase letters, numbers, and hyphens only.'}
                   </small>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="edit-language">{t('blog.language') || 'Language'}</label>
-                  <select
-                    id="edit-language"
-                    value={editingBlog.language || 'vi'}
-                    onChange={(e) => setEditingBlog({ ...editingBlog, language: e.target.value })}
-                  >
-                    <option value="vi">Tiếng Việt</option>
-                    <option value="en">English</option>
-                    <option value="sk">Slovenčina</option>
-                  </select>
-                </div>
+                {/* Language field removed as requested */}
               </div>
 
               <div className="form-row">

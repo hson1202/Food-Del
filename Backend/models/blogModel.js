@@ -78,9 +78,9 @@ const blogSchema = new mongoose.Schema({
   },
   language: {
     type: String,
-    enum: ['vi', 'en', 'sk'],
-    default: 'vi',
-    required: true
+    enum: ['en', 'sk'], // Removed 'vi' to avoid MongoDB conflicts
+    default: 'en',
+    required: false
   }
 }, {
   timestamps: true
@@ -162,8 +162,8 @@ blogSchema.pre('save', function(next) {
   }
 })
 
-// Index for search functionality - using English as default language
-blogSchema.index({ title: 'text', content: 'text', tags: 'text' }, { default_language: 'english' })
+// Text index removed to avoid MongoDB language conflicts
+// blogSchema.index({ title: 'text', content: 'text', tags: 'text' }, { default_language: 'english' })
 // Note: slug index is automatically created by unique: true in schema
 
 export default mongoose.model('Blog', blogSchema) 

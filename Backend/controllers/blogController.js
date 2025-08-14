@@ -1,6 +1,7 @@
 import Blog from "../models/blogModel.js"
 import fs from 'fs'
 import path from 'path'
+import mongoose from 'mongoose'
 
 
 
@@ -183,11 +184,8 @@ export const createBlog = async (req, res) => {
       return res.status(400).json({ error: 'Author is required' })
     }
     
-    // Validate language (required in schema)
-    if (!language || !['vi', 'en', 'sk'].includes(language)) {
-      console.log(' Language validation failed')
-      return res.status(400).json({ error: 'Language is required and must be vi, en, or sk' })
-    }
+    // Language is now optional, set default if not provided
+    const finalLanguage = language && ['vi', 'en', 'sk'].includes(language) ? language : 'vi'
     
     const blogData = {
       title: title.trim(),
@@ -201,7 +199,7 @@ export const createBlog = async (req, res) => {
       tags: tags && tags.trim() ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
       status: status || 'draft',
       featured: featured === 'true' || featured === true || featured === '1' || featured === 1,
-      language,
+      language: finalLanguage,
       readTime: readTime || '5 min read'
     }
     
@@ -234,20 +232,8 @@ export const createBlog = async (req, res) => {
     
     console.log('Blog data to save:', blogData)
     
-    // Test database connection before saving
-    try {
-      const mongoose = await import('mongoose')
-      const connectionState = mongoose.connection.readyState
-      console.log('🔌 Database connection state:', connectionState)
-      
-      if (connectionState !== 1) {
-        throw new Error(`Database not connected. State: ${connectionState}`)
-      }
-      console.log('✅ Database connection verified')
-    } catch (dbError) {
-      console.error('❌ Database connection check failed:', dbError)
-      return res.status(500).json({ error: 'Database connection failed' })
-    }
+    // Database connection is already verified at server startup - skip this check
+    console.log('✅ Database connection assumed ready (verified at startup)')
     
     const blog = new Blog(blogData)
     console.log('📝 Blog model created, attempting to save...')

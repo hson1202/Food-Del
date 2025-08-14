@@ -19,7 +19,9 @@ const Category = ({ url }) => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${url}/api/category/admin`)
-      setCategories(response.data.data || response.data)
+      const categoriesData = response.data.data || response.data
+      console.log('Categories fetched:', categoriesData)
+      setCategories(categoriesData)
     } catch (error) {
       console.error('Error fetching categories:', error)
       toast.error(t('categories.fetchError', 'Failed to fetch categories'))
@@ -186,9 +188,12 @@ const Category = ({ url }) => {
             <p>{t('categories.noCategories', 'Start by adding your first category')}</p>
           </div>
         ) : (
-          <div className="categories-grid">
-            {categories.map((category) => (
-              <div key={category._id} className="category-card">
+                    <div className="categories-container">
+            <div className="categories-grid" id="categoriesGrid">
+              {categories.map((category) => {
+                console.log('Rendering category:', category)
+                return (
+                  <div key={category._id} className="category-card">
                 {editingCategory && editingCategory._id === category._id ? (
                   <form onSubmit={handleEditCategory} className="edit-form">
                     <div className="form-group">
@@ -228,11 +233,22 @@ const Category = ({ url }) => {
                 ) : (
                   <>
                     <div className="category-image">
-                      {category.image ? (
-                        <img src={`${url}/images/${category.image}`} alt={category.name} />
-                      ) : (
-                        <div className="category-image-placeholder">📷 {t('categories.noImage', 'No Image')}</div>
-                      )}
+                      <img 
+                        src={
+                          category.image && category.image.startsWith('http')
+                            ? category.image
+                            : category.image 
+                              ? `${url}/images/${category.image}`
+                              : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='
+                        }
+                        alt={category.name || 'Category'} 
+                        onError={(e) => {
+                          console.error('Category image failed to load:', e.target.src);
+                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBFcnJvcjwvdGV4dD48L3N2Zz4=';
+                          e.target.onerror = null;
+                        }}
+                        style={{ width: '100%', height: '150px', objectFit: 'cover' }}
+                      />
                     </div>
                     <div className="category-content">
                       <div className="category-header">
@@ -254,7 +270,9 @@ const Category = ({ url }) => {
                   </>
                 )}
               </div>
-            ))}
+            )
+            })}
+            </div>
           </div>
         )}
       </div>

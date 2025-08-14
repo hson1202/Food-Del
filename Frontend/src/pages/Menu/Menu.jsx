@@ -4,13 +4,14 @@ import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../../components/FoodItem/FoodItem'
 import ProductDetail from '../../components/ProductDetail/ProductDetail'
 import CartPopup from '../../components/CartPopup/CartPopup'
-// Load all hero images at once using Vite glob import
-// You can place hero images in `src/assets/` and select by file name
-const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eager: true, as: 'url' })
-
+import ExploreMenu from '../../components/ExploreMenu/ExploreMenu'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
+
+// Load all hero images at once using Vite glob import
+// You can place hero images in `src/assets/` and select by file name
+const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eager: true, as: 'url' })
 
 const Menu = () => {
   const { food_list, cartItems, getTotalCartAmount } = useContext(StoreContext)
@@ -40,6 +41,8 @@ const Menu = () => {
       setLoading(false)
     }
   }
+
+
 
   const handleScroll = () => {
     const scrollTop = window.pageYOffset
@@ -167,39 +170,16 @@ const Menu = () => {
         </div>  
         </div>
 
-      {/* Sticky Category Bar */}
+      {/* Explore Menu Section - Replaces Category Bar */}
       <div className={`category-bar ${isSticky ? 'sticky' : ''}`}>
         <div className="category-container">
-          <div className="category-scroll">
-            <button
-              className={`category-btn ${selectedCategory === 'All' ? 'active' : ''}`}
-              onClick={() => handleCategoryClick('All')}
-            >
-              <span className="category-icon">🍽️</span>
-              <span className="category-name">All Dishes</span>
-            </button>
-            
-            {categories.map((category) => (
-              <button
-                key={category._id}
-                className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
-                onClick={() => handleCategoryClick(category.name)}
-              >
-                {category.image ? (
-                  <img 
-                   src={category.image && category.image.startsWith('http') ? category.image : `http://localhost:4000/images/${category.image}`} 
-                    alt={category.name}
-                    className="category-icon"
-                  />
-                ) : (
-                  <span className="category-icon-placeholder">
-                    {category.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
-                <span className="category-name">{category.name}</span>
-              </button>
-            ))}
-          </div>
+          <ExploreMenu 
+            category={selectedCategory} 
+            setCategory={setSelectedCategory} 
+            categories={categories} 
+            loading={loading}
+            hideHeader={true}
+          />
         </div>
       </div>
 

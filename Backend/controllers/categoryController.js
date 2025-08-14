@@ -29,8 +29,13 @@ const getAllCategoriesAdmin = async (req, res) => {
 const addCategory = async (req, res) => {
     try {
         const { name, description, sortOrder } = req.body;
-        // Prefer Cloudinary secure_url
-        let image_filename = req.file ? (req.file.path || req.file.filename || '') : '';
+        // Use local filename for local storage
+        let image_filename = req.file ? req.file.filename : '';
+        
+        console.log('=== ADD CATEGORY DEBUG ===')
+        console.log('Request body:', req.body)
+        console.log('Request file:', req.file)
+        console.log('Image filename:', image_filename)
 
         const categoryData = {
             name,
@@ -58,7 +63,7 @@ const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, sortOrder, isActive } = req.body;
-        let image_filename = req.file ? (req.file.path || req.file.filename || '') : '';
+        let image_filename = req.file ? req.file.filename : '';
 
         const updateData = {
             name,

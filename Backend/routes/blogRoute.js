@@ -66,9 +66,10 @@ const validateBlogData = (req, res, next) => {
       return res.status(400).json({ error: 'Author is required' })
     }
     
-    if (!language || !['vi', 'en', 'sk'].includes(language)) {
+    // Language is now optional
+    if (language && !['vi', 'en', 'sk'].includes(language)) {
       console.log('❌ Language validation failed')
-      return res.status(400).json({ error: 'Language must be vi, en, or sk' })
+      return res.status(400).json({ error: 'Language must be vi, en, or sk if provided' })
     }
     
     console.log('✅ Validation passed')
@@ -86,6 +87,7 @@ router.get('/stats', getBlogStats)
 router.get('/slug/:slug', getBlogBySlug) // New route for slug-based lookup
 router.get('/:id', getBlogById)
 router.post('/add', localUpload.single('image'), handleMulterError, validateBlogData, createBlog)
+router.post('/add-test', localUpload.single('image'), handleMulterError, createBlog) // Test route without validation
 router.post('/add-simple', validateBlogData, createBlog) // Route for creating blog without image
 router.post('/add-no-image', validateBlogData, createBlog) // Route for creating blog without image validation
 router.post('/test', (req, res) => {

@@ -127,7 +127,7 @@ const Products = ({ url }) => {
       nameSK: product.nameSK || '',
       description: product.description || '',
       price: product.price || '',
-      category: product.category || '',
+              category: product.category || product.categoryId || '',
       quantity: product.quantity || 0,
       isPromotion: product.isPromotion || false,
       promotionPrice: product.promotionPrice || '',
@@ -398,6 +398,13 @@ const Products = ({ url }) => {
     return Math.round(((originalPrice - promotionPrice) / originalPrice) * 100)
   }
 
+  // Helper function to get category name from ID
+  const getCategoryName = (categoryId) => {
+    if (!categoryId) return null
+    const category = categories.find(cat => cat._id === categoryId)
+    return category ? category.name : categoryId
+  }
+
   const filteredProducts = foodList.filter(product => {
     const searchTermLower = searchTerm.toLowerCase()
     const matchesSearch = product.name.toLowerCase().includes(searchTermLower) ||
@@ -405,7 +412,7 @@ const Products = ({ url }) => {
                          (product.nameEN && product.nameEN.toLowerCase().includes(searchTermLower)) ||
                          (product.nameSK && product.nameSK.toLowerCase().includes(searchTermLower)) ||
                          product.category.toLowerCase().includes(searchTermLower)
-    const matchesCategory = filterCategory === 'all' || product.category === filterCategory
+    const matchesCategory = filterCategory === 'all' || product.category === filterCategory || product.categoryId === filterCategory
     
     // Improved status filtering with fallback
     let matchesStatus = true
@@ -607,12 +614,12 @@ const Products = ({ url }) => {
                   onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
                   required
                 >
-                  <option value="">Select Category</option>
-                  {categories.map(category => (
-                    <option key={category._id} value={category.name}>
-                      {category.name}
-                    </option>
-                  ))}
+                                  <option value="">Select Category</option>
+                {categories.map(category => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
                 </select>
               </div>
               <div className="form-group">
@@ -780,12 +787,12 @@ const Products = ({ url }) => {
             onChange={(e) => setFilterCategory(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Categories</option>
-            {categories.map(category => (
-              <option key={category._id} value={category.name}>
-                {category.name}
-              </option>
-            ))}
+                            <option value="all">All Categories</option>
+                {categories.map(category => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
           </select>
         </div>
       </div>
@@ -845,7 +852,7 @@ const Products = ({ url }) => {
                     {product.nameVI && <p className="product-name-vi">🇻🇳 {product.nameVI}</p>}
                     {product.nameEN && <p className="product-name-en">🇬🇧 {product.nameEN}</p>}
                     {product.nameSK && <p className="product-name-sk">🇸🇰 {product.nameSK}</p>}
-                    <p className="product-category">📁 {product.category || 'No Category'}</p>
+                    <p className="product-category">📁 {getCategoryName(product.category) || 'No Category'}</p>
                     <p className="product-description">📝 {product.description || 'No description'}</p>
                     <div className="product-inventory">
                       <InventoryStatus quantity={product.quantity || 0} />

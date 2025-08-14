@@ -219,6 +219,57 @@ foodRouter.post("/test-multilingual", async (req, res) => {
     }
 })
 
+// Test route for debugging category issues
+foodRouter.post("/test-category", async (req, res) => {
+    try {
+        console.log('=== TEST CATEGORY DEBUG ===')
+        console.log('Request body:', req.body)
+        console.log('Category value:', req.body.category)
+        console.log('Category type:', typeof req.body.category)
+        console.log('Category length:', req.body.category?.length)
+        console.log('Category trimmed:', req.body.category?.trim())
+        
+        // Test with minimal data
+        const testData = {
+            sku: `TEST-CAT-${Date.now()}`,
+            name: req.body.name || 'Test Food',
+            slug: `test-food-${Date.now()}`,
+            description: req.body.description || 'Test description',
+            price: parseFloat(req.body.price) || 10.00,
+            image: '',
+            category: req.body.category || 'Test Category',
+            quantity: parseInt(req.body.quantity) || 0
+        }
+        
+        console.log('Test data to save:', testData)
+        
+        // Import foodModel here to avoid circular dependency
+        const foodModel = (await import('../models/foodModel.js')).default
+        
+        const food = new foodModel(testData)
+        console.log('Food model created, attempting to save...')
+        
+        await food.save()
+        console.log('Food saved successfully')
+        
+        res.json({
+            success: true,
+            message: 'Category test successful',
+            data: food,
+            originalCategory: req.body.category
+        })
+    } catch (error) {
+        console.error('Error in category test:', error)
+        res.status(500).json({
+            success: false,
+            message: 'Category test failed',
+            error: error.message,
+            errorName: error.name,
+            errorCode: error.code
+        })
+    }
+})
+
 foodRouter.post("/add", localUpload.single("image"), handleMulterError, addFood)
 foodRouter.get("/list", listFood)
 foodRouter.delete("/remove", removeFood)
