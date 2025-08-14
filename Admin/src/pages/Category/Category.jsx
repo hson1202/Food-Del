@@ -13,6 +13,8 @@ const Category = ({ url }) => {
   const [editingCategory, setEditingCategory] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [imageErrors, setImageErrors] = useState(new Set())
+  const [loadingImages, setLoadingImages] = useState(new Set())
   
   // Environment info for debugging
   const envInfo = {
@@ -293,7 +295,26 @@ const Category = ({ url }) => {
                   </form>
                 ) : (
                   <>
-                    <div className="category-image">
+                    <div className="category-image" style={{ position: 'relative' }}>
+                      {loadingImages.has(category._id) && (
+                        <div style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: 'rgba(255,255,255,0.9)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          zIndex: 1
+                        }}>
+                          <div style={{ color: '#666', textAlign: 'center' }}>
+                            <div style={{ marginBottom: '5px' }}>📥</div>
+                            <div style={{ fontSize: '12px' }}>Đang tải...</div>
+                          </div>
+                        </div>
+                      )}
                       <img 
                         src={
                           category.image && category.image.startsWith('http')
@@ -302,10 +323,44 @@ const Category = ({ url }) => {
                               ? `${config.BACKEND_URL}${config.IMAGE_PATHS.CATEGORY}/${category.image}`
                               : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='
                         }
-                        alt={category.name || 'Category'} 
+                        alt={category.name || 'Category'}
+                        onLoadStart={() => {
+                          setLoadingImages(prev => new Set([...prev, category._id]));
+                        }}
+                        onLoad={() => {
+                          setLoadingImages(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(category._id);
+                            return newSet;
+                          });
+                          // Remove from error list if image loads successfully
+                          setImageErrors(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(category._id);
+                            return newSet;
+                          });
+                        }}
                         onError={(e) => {
-                          console.error('Category image failed to load:', e.target.src);
-                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBFcnJvcjwvdGV4dD48L3N2Zz4=';
+                          const originalSrc = e.target.src;
+                          console.error('Category image failed to load:', originalSrc);
+                          
+                          // Add to error tracking
+                          setImageErrors(prev => new Set([...prev, category._id]));
+                          
+                          // Show toast notification
+                          toast.warning(`Hình ảnh category "${category.name}" bị lỗi hoặc không tải được`, {
+                            toastId: `image-error-${category._id}` // Prevent duplicate toasts
+                          });
+                          
+                          // Set fallback image with error styling
+                          e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                            <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+                              <rect width="300" height="200" fill="#ffebee" stroke="#ff6868" stroke-width="2" stroke-dasharray="5,5"/>
+                              <text x="150" y="80" font-family="Arial" font-size="16" fill="#ff6868" text-anchor="middle" dy=".3em">⚠️ Hình ảnh lỗi</text>
+                              <text x="150" y="100" font-family="Arial" font-size="12" fill="#ff6868" text-anchor="middle" dy=".3em">Không tải được</text>
+                              <text x="150" y="120" font-family="Arial" font-size="10" fill="#999" text-anchor="middle" dy=".3em">Kiểm tra lại đường dẫn</text>
+                            </svg>
+                          `);
                           e.target.onerror = null;
                         }}
                         style={{ width: '100%', height: '150px', objectFit: 'cover' }}
@@ -313,7 +368,23 @@ const Category = ({ url }) => {
                     </div>
                     <div className="category-content">
                       <div className="category-header">
-                        <h3>{category.name}</h3>
+                        <h3>
+                          {category.name}
+                          {imageErrors.has(category._id) && (
+                            <span 
+                              className="image-error-indicator" 
+                              title="Hình ảnh bị lỗi hoặc không tải được"
+                              style={{
+                                marginLeft: '8px',
+                                color: '#ff6868',
+                                fontSize: '14px',
+                                fontWeight: 'normal'
+                              }}
+                            >
+                              ⚠️ Hình lỗi
+                            </span>
+                          )}
+                        </h3>
                       </div>
                       <p className="category-description">{category.description || t('categories.noDescription', 'No description')}</p>
                       <div className="category-meta">

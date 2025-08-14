@@ -11,5 +11,13 @@ export default defineConfig({
         manualChunks: undefined
       }
     }
+  },
+  server: {
+    // Enable history API fallback for development
+    historyApiFallback: true
+  },
+  preview: {
+    // Enable history API fallback for preview
+    historyApiFallback: true
   }
 })
