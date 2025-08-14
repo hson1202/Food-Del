@@ -23,8 +23,16 @@ const Category = ({ url }) => {
     environment: process.env.NODE_ENV,
     hostname: window.location.hostname
   }
+
+  useEffect(() => {
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Category component mounted:', envInfo)
+    }
+    fetchCategories()
+  }, [])
   
-  // Error boundary
+  // Error boundary - MOVED AFTER ALL HOOKS
   if (error) {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -34,14 +42,6 @@ const Category = ({ url }) => {
       </div>
     )
   }
-
-  useEffect(() => {
-    // Only log in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Category component mounted:', envInfo)
-    }
-    fetchCategories()
-  }, [])
 
   const fetchCategories = async (showLoadingToast = false) => {
     try {
