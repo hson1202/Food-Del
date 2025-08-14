@@ -194,8 +194,15 @@ const Orders = ({url}) => {
   return (
     <div className='orders-page'>
       <div className="orders-header">
-        <h1>{t('orders.title')}</h1>
-        <p>{t('orders.subtitle', 'Manage and track all customer orders')}</p>
+        <div className="header-content">
+          <h1>{t('orders.title')}</h1>
+          <p>{t('orders.subtitle', 'Manage and track all customer orders')}</p>
+        </div>
+        <div className="header-actions">
+          <button className="refresh-btn" onClick={fetchAllOrders}>
+            <span>🔄</span> {t('common.refresh') || 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* Order Statistics */}

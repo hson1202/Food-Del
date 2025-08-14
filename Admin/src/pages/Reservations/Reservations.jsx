@@ -269,8 +269,15 @@ const Reservations = ({ url }) => {
   return (
     <div className="reservations-page">
       <div className="page-header">
-        <h1>{t('reservations.pageTitle')}</h1>
-        <p>{t('reservations.pageDescription')}</p>
+        <div className="header-content">
+          <h1>{t('reservations.pageTitle')}</h1>
+          <p>{t('reservations.pageDescription')}</p>
+        </div>
+        <div className="header-actions">
+          <button className="refresh-btn" onClick={fetchReservations}>
+            <span>🔄</span> {t('common.refresh') || 'Refresh'}
+          </button>
+        </div>
         <div className="header-stats">
           <div className="stat-item">
             <span className="stat-number">{reservations.length}</span>

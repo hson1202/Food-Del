@@ -504,14 +504,21 @@ const Products = ({ url }) => {
   return (
     <div className='products-page'>
       <div className="products-header">
-        <h1>{t('products.title') || 'Products Management'}</h1>
-        <p>{t('products.subtitle') || 'Manage your food products'}</p>
-        <button 
-          onClick={() => setShowAddForm(!showAddForm)} 
-          className="btn-add-product"
-        >
-          {showAddForm ? (t('common.cancel') || 'Cancel') : (t('products.addNew') || 'Add New Product')}
-        </button>
+        <div className="header-content">
+          <h1>{t('products.title') || 'Products Management'}</h1>
+          <p>{t('products.subtitle') || 'Manage your food products'}</p>
+        </div>
+        <div className="header-actions">
+          <button className="refresh-btn" onClick={fetchFoodList}>
+            <span>🔄</span> {t('common.refresh') || 'Refresh'}
+          </button>
+          <button 
+            onClick={() => setShowAddForm(!showAddForm)} 
+            className="btn-add-product"
+          >
+            {showAddForm ? (t('common.cancel') || 'Cancel') : (t('products.addNew') || 'Add New Product')}
+          </button>
+        </div>
       </div>
 
     

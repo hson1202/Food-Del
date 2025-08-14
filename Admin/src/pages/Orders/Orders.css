@@ -19,10 +19,57 @@
   border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-.header-content {
+.orders-header {
+  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-content h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-content p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.refresh-btn {
+  background: #10B981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s;
+}
+
+.refresh-btn:hover {
+  background: #059669;
 }
 
 .header-text h1 {
@@ -717,10 +764,15 @@
 
 .item-sku {
   display: block;
-  font-size: 11px;
-  color: #6b7280;
+  font-size: 16px;
+  color: #374151;
   font-family: 'Courier New', monospace;
+  font-weight: 600;
   margin: 0;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .item-quantity-price {
@@ -997,10 +1049,15 @@
 }
 
 .modal-item-sku {
-  display: block;
-  font-size: 12px;
-  color: #6b7280;
+  display: inline-block;
+  font-size: 18px;
+  color: #374151;
   font-family: 'Courier New', monospace;
+  font-weight: 700;
+  background: #fef3c7;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 2px solid #f59e0b;
 }
 
 .modal-item-quantity-price {

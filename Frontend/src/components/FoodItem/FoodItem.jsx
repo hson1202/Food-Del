@@ -4,7 +4,7 @@ import { assets } from '../../assets/assets'
 import { StoreContext } from '../../Context/StoreContext'
 import { useTranslation } from 'react-i18next'
 
-const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, isPromotion, originalPrice, promotionPrice, soldCount = 0, likes = 0, onViewDetails}) => {
+const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, sku, isPromotion, originalPrice, promotionPrice, soldCount = 0, likes = 0, onViewDetails}) => {
   const {cartItems, addToCart, removeFromCart, url} = useContext(StoreContext);
   const { i18n, t } = useTranslation();
   
@@ -60,14 +60,14 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
         price, 
         description, 
         image, 
+        sku,
         isPromotion, 
         originalPrice, 
         promotionPrice, 
         soldCount, 
         likes,
         status: 'active',
-        language: 'vi',
-        sku: id.slice(-8)
+        language: 'vi'
       });
     }
   };

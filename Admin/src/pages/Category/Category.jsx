@@ -188,11 +188,15 @@ const Category = ({ url }) => {
   return (
     <div className='category-page'>
       <div className="category-header">
-        <div>
+        <div className="header-content">
           <h1>{t('categories.title')}</h1>
           <p>{t('categories.subtitle', 'Manage your food categories')}</p>
         </div>
-      
+        <div className="header-actions">
+          <button className="refresh-btn" onClick={fetchCategories}>
+            <span>🔄</span> {t('common.refresh') || 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* Add Category Form */}

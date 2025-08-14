@@ -82,14 +82,11 @@ const ProductDetail = ({ product, onClose }) => {
             <div className="product-header">
               <h2>{getLocalizedName()}</h2>
               <div className="product-sku">
-                SKU: {product.sku || 'N/A'}
+                SKU: <span className="sku">{product.sku || 'N/A'}</span>
               </div>
             </div>
 
-            <div className="product-category">
-              <span className="category-icon">📁</span>
-              {product.category}
-            </div>
+          
 
             <div className="product-description">
               <p>{product.description || t('productDetail.noDescription')}</p>
@@ -142,7 +139,7 @@ const ProductDetail = ({ product, onClose }) => {
                     className="add-to-cart-btn"
                     onClick={() => addToCart(product._id)}
                   >
-                    <img src={assets.add_icon_white} alt="" />
+                     
                     {t('food.addToCart')}
                   </button>
                 ) : (

@@ -225,6 +225,7 @@ const Menu = () => {
                   description={food.description} 
                   price={food.price} 
                   image={food.image}
+                  sku={food.sku}
                   isPromotion={food.isPromotion}
                   originalPrice={food.originalPrice}
                   promotionPrice={food.promotionPrice}

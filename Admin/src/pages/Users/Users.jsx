@@ -232,13 +232,20 @@ const Users = ({ url }) => {
   return (
     <div className='users-page'>
       <div className="users-header">
-        <h1>
-          {t('users.title')}
-          <span className="users-count">
-            <span>{filteredUsers.length}</span> users
-          </span>
-        </h1>
-        <p>{t('users.subtitle', 'Manage your application users')}</p>
+        <div className="header-content">
+          <h1>
+            {t('users.title')}
+            <span className="users-count">
+              <span>{filteredUsers.length}</span> users
+            </span>
+          </h1>
+          <p>{t('users.subtitle', 'Manage your application users')}</p>
+        </div>
+        <div className="header-actions">
+          <button className="refresh-btn" onClick={fetchUsers}>
+            <span>🔄</span> {t('common.refresh') || 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* Filters and Search */}
