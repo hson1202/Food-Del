@@ -220,7 +220,7 @@
   
   .category-bar.sticky .explore-menu-list-item img,
   .category-bar.sticky .category-placeholder {
-    width: 50px; /* Giảm kích thước ảnh/placeholder */
+    width: 70px; /* Giảm kích thước ảnh/placeholder */
     min-height: 50px;
   }
   
@@ -1028,7 +1028,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 30px;
+  gap: 20px; /* Giảm gap từ 30px xuống 20px */
   text-align: center;
   margin: 20px 0px;
   overflow-x: auto;
@@ -1040,6 +1040,7 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  padding: 0 10px; /* Thêm padding để tránh item đầu tiên bị sát lề */
 }
 
 .explore-menu-list::-webkit-scrollbar {
@@ -1065,72 +1066,58 @@
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  min-width: fit-content;
+  min-width: 85px; /* Giảm từ 120px xuống 85px */
   cursor: pointer;
-  width: 120px; /* Thêm width cố định */
+  transition: transform 0.2s ease;
 }
 
 .explore-menu-list-item:hover {
   transform: translateY(-2px);
-  transition: transform 0.2s ease;
 }
 
 .explore-menu-list-item img {
-  width: 80px; /* Thay đổi từ 7.5vw thành giá trị cố định */
-  height: 80px; /* Thêm height cố định để đảm bảo tỷ lệ 1:1 */
-  object-fit: cover; /* Thêm để hình ảnh không bị méo */
+  width: 100px; /* Giảm từ 80px xuống 70px */
+  height: 70px;
+  object-fit: cover;
   cursor: pointer;
   border-radius: 50%;
   transition: 0.2s;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+  border: 2px solid transparent; /* Thêm border trong suốt để tránh jump khi active */
 }
 
 .explore-menu-list-item p {
-  margin-top: 10px;
+  margin-top: 8px; /* Giảm từ 10px xuống 8px */
   color: #747474;
-  font-size: 16px; /* Thay đổi từ max(1.4vw,16px) thành giá trị cố định */
+  font-size: 14px; /* Giảm từ 16px xuống 14px */
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100px; /* Thay đổi từ 7.5vw thành giá trị cố định */
+  max-width: 85px; /* Giảm từ 100px xuống 85px */
   text-align: center;
-  word-wrap: break-word;
-  hyphens: auto;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  line-height: 1.2;
+  font-weight: 500;
 }
 
-.explore-menu-list-item.active {
-  border: 4px solid tomato;
-  padding: 2px;
-  border-radius: 8px; /* Thêm border-radius để đẹp hơn */
+.explore-menu-list-item.active img {
+  border: 3px solid #ff6b35; /* Thay đổi màu và độ dày border */
 }
 
-/* Responsive cho mobile */
-@media (max-width: 768px) {
-  .explore-menu-list-item {
-    width: 100px;
-  }
-  
-  .explore-menu-list-item img {
-    width: 70px;
-    height: 70px;
-  }
-  
-  .explore-menu-list-item p {
-    font-size: 14px;
-    max-width: 90px;
-  }
+.explore-menu-list-item.active p {
+  color: #ff6b35; /* Đổi màu text khi active */
+  font-weight: 600;
 }
 
 .category-placeholder {
-  width: 80px; /* Thay đổi từ 7.5vw thành giá trị cố định */
-  min-height: 80px;
+  width: 70px; /* Giảm từ 80px xuống 70px */
+  height: 70px;
   cursor: pointer;
   border-radius: 50%;
   transition: 0.2s;
@@ -1139,23 +1126,23 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 24px;
+  font-size: 20px; /* Giảm từ 24px xuống 20px */
   font-weight: bold;
   flex-shrink: 0;
   overflow: hidden;
+  border: 2px solid transparent;
 }
 
 .category-placeholder.active {
-  border: 4px solid tomato;
-  padding: 2px;
+  border: 3px solid #ff6b35;
 }
 
 /* Responsive styles for explore-menu-list */
-@media (max-width: 750px) {
+@media (max-width: 768px) {
   .explore-menu-list {
-    gap: 20px;
+    gap: 15px;
     margin: 15px 0px;
-    padding: 0 10px;
+    padding: 0 15px;
     scroll-snap-type: x mandatory;
     cursor: grab;
   }
@@ -1166,44 +1153,50 @@
   
   .explore-menu-list-item {
     scroll-snap-align: start;
-    flex-shrink: 0;
+    min-width: 70px;
   }
   
   .explore-menu-list-item img,
   .category-placeholder {
     width: 60px;
-    min-height: 60px;
+    height: 60px;
   }
   
   .explore-menu-list-item p {
-    font-size: 14px;
-    margin-top: 8px;
-    max-width: 60px;
+    font-size: 13px;
+    margin-top: 6px;
+    max-width: 70px;
+  }
+  
+  .category-placeholder {
+    font-size: 18px;
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 480px) {
   .explore-menu-list {
-    gap: 15px;
+    gap: 12px;
     margin: 12px 0px;
-    padding: 0 5px;
-    scroll-snap-type: x mandatory;
+    padding: 0 10px;
   }
   
   .explore-menu-list-item {
-    scroll-snap-align: start;
-    flex-shrink: 0;
+    min-width: 60px;
   }
   
   .explore-menu-list-item img,
   .category-placeholder {
     width: 50px;
-    min-height: 50px;
+    height: 50px;
   }
   
   .explore-menu-list-item p {
     font-size: 12px;
-    margin-top: 6px;
-    max-width: 50px;
+    margin-top: 5px;
+    max-width: 60px;
+  }
+  
+  .category-placeholder {
+    font-size: 16px;
   }
 } 
