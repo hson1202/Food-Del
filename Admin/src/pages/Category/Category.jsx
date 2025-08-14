@@ -43,8 +43,12 @@ const Category = ({ url }) => {
     fetchCategories()
   }, [])
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (showLoadingToast = false) => {
     try {
+      if (showLoadingToast) {
+        toast.info('🔄 Đang tải lại categories...', { autoClose: 1000 })
+      }
+      
       const apiUrl = `${config.BACKEND_URL}${config.API_ENDPOINTS.CATEGORY}/admin`
       if (process.env.NODE_ENV === 'development') {
         console.log('Fetching categories from:', apiUrl)
@@ -52,6 +56,10 @@ const Category = ({ url }) => {
       const response = await axios.get(apiUrl)
       const categoriesData = response.data.data || response.data
       setCategories(categoriesData)
+      
+      if (showLoadingToast) {
+        toast.success(`✅ Đã tải lại ${categoriesData.length} categories`, { autoClose: 2000 })
+      }
     } catch (error) {
       console.error('Error fetching categories:', error)
       setError(error)
@@ -193,7 +201,7 @@ const Category = ({ url }) => {
           <p>{t('categories.subtitle', 'Manage your food categories')}</p>
         </div>
         <div className="header-actions">
-          <button className="refresh-btn" onClick={fetchCategories}>
+          <button className="refresh-btn" onClick={() => fetchCategories(true)}>
             <span>🔄</span> {t('common.refresh') || 'Refresh'}
           </button>
         </div>

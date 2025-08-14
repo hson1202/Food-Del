@@ -1,5 +1,5 @@
 import express from "express"
-import { localUpload } from "../middleware/localUpload.js"
+import { upload } from "../middleware/upload.js"
 import {
   getAllBlogs,
   getPublicBlogs,
@@ -86,8 +86,8 @@ router.get('/public', getPublicBlogs) // Public route for frontend
 router.get('/stats', getBlogStats)
 router.get('/slug/:slug', getBlogBySlug) // New route for slug-based lookup
 router.get('/:id', getBlogById)
-router.post('/add', localUpload.single('image'), handleMulterError, validateBlogData, createBlog)
-router.post('/add-test', localUpload.single('image'), handleMulterError, createBlog) // Test route without validation
+router.post('/add', upload.single('image'), handleMulterError, validateBlogData, createBlog)
+router.post('/add-test', upload.single('image'), handleMulterError, createBlog) // Test route without validation
 router.post('/add-simple', validateBlogData, createBlog) // Route for creating blog without image
 router.post('/add-no-image', validateBlogData, createBlog) // Route for creating blog without image validation
 router.post('/test', (req, res) => {
@@ -135,7 +135,7 @@ router.get('/test-db', async (req, res) => {
         })
     }
 })
-router.put('/:id', localUpload.single('image'), handleMulterError, updateBlog)
+router.put('/:id', upload.single('image'), handleMulterError, updateBlog)
 router.delete('/:id', deleteBlog)
 router.put('/:id/status', toggleBlogStatus)
 router.put('/:id/featured', toggleFeatured)

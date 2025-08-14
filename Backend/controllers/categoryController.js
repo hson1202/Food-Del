@@ -29,18 +29,23 @@ const getAllCategoriesAdmin = async (req, res) => {
 const addCategory = async (req, res) => {
     try {
         const { name, description, sortOrder } = req.body;
-        // Use local filename for local storage
-        let image_filename = req.file ? req.file.filename : '';
+        // Use Cloudinary URL or local filename
+        let image_url = '';
+        
+        if (req.file) {
+            // If using Cloudinary, req.file.path contains the full URL
+            image_url = req.file.path || req.file.filename;
+        }
         
         console.log('=== ADD CATEGORY DEBUG ===')
         console.log('Request body:', req.body)
         console.log('Request file:', req.file)
-        console.log('Image filename:', image_filename)
+        console.log('Image URL:', image_url)
 
         const categoryData = {
             name,
             description: description || '',
-            image: image_filename,
+            image: image_url,
             sortOrder: sortOrder || 0
         };
 
@@ -63,7 +68,12 @@ const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, sortOrder, isActive } = req.body;
-        let image_filename = req.file ? req.file.filename : '';
+        let image_url = '';
+        
+        if (req.file) {
+            // If using Cloudinary, req.file.path contains the full URL
+            image_url = req.file.path || req.file.filename;
+        }
 
         const updateData = {
             name,
@@ -72,8 +82,8 @@ const updateCategory = async (req, res) => {
             isActive: isActive !== undefined ? isActive : true
         };
 
-        if (image_filename) {
-            updateData.image = image_filename;
+        if (image_url) {
+            updateData.image = image_url;
         }
 
         await categoryModel.findByIdAndUpdate(id, updateData);
@@ -94,9 +104,15 @@ const deleteCategory = async (req, res) => {
         const { id } = req.params;
         const category = await categoryModel.findById(id);
         
-        // Delete local file only if it's a local filename (not a URL)
+        // Only delete local files (not Cloudinary URLs)
+        // Cloudinary files should be managed through Cloudinary admin or auto-cleanup
         if (category && category.image && !/^https?:\/\//i.test(category.image)) {
-            fs.unlink(`uploads/${category.image}`, () => { });
+            try {
+                fs.unlink(`uploads/${category.image}`, () => { });
+                console.log(`Local file deleted: ${category.image}`);
+            } catch (fileError) {
+                console.log(`Could not delete local file: ${category.image}`);
+            }
         }
 
         await categoryModel.findByIdAndDelete(id);

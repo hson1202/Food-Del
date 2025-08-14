@@ -1,6 +1,6 @@
 import express from "express"
 import { addFood, listFood, removeFood, updateFoodStatus, updateFood, updateFoodQuantity, processOrder } from "../controllers/foodController.js"
-import { localUpload } from "../middleware/localUpload.js"
+import { upload } from "../middleware/upload.js"
 
 const foodRouter = express.Router();
 
@@ -37,7 +37,7 @@ const handleMulterError = (error, req, res, next) => {
 }
 
 // Test route for upload
-foodRouter.post("/test-upload", localUpload.single("image"), (req, res) => {
+foodRouter.post("/test-upload", upload.single("image"), (req, res) => {
     console.log('=== TEST UPLOAD ROUTE ===')
     console.log('Request body:', req.body)
     console.log('Request file:', req.file)
@@ -270,11 +270,11 @@ foodRouter.post("/test-category", async (req, res) => {
     }
 })
 
-foodRouter.post("/add", localUpload.single("image"), handleMulterError, addFood)
+foodRouter.post("/add", upload.single("image"), handleMulterError, addFood)
 foodRouter.get("/list", listFood)
 foodRouter.delete("/remove", removeFood)
 foodRouter.put("/status", updateFoodStatus)
-foodRouter.put("/edit/:id", localUpload.single("image"), handleMulterError, updateFood)
+foodRouter.put("/edit/:id", upload.single("image"), handleMulterError, updateFood)
 foodRouter.put("/quantity", updateFoodQuantity)
 foodRouter.post("/process-order", processOrder)
 

@@ -20,8 +20,12 @@ const Orders = ({url}) => {
   const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds default
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  const fetchAllOrders = async () => {
+  const fetchAllOrders = async (showLoadingToast = false) => {
     try {
+      if (showLoadingToast) {
+        toast.info('🔄 Đang tải lại orders...', { autoClose: 1000 })
+      }
+      
       const adminToken = localStorage.getItem('adminToken');
       if (!adminToken) {
         toast.error('Admin token not found. Please login again.');
@@ -37,10 +41,14 @@ const Orders = ({url}) => {
       if (response.status === 200) {
         const newOrders = response.data;
         
-        // Check if there are new orders
-        if (orders.length > 0 && newOrders.length > orders.length) {
+        // Check if there are new orders (only for auto-refresh, not manual refresh)
+        if (!showLoadingToast && orders.length > 0 && newOrders.length > orders.length) {
           const newOrderCount = newOrders.length - orders.length;
           toast.success(`🆕 ${newOrderCount} new order${newOrderCount > 1 ? 's' : ''} received!`);
+        }
+        
+        if (showLoadingToast) {
+          toast.success(`✅ Đã tải lại ${newOrders.length} orders`, { autoClose: 2000 })
         }
         
         // Sort orders: Pending first, then by creation date
@@ -199,7 +207,7 @@ const Orders = ({url}) => {
           <p>{t('orders.subtitle', 'Manage and track all customer orders')}</p>
         </div>
         <div className="header-actions">
-          <button className="refresh-btn" onClick={fetchAllOrders}>
+          <button className="refresh-btn" onClick={() => fetchAllOrders(true)}>
             <span>🔄</span> {t('common.refresh') || 'Refresh'}
           </button>
         </div>

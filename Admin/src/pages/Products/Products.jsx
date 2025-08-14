@@ -57,14 +57,22 @@ const Products = ({ url }) => {
     fetchCategories()
   }, [])
 
-  const fetchFoodList = async () => {
+  const fetchFoodList = async (showLoadingToast = false) => {
     setIsLoading(true)
     setError(null)
+    
+    if (showLoadingToast) {
+      toast.info('🔄 Đang tải lại products...', { autoClose: 1000 })
+    }
+    
     try {
       const params = {};
       const response = await axios.get(`${config.BACKEND_URL}/api/food/list`, { params })
       if (response.data && response.data.data) {
         setFoodList(response.data.data)
+        if (showLoadingToast) {
+          toast.success(`✅ Đã tải lại ${response.data.data.length} products`, { autoClose: 2000 })
+        }
       } else {
         setFoodList([])
         console.warn('No data received from API')
@@ -509,7 +517,7 @@ const Products = ({ url }) => {
           <p>{t('products.subtitle') || 'Manage your food products'}</p>
         </div>
         <div className="header-actions">
-          <button className="refresh-btn" onClick={fetchFoodList}>
+          <button className="refresh-btn" onClick={() => fetchFoodList(true)}>
             <span>🔄</span> {t('common.refresh') || 'Refresh'}
           </button>
           <button 
