@@ -3,6 +3,7 @@ import './Dashboard.css'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next';
 import '../../i18n';
+import config from '../../config/config';
 
 // Configure axios defaults
 axios.defaults.timeout = 10000;
@@ -105,7 +106,7 @@ const Dashboard = ({ url }) => {
     try {
       setIsLoading(true)
       console.log('🔍 Fetching dashboard data from:', url)
-      console.log('🌐 Full URL for stats:', `${url}/api/admin/stats`)
+      console.log('Full URL for stats:', `${config.BACKEND_URL}/api/admin/stats`)
       
       // Test basic connectivity first
       try {
@@ -128,8 +129,8 @@ const Dashboard = ({ url }) => {
       // Fetch all data in parallel for better performance
       console.log('🚀 Starting API calls...')
       const [statsResponse, timeResponse] = await Promise.allSettled([
-        axios.get(`${url}/api/admin/stats`, { headers: { 'token': adminToken } }),
-        axios.get(`${url}/api/admin/time-stats`, { headers: { 'token': adminToken } })
+        axios.get(`${config.BACKEND_URL}/api/admin/stats`, { headers: { 'token': adminToken } }),
+        axios.get(`${config.BACKEND_URL}/api/admin/time-stats`, { headers: { 'token': adminToken } })
       ])
 
       console.log('📊 All API calls completed with status:', {

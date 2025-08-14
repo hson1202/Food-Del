@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import './Permissions.css'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import config from '../../config/config'
 
 const Permissions = ({ url }) => {
   const [roles, setRoles] = useState([])
@@ -34,7 +35,7 @@ const Permissions = ({ url }) => {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get(`${url}/api/admin/roles`)
+      const response = await axios.get(`${config.BACKEND_URL}/api/admin/roles`)
       setRoles(response.data)
     } catch (error) {
       console.error('Error fetching roles:', error)
@@ -49,7 +50,7 @@ const Permissions = ({ url }) => {
 
   const fetchPermissions = async () => {
     try {
-      const response = await axios.get(`${url}/api/admin/permissions`)
+      const response = await axios.get(`${config.BACKEND_URL}/api/admin/permissions`)
       setPermissions(response.data)
     } catch (error) {
       console.error('Error fetching permissions:', error)
@@ -59,7 +60,7 @@ const Permissions = ({ url }) => {
 
   const handlePermissionToggle = async (roleId, permissionId, isGranted) => {
     try {
-      await axios.put(`${url}/api/admin/roles/${roleId}/permissions`, {
+      await axios.put(`${config.BACKEND_URL}/api/admin/roles/${roleId}/permissions`, {
         permissionId,
         granted: !isGranted
       })
@@ -73,7 +74,7 @@ const Permissions = ({ url }) => {
 
   const fetchRolePermissions = async () => {
     try {
-      const response = await axios.get(`${url}/api/admin/role-permissions`)
+      const response = await axios.get(`${config.BACKEND_URL}/api/admin/role-permissions`)
       setRolePermissions(response.data)
     } catch (error) {
       console.error('Error fetching role permissions:', error)

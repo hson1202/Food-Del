@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import '../../i18n';
+import config from '../../config/config';
 
 const Login = ({ url, setIsAuthenticated }) => {
   const { t } = useTranslation();
@@ -29,7 +30,7 @@ const Login = ({ url, setIsAuthenticated }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${url}/api/admin/login`, formData);
+      const response = await axios.post(`${config.BACKEND_URL}/api/admin/login`, formData);
       
       if (response.data.success) {
         // Lưu token vào localStorage

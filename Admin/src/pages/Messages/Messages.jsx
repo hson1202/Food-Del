@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import './Messages.css';
+import config from '../../config/config';
 
 const Messages = ({ url }) => {
   const [messages, setMessages] = useState([]);
@@ -65,7 +66,7 @@ const Messages = ({ url }) => {
 
       console.log('🔍 Fetching messages with params:', params.toString()); // Debug log
 
-             const response = await axios.get(`${url}/api/contact?${params.toString()}`, {
+             const response = await axios.get(`${config.BACKEND_URL}/api/contact?${params.toString()}`, {
         headers: { 
           token,
           'Content-Type': 'application/json'
@@ -93,7 +94,7 @@ const Messages = ({ url }) => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('adminToken'); // Sửa từ 'token' thành 'adminToken'
-      const response = await axios.get(`${url}/api/contact/stats`, {
+      const response = await axios.get(`${config.BACKEND_URL}/api/contact/stats`, {
         headers: { token }
       });
 
@@ -116,7 +117,7 @@ const Messages = ({ url }) => {
   const updateMessageStatus = async (messageId, newStatus) => {
     try {
       const token = localStorage.getItem('adminToken'); // Sửa từ 'token' thành 'adminToken'
-      const response = await axios.put(`${url}/api/contact/${messageId}/status`, {
+      const response = await axios.put(`${config.BACKEND_URL}/api/contact/${messageId}/status`, {
         status: newStatus
       }, {
         headers: { token }
@@ -137,7 +138,7 @@ const Messages = ({ url }) => {
   const addAdminResponse = async (messageId, response) => {
     try {
       const token = localStorage.getItem('adminToken'); // Sửa từ 'token' thành 'adminToken'
-      const adminResponse = await axios.put(`${url}/api/contact/${messageId}/response`, {
+      const adminResponse = await axios.put(`${config.BACKEND_URL}/api/contact/${messageId}/response`, {
         adminResponse: response
       }, {
         headers: { token }
@@ -161,7 +162,7 @@ const Messages = ({ url }) => {
 
     try {
       const token = localStorage.getItem('adminToken'); // Sửa từ 'token' thành 'adminToken'
-      const response = await axios.delete(`${url}/api/contact/${messageId}`, {
+      const response = await axios.delete(`${config.BACKEND_URL}/api/contact/${messageId}`, {
         headers: { token }
       });
 

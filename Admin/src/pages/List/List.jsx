@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import './List.css'
 import axios from "axios"
 import {toast} from "react-toastify"
+import config from '../../config/config'
 
 const List = ({url}) => {
   const [list,setList]=useState([]);
@@ -15,7 +16,7 @@ const List = ({url}) => {
   });
 
   const fetchList=async ()=>{
-    const response=await axios.get(`${url}/api/food/list`);
+    const response=await axios.get(`${config.BACKEND_URL}/api/food/list`);
 
     if(response.data.success){
       setList(response.data.data)
@@ -25,7 +26,7 @@ const List = ({url}) => {
     }
   }
   const removeFood= async (foodId)=>{
-    const response = await axios.post(`${url}/api/food/remove`,{id:foodId});
+    const response = await axios.post(`${config.BACKEND_URL}/api/food/remove`,{id:foodId});
     await fetchList();
     if(response.data.success){
       toast.success(response.data.message);
@@ -69,7 +70,7 @@ const List = ({url}) => {
     e.preventDefault();
     
     try {
-      const response = await axios.put(`${url}/api/food/edit/${editingFood._id}`, editForm);
+      const response = await axios.put(`${config.BACKEND_URL}/api/food/edit/${editingFood._id}`, editForm);
       
       if (response.data.success) {
         toast.success('Product updated successfully!');

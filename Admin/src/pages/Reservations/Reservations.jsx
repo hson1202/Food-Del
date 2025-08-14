@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import './Reservations.css'
+import config from '../../config/config'
 
 const Reservations = ({ url }) => {
   const { t } = useTranslation()
@@ -27,7 +28,7 @@ const Reservations = ({ url }) => {
       setLoading(true)
       setError(null)
       const token = localStorage.getItem('adminToken')
-      const response = await fetch(`${url}/api/reservation`, {
+      const response = await fetch(`${config.BACKEND_URL}/api/reservation`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -57,7 +58,7 @@ const Reservations = ({ url }) => {
       const requestBody = { status, adminNote }
       console.log('Request body:', requestBody)
       
-      const response = await fetch(`${url}/api/reservation/${id}/status`, {
+      const response = await fetch(`${config.BACKEND_URL}/api/reservation/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +114,7 @@ const Reservations = ({ url }) => {
     try {
       setDeletingId(id)
       const token = localStorage.getItem('adminToken')
-      const response = await fetch(`${url}/api/reservation/${id}`, {
+      const response = await fetch(`${config.BACKEND_URL}/api/reservation/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

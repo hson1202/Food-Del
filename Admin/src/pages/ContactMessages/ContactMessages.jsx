@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import './ContactMessages.css'
+import config from '../../config/config'
 
 const ContactMessages = ({ url }) => {
   const { t } = useTranslation()
@@ -37,7 +38,7 @@ const ContactMessages = ({ url }) => {
         ...(searchTerm && { search: searchTerm })
       })
 
-      const response = await fetch(`${url}/api/contact?${params}`, {
+      const response = await fetch(`${config.BACKEND_URL}/api/contact?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -68,7 +69,7 @@ const ContactMessages = ({ url }) => {
       if (priority) updateData.priority = priority
       if (tags) updateData.tags = tags
 
-      const response = await fetch(`${url}/api/contact/${id}/status`, {
+      const response = await fetch(`${config.BACKEND_URL}/api/contact/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +120,7 @@ const ContactMessages = ({ url }) => {
       setUpdatingStatus(true)
       const token = localStorage.getItem('adminToken')
       
-      const response = await fetch(`${url}/api/contact/${id}/response`, {
+      const response = await fetch(`${config.BACKEND_URL}/api/contact/${id}/response`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +177,7 @@ const ContactMessages = ({ url }) => {
       setDeletingId(id)
       const token = localStorage.getItem('adminToken')
       
-      const response = await fetch(`${url}/api/contact/${id}`, {
+      const response = await fetch(`${config.BACKEND_URL}/api/contact/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

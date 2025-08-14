@@ -1,10 +1,9 @@
 // Configuration file for backend URLs and image paths
 const config = {
-  // Backend URL - ưu tiên sử dụng environment variable
-  BACKEND_URL: process.env.REACT_APP_BACKEND_URL || 
-    (process.env.NODE_ENV === 'production' 
-      ? 'https://food-del-backend-4jjf.onrender.com'  // Fallback cho production
-      : 'http://localhost:4000'),  // Fallback cho development
+  // Backend URL - change this based on environment
+  BACKEND_URL: process.env.NODE_ENV === 'production' 
+    ? process.env.REACT_APP_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com'
+    : 'http://localhost:4000',
   
   // API endpoints
   API_ENDPOINTS: {

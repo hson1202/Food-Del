@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import i18n from '../../i18n'
 import EditProductPopup from '../../components/EditProductPopup/EditProductPopup'
 import InventoryStatus from '../../components/InventoryStatus/InventoryStatus'
+import config from '../../config/config'
 
 
 const Products = ({ url }) => {
@@ -61,7 +62,7 @@ const Products = ({ url }) => {
     setError(null)
     try {
       const params = {};
-      const response = await axios.get(`${url}/api/food/list`, { params })
+      const response = await axios.get(`${config.BACKEND_URL}/api/food/list`, { params })
       if (response.data && response.data.data) {
         setFoodList(response.data.data)
       } else {
@@ -80,7 +81,7 @@ const Products = ({ url }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(`${url}/api/category`)
+      const response = await axios.get(`${config.BACKEND_URL}/api/category`)
       console.log('Categories response:', response.data) // Debug log
       if (response.data && (response.data.data || response.data)) {
         setCategories(response.data.data || response.data)
@@ -99,7 +100,7 @@ const Products = ({ url }) => {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm(t('products.deleteConfirm') || 'Are you sure you want to delete this product?')) {
       try {
-        const response = await axios.delete(`${url}/api/food/remove`, { data: { id: productId } })
+        const response = await axios.delete(`${config.BACKEND_URL}/api/food/remove`, { data: { id: productId } })
         if (response.data) {
           toast.success(t('products.deleteSuccess') || 'Product deleted successfully')
           fetchFoodList()
@@ -202,7 +203,7 @@ const Products = ({ url }) => {
         }
       });
       
-      const response = await axios.put(`${url}/api/food/edit/${editingProduct._id}`, formData, {
+      const response = await axios.put(`${config.BACKEND_URL}/api/food/edit/${editingProduct._id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -254,7 +255,7 @@ const Products = ({ url }) => {
 
   const handleStatusToggle = async (productId, currentStatus) => {
     try {
-              const response = await axios.put(`${url}/api/food/status`, {
+              const response = await axios.put(`${config.BACKEND_URL}/api/food/status`, {
           id: productId,
           status: currentStatus === 'active' ? 'inactive' : 'active'
         })
@@ -337,7 +338,7 @@ const Products = ({ url }) => {
 
     setIsLoading(true)
     try {
-      const response = await axios.post(`${url}/api/food/add`, formData, {
+      const response = await axios.post(`${config.BACKEND_URL}/api/food/add`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

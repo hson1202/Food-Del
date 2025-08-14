@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Editor } from '@tinymce/tinymce-react'
 import 'tinymce/skins/ui/oxide/skin.min.css'
 import 'tinymce/skins/ui/oxide/content.min.css'
+import config from '../../config/config'
 
 const Blog = ({ url }) => {
   const { t } = useTranslation();
@@ -68,7 +69,7 @@ const Blog = ({ url }) => {
     paste_data_images: true,
     automatic_uploads: true,
     file_picker_types: 'image',
-    images_upload_url: '/api/upload-image',
+    images_upload_url: `${config.BACKEND_URL}/api/upload-image`,
     images_upload_handler: function (blobInfo, success, failure) {
       // Handle image upload here
       success('data:' + blobInfo.blob().type + ';base64,' + blobInfo.base64());
@@ -88,7 +89,7 @@ const Blog = ({ url }) => {
         params.language = filterLanguage;
       }
       console.log('Fetching blogs with params:', params);
-      const response = await axios.get(`${url}/api/blog/list`, { params })
+      const response = await axios.get(`${config.BACKEND_URL}/api/blog/list`, { params })
       console.log('Blog response:', response.data);
       setBlogList(response.data.data)
     } catch (error) {
@@ -101,7 +102,7 @@ const Blog = ({ url }) => {
 
   const fetchBlogStats = async () => {
     try {
-      const response = await axios.get(`${url}/api/blog/stats`)
+      const response = await axios.get(`${config.BACKEND_URL}/api/blog/stats`)
       setBlogStats(response.data.data)
     } catch (error) {
       console.error('Error fetching blog stats:', error)
@@ -137,7 +138,7 @@ const Blog = ({ url }) => {
 
     setIsLoading(true)
     try {
-      await axios.post(`${url}/api/blog/add-test`, formData, {
+              await axios.post(`${config.BACKEND_URL}/api/blog/add-test`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -174,7 +175,7 @@ const Blog = ({ url }) => {
   const handleDeleteBlog = async (blogId) => {
     if (window.confirm('Are you sure you want to delete this blog?')) {
       try {
-        await axios.delete(`${url}/api/blog/${blogId}`)
+        await axios.delete(`${config.BACKEND_URL}/api/blog/${blogId}`)
         toast.success('Blog deleted successfully')
         fetchBlogList()
         fetchBlogStats()
@@ -187,7 +188,7 @@ const Blog = ({ url }) => {
 
   const handleStatusToggle = async (blogId, currentStatus) => {
     try {
-      await axios.put(`${url}/api/blog/${blogId}/status`)
+              await axios.put(`${config.BACKEND_URL}/api/blog/${blogId}/status`)
       toast.success('Blog status updated successfully')
       fetchBlogList()
       fetchBlogStats()
@@ -199,7 +200,7 @@ const Blog = ({ url }) => {
 
   const handleFeaturedToggle = async (blogId) => {
     try {
-      await axios.put(`${url}/api/blog/${blogId}/featured`)
+              await axios.put(`${config.BACKEND_URL}/api/blog/${blogId}/featured`)
       toast.success('Blog featured status updated successfully')
       fetchBlogList()
       fetchBlogStats()
@@ -252,7 +253,7 @@ const Blog = ({ url }) => {
 
     setIsLoading(true)
     try {
-      await axios.put(`${url}/api/blog/${editingBlog._id}`, formData, {
+              await axios.put(`${config.BACKEND_URL}/api/blog/${editingBlog._id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

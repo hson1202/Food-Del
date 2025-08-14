@@ -4,6 +4,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import '../../i18n'
+import config from '../../config/config'
 
 const Users = ({ url }) => {
   const { t } = useTranslation();
@@ -37,7 +38,7 @@ const Users = ({ url }) => {
         return;
       }
 
-      const response = await axios.get(`${url}/api/admin/users`, { 
+      const response = await axios.get(`${config.BACKEND_URL}/api/admin/users`, { 
         headers: { 'token': adminToken } 
       })
       console.log('✅ Users fetched:', response.data)
@@ -63,7 +64,7 @@ const Users = ({ url }) => {
         return;
       }
 
-      await axios.put(`${url}/api/admin/users/${userId}/status`, {
+      await axios.put(`${config.BACKEND_URL}/api/admin/users/${userId}/status`, {
         status: newStatus
       }, { 
         headers: { 'token': adminToken } 
@@ -89,7 +90,7 @@ const Users = ({ url }) => {
         return;
       }
 
-      await axios.put(`${url}/api/admin/users/${userId}/role`, {
+      await axios.put(`${config.BACKEND_URL}/api/admin/users/${userId}/role`, {
         role: newRole
       }, { 
         headers: { 'token': adminToken } 
@@ -116,7 +117,7 @@ const Users = ({ url }) => {
           return;
         }
 
-        await axios.delete(`${url}/api/admin/users/${userId}`, { 
+        await axios.delete(`${config.BACKEND_URL}/api/admin/users/${userId}`, { 
           headers: { 'token': adminToken } 
         })
         toast.success(t('users.deleteSuccess', 'User deleted successfully'))
@@ -171,7 +172,7 @@ const Users = ({ url }) => {
         return;
       }
 
-      await axios.put(`${url}/api/admin/users/${editingUser._id}`, updateData, { 
+      await axios.put(`${config.BACKEND_URL}/api/admin/users/${editingUser._id}`, updateData, { 
         headers: { 'token': adminToken } 
       })
       toast.success(t('users.updateSuccess', 'User updated successfully'))

@@ -5,6 +5,7 @@ import axios from "axios"
 import {assets} from "../../assets/assets"
 import { useTranslation } from 'react-i18next'
 import '../../i18n'
+import config from '../../config/config'
 
 const Orders = ({url}) => {
   const { t } = useTranslation();
@@ -27,7 +28,7 @@ const Orders = ({url}) => {
         return;
       }
 
-      const response = await axios.get(`${url}/api/admin/orders`, {
+      const response = await axios.get(`${config.BACKEND_URL}/api/admin/orders`, {
         headers: {
           'token': adminToken
         }
@@ -80,7 +81,7 @@ const Orders = ({url}) => {
       }
       
       // Use the admin endpoint with auth token
-      const response = await axios.put(`${url}/api/admin/orders/${orderId}/status`, {
+      const response = await axios.put(`${config.BACKEND_URL}/api/admin/orders/${orderId}/status`, {
         status: event.target.value
       }, {
         headers: {
