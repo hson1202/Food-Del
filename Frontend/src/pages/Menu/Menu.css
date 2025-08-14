@@ -363,7 +363,7 @@
 
 
 
-/* Food Grid */
+/* Food Grid - Fixed version */
 .food-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -379,6 +379,7 @@
   transform: translateY(30px);
   animation: staggeredFadeIn 0.6s ease-out forwards;
   transition: all 0.3s ease;
+  height: 100%; /* Đảm bảo wrapper có chiều cao đầy đủ */
 }
 
 .food-item-wrapper:nth-child(1) { animation-delay: 0.1s; }
@@ -405,6 +406,196 @@
 
 .food-item-wrapper:hover {
   transform: translateY(-5px);
+}
+
+/* Food Item - Fixed layout - CHỈ ÁP DỤNG TRÊN DESKTOP */
+@media (min-width: 769px) {
+  .food-item {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+    /* Flexbox layout để tạo cấu trúc đồng đều */
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Chiều cao đầy đủ */
+    min-height: 380px; /* Chiều cao tối thiểu cố định */
+  }
+
+  .food-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    border-color: rgba(102, 126, 234, 0.2);
+  }
+
+  .food-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+
+  .food-item:hover::before {
+    transform: scaleX(1);
+  }
+
+  /* Food Image Container */
+  .food-image-container {
+    position: relative;
+    width: 100%;
+    height: 180px; /* Chiều cao cố định cho hình ảnh */
+    overflow: hidden;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    flex-shrink: 0; /* Không co lại */
+  }
+
+  .food-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+  }
+
+  .food-item:hover img {
+    transform: scale(1.1);
+  }
+
+  /* Food Content - Flexible layout */
+  .food-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Chiếm không gian còn lại */
+    justify-content: space-between;
+  }
+
+  /* Food Info - Phần thông tin sản phẩm */
+  .food-info {
+    flex: 1; /* Chiếm không gian có thể */
+    margin-bottom: 15px;
+  }
+
+  .food-item h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    /* Giới hạn số dòng hiển thị */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Tối đa 2 dòng */
+    line-clamp: 2; /* Standard property for compatibility */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.8rem; /* Đảm bảo chiều cao tối thiểu cho 2 dòng */
+  }
+
+  .food-item p {
+    color: #718096;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    /* Giới hạn mô tả */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Tối đa 2 dòng */
+    line-clamp: 2; /* Standard property for compatibility */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.4rem; /* Đảm bảo chiều cao tối thiểu */
+  }
+
+  /* Price and Action - Luôn ở cuối */
+  .food-price-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto; /* Đẩy xuống cuối */
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    flex-shrink: 0; /* Không co lại */
+  }
+
+  .food-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d3748;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Add to Cart Button */
+  .add-to-cart-btn {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    position: relative;
+    overflow: hidden;
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+
+  .add-to-cart-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .add-to-cart-btn:hover::before {
+    left: 100%;
+  }
+
+  .add-to-cart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+  }
+
+  .add-to-cart-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+  }
+
+  /* Badge/Label styles nếu có */
+  .food-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 1;
+  }
 }
 
 /* Loading Container */
@@ -497,6 +688,14 @@
     gap: 22px;
     max-width: 900px;
   }
+  
+  .food-item {
+    min-height: 360px;
+  }
+  
+  .food-image-container {
+    height: 160px;
+  }
 }
 
 /* Responsive Design */
@@ -546,6 +745,42 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     padding: 25px 0;
+  }
+  
+  .food-item {
+    padding: 15px;
+    min-height: 320px;
+  }
+  
+  .food-image-container {
+    height: 140px;
+    margin-bottom: 12px;
+  }
+  
+  .food-item h3 {
+    font-size: 1rem;
+    min-height: 2.4rem;
+  }
+  
+  .food-item p {
+    font-size: 0.85rem;
+    min-height: 2.1rem;
+  }
+  
+  .food-price {
+    font-size: 1.1rem;
+  }
+  
+  .add-to-cart-btn {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
+  
+  .add-to-cart-btn:hover {
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
   }
   
   /* Floating cart button responsive styles are now handled by the FloatingCartBtn component */
@@ -653,6 +888,46 @@
     margin: 0 5px;
   }
   
+  .food-item {
+    padding: 18px;
+    min-height: 100px;
+  }
+  
+  .food-image-container {
+    height: 200px;
+    margin-bottom: 15px;
+  }
+  
+  .food-item h3 {
+    font-size: 1.1rem;
+    min-height: 2.6rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2; /* Standard property for compatibility */
+  }
+  
+  .food-item p {
+    font-size: 0.9rem;
+    min-height: 2.4rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2; /* Standard property for compatibility */
+  }
+  
+  .food-price {
+    font-size: 1.2rem;
+  }
+  
+  .add-to-cart-btn {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    min-width: 80px;
+  }
+  
+  .add-to-cart-btn:hover {
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+  }
+  
   .food-item-wrapper {
     animation-delay: 0.05s !important;
   }
@@ -748,7 +1023,7 @@
   transform: translateY(0);
 }
 
-/* Explore Menu List Styles - Exact copy from ExploreMenu.css */
+/* Explore Menu List Styles - Fixed version */
 .explore-menu-list {
   display: flex;
   justify-content: flex-start;
@@ -792,6 +1067,7 @@
   flex-shrink: 0;
   min-width: fit-content;
   cursor: pointer;
+  width: 120px; /* Thêm width cố định */
 }
 
 .explore-menu-list-item:hover {
@@ -800,8 +1076,9 @@
 }
 
 .explore-menu-list-item img {
-  width: 7.5vw;
-  min-height: 80px;
+  width: 80px; /* Thay đổi từ 7.5vw thành giá trị cố định */
+  height: 80px; /* Thêm height cố định để đảm bảo tỷ lệ 1:1 */
+  object-fit: cover; /* Thêm để hình ảnh không bị méo */
   cursor: pointer;
   border-radius: 50%;
   transition: 0.2s;
@@ -813,12 +1090,12 @@
 .explore-menu-list-item p {
   margin-top: 10px;
   color: #747474;
-  font-size: max(1.4vw,16px);
+  font-size: 16px; /* Thay đổi từ max(1.4vw,16px) thành giá trị cố định */
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 7.5vw;
+  max-width: 100px; /* Thay đổi từ 7.5vw thành giá trị cố định */
   text-align: center;
   word-wrap: break-word;
   hyphens: auto;
@@ -831,10 +1108,28 @@
 .explore-menu-list-item.active {
   border: 4px solid tomato;
   padding: 2px;
+  border-radius: 8px; /* Thêm border-radius để đẹp hơn */
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+  .explore-menu-list-item {
+    width: 100px;
+  }
+  
+  .explore-menu-list-item img {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .explore-menu-list-item p {
+    font-size: 14px;
+    max-width: 90px;
+  }
 }
 
 .category-placeholder {
-  width: 7.5vw;
+  width: 80px; /* Thay đổi từ 7.5vw thành giá trị cố định */
   min-height: 80px;
   cursor: pointer;
   border-radius: 50%;
