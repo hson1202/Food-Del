@@ -2,7 +2,7 @@
 const config = {
   // Backend URL - change this based on environment
   BACKEND_URL: process.env.NODE_ENV === 'production' 
-    ? process.env.REACT_APP_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com'
+    ? process.env.VITE_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com'
     : 'http://localhost:4000',
   
   // API endpoints
@@ -25,5 +25,14 @@ const config = {
     CATEGORY: '/images'   // For category images
   }
 };
+
+// Helper function to get current environment info
+export const getEnvironmentInfo = () => ({
+  hostname: window.location.hostname,
+  environment: process.env.NODE_ENV,
+  backendUrl: config.BACKEND_URL,
+  isProduction: process.env.NODE_ENV === 'production',
+  isLocal: window.location.hostname === 'localhost'
+})
 
 export default config;

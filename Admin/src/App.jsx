@@ -16,11 +16,10 @@ import Login from './pages/Login/Login'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './i18n';
+import config from './config/config';
 
 const App = () => {
-  const url = process.env.NODE_ENV === 'production' 
-    ? process.env.REACT_APP_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com'
-    : 'http://localhost:4000'
+  const url = config.BACKEND_URL
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 

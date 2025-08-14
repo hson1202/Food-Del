@@ -12,19 +12,47 @@ const Category = ({ url }) => {
   const [newCategory, setNewCategory] = useState({ name: '', description: '', image: null })
   const [editingCategory, setEditingCategory] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+  
+  // Environment info for debugging
+  const envInfo = {
+    urlProp: url,
+    configBackendUrl: config.BACKEND_URL,
+    environment: process.env.NODE_ENV,
+    hostname: window.location.hostname
+  }
+  
+  // Error boundary
+  if (error) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2>Something went wrong!</h2>
+        <p>{error.message}</p>
+        <button onClick={() => setError(null)}>Try again</button>
+      </div>
+    )
+  }
 
   useEffect(() => {
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Category component mounted:', envInfo)
+    }
     fetchCategories()
   }, [])
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(`${config.BACKEND_URL}/api/category/admin`)
+      const apiUrl = `${config.BACKEND_URL}${config.API_ENDPOINTS.CATEGORY}/admin`
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Fetching categories from:', apiUrl)
+      }
+      const response = await axios.get(apiUrl)
       const categoriesData = response.data.data || response.data
-      console.log('Categories fetched:', categoriesData)
       setCategories(categoriesData)
     } catch (error) {
       console.error('Error fetching categories:', error)
+      setError(error)
       toast.error(t('categories.fetchError', 'Failed to fetch categories'))
     }
   }
@@ -45,26 +73,48 @@ const Category = ({ url }) => {
         formData.append('image', newCategory.image)
       }
 
-      await axios.post(`${config.BACKEND_URL}/api/category`, formData, {
+      const apiUrl = `${config.BACKEND_URL}${config.API_ENDPOINTS.CATEGORY}`
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Adding category to:', apiUrl, { name: newCategory.name, hasImage: !!newCategory.image })
+      }
+      
+      const response = await axios.post(apiUrl, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        timeout: 30000 // 30 seconds timeout
       })
       toast.success(t('categories.addSuccess', 'Category added successfully'))
       setNewCategory({ name: '', description: '', image: null })
       fetchCategories()
     } catch (error) {
       console.error('Error adding category:', error)
-      toast.error(error.response?.data?.message || t('categories.addError', 'Failed to add category'))
+      setError(error)
+      
+      if (error.code === 'ECONNABORTED') {
+        toast.error('Request timeout - backend không phản hồi. Vui lòng thử lại.')
+      } else if (error.response?.status === 404) {
+        toast.error('Backend không tìm thấy. Kiểm tra URL: ' + config.BACKEND_URL)
+      } else if (error.response?.status >= 500) {
+        toast.error('Lỗi server. Vui lòng thử lại sau.')
+      } else {
+        toast.error(error.response?.data?.message || t('categories.addError', 'Failed to add category'))
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setNewCategory({ ...newCategory, image: file })
+    try {
+      const file = e.target.files[0]
+      if (file) {
+        setNewCategory({ ...newCategory, image: file })
+      }
+    } catch (error) {
+      console.error('Error handling image change:', error)
+      setError(error)
     }
   }
 
@@ -84,7 +134,7 @@ const Category = ({ url }) => {
         formData.append('image', editingCategory.newImage)
       }
 
-      await axios.put(`${config.BACKEND_URL}/api/category/${editingCategory._id}`, formData, {
+      await axios.put(`${config.BACKEND_URL}${config.API_ENDPOINTS.CATEGORY}/${editingCategory._id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -94,6 +144,7 @@ const Category = ({ url }) => {
       fetchCategories()
     } catch (error) {
       console.error('Error updating category:', error)
+      setError(error)
       toast.error(error.response?.data?.message || t('categories.updateError', 'Failed to update category'))
     } finally {
       setIsLoading(false)
@@ -103,22 +154,33 @@ const Category = ({ url }) => {
   const handleDeleteCategory = async (categoryId) => {
     if (window.confirm(t('categories.deleteConfirm', 'Are you sure you want to delete this category?'))) {
       try {
-        await axios.delete(`${config.BACKEND_URL}/api/category/${categoryId}`)
+        await axios.delete(`${config.BACKEND_URL}${config.API_ENDPOINTS.CATEGORY}/${categoryId}`)
         toast.success(t('categories.deleteSuccess', 'Category deleted successfully'))
         fetchCategories()
       } catch (error) {
         console.error('Error deleting category:', error)
+        setError(error)
         toast.error(t('categories.deleteError', 'Failed to delete category'))
       }
     }
   }
 
   const startEditing = (category) => {
-    setEditingCategory({ ...category, newImage: null })
+    try {
+      setEditingCategory({ ...category, newImage: null })
+    } catch (error) {
+      console.error('Error starting edit:', error)
+      setError(error)
+    }
   }
 
   const cancelEditing = () => {
-    setEditingCategory(null)
+    try {
+      setEditingCategory(null)
+    } catch (error) {
+      console.error('Error canceling edit:', error)
+      setError(error)
+    }
   }
 
   return (
@@ -191,9 +253,7 @@ const Category = ({ url }) => {
         ) : (
                     <div className="categories-container">
             <div className="categories-grid" id="categoriesGrid">
-              {categories.map((category) => {
-                console.log('Rendering category:', category)
-                return (
+              {categories.map((category) => (
                   <div key={category._id} className="category-card">
                 {editingCategory && editingCategory._id === category._id ? (
                   <form onSubmit={handleEditCategory} className="edit-form">
@@ -271,8 +331,7 @@ const Category = ({ url }) => {
                   </>
                 )}
               </div>
-            )
-            })}
+              ))}
             </div>
           </div>
         )}
