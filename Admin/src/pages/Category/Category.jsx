@@ -19,7 +19,7 @@ const Category = ({ url }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(`${url}/api/category/admin`)
+      const response = await axios.get(`${config.BACKEND_URL}/api/category/admin`)
       const categoriesData = response.data.data || response.data
       console.log('Categories fetched:', categoriesData)
       setCategories(categoriesData)
@@ -45,7 +45,7 @@ const Category = ({ url }) => {
         formData.append('image', newCategory.image)
       }
 
-      await axios.post(`${url}/api/category`, formData, {
+      await axios.post(`${config.BACKEND_URL}/api/category`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -84,7 +84,7 @@ const Category = ({ url }) => {
         formData.append('image', editingCategory.newImage)
       }
 
-      await axios.put(`${url}/api/category/${editingCategory._id}`, formData, {
+      await axios.put(`${config.BACKEND_URL}/api/category/${editingCategory._id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -103,7 +103,7 @@ const Category = ({ url }) => {
   const handleDeleteCategory = async (categoryId) => {
     if (window.confirm(t('categories.deleteConfirm', 'Are you sure you want to delete this category?'))) {
       try {
-        await axios.delete(`${url}/api/category/${categoryId}`)
+        await axios.delete(`${config.BACKEND_URL}/api/category/${categoryId}`)
         toast.success(t('categories.deleteSuccess', 'Category deleted successfully'))
         fetchCategories()
       } catch (error) {
