@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import './TrackOrder.css'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import config from '../../config/config'
 
 
 const TrackOrder = () => {
@@ -25,7 +26,7 @@ const TrackOrder = () => {
     setOrder(null)
 
     try {
-      const response = await axios.post('http://localhost:4000/api/orders/track', {
+      const response = await axios.post(`${config.BACKEND_URL}/api/orders/track`, {
         trackingCode: trackingCode.toUpperCase(),
         phone: phone
       })

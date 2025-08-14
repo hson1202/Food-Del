@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import './ExploreMenu.css'
+import config from '../../config/config'
 
 const ExploreMenu = ({category, setCategory, categories, loading, hideHeader = false}) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -73,7 +74,7 @@ const ExploreMenu = ({category, setCategory, categories, loading, hideHeader = f
                     {item.image ? (
                       <img 
                         className={category === item.name ? "active" : ""} 
-                        src={item.image && item.image.startsWith('http') ? item.image : `http://localhost:4000/images/${item.image}`}
+                        src={item.image && item.image.startsWith('http') ? item.image : `${config.BACKEND_URL}${config.IMAGE_PATHS.CATEGORY}/${item.image}`}
                         alt={item.name}
                       />
                     ) : (

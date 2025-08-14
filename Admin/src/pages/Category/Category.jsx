@@ -4,6 +4,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import '../../i18n'
+import config from '../../config/config'
 
 const Category = ({ url }) => {
   const { t } = useTranslation();
@@ -238,7 +239,7 @@ const Category = ({ url }) => {
                           category.image && category.image.startsWith('http')
                             ? category.image
                             : category.image 
-                              ? `${url}/images/${category.image}`
+                              ? `${config.BACKEND_URL}${config.IMAGE_PATHS.CATEGORY}/${category.image}`
                               : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='
                         }
                         alt={category.name || 'Category'} 

@@ -1,4 +1,4 @@
-// Configuration file for backend URLs
+// Configuration file for backend URLs and image paths
 const config = {
   // Backend URL - ưu tiên sử dụng environment variable
   BACKEND_URL: process.env.REACT_APP_BACKEND_URL || 

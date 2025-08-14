@@ -8,6 +8,7 @@ import ExploreMenu from '../../components/ExploreMenu/ExploreMenu'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
+import config from '../../config/config'
 
 // Load all hero images at once using Vite glob import
 // You can place hero images in `src/assets/` and select by file name
@@ -33,7 +34,7 @@ const Menu = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/category')
+      const response = await axios.get(`${config.BACKEND_URL}/api/category`)
       setCategories(response.data.data || response.data)
       setLoading(false)
     } catch (error) {
