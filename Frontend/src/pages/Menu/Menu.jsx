@@ -216,6 +216,9 @@ const Menu = () => {
           <div className="food-grid">
             {filteredFoods.map((food, index) => (
               <div key={food._id} className="food-item-wrapper">
+                {/* Debug: Log food data */}
+                {console.log('🔍 Menu - Food data:', food)}
+                {console.log('🔍 Menu - Food options:', food.options)}
                 <FoodItem 
                   id={food._id} 
                   name={food.name}
@@ -231,6 +234,7 @@ const Menu = () => {
                   promotionPrice={food.promotionPrice}
                   soldCount={food.soldCount}
                   likes={food.likes}
+                  options={food.options}
                   onViewDetails={handleViewDetails}
                 />
               </div>

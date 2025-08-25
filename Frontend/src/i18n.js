@@ -63,12 +63,14 @@ const resources = {
       'food.originalPrice': 'Giá gốc',
       'food.promotionPrice': 'Giá khuyến mãi',
       'food.viewDetails': 'Xem chi tiết',
+      'food.customizable': 'Tùy chỉnh',
 
       // Product Detail
       'productDetail.noDescription': 'Chưa có mô tả',
       'productDetail.likes': 'lượt thích',
       'productDetail.sold': 'đã bán',
       'productDetail.youSave': 'Bạn tiết kiệm',
+      'productDetail.customizeYourOrder': 'Tùy chỉnh đơn hàng của bạn',
       'productDetail.additionalInfo': 'Thông tin bổ sung',
       'productDetail.language': 'Ngôn ngữ',
       'productDetail.status': 'Trạng thái',
@@ -347,12 +349,14 @@ const resources = {
       'food.originalPrice': 'Original Price',
       'food.promotionPrice': 'Promotion Price',
       'food.viewDetails': 'View Details',
+      'food.customizable': 'Customizable',
 
       // Product Detail
       'productDetail.noDescription': 'No description available',
       'productDetail.likes': 'likes',
       'productDetail.sold': 'sold',
       'productDetail.youSave': 'You save',
+      'productDetail.customizeYourOrder': 'Customize Your Order',
       'productDetail.additionalInfo': 'Additional Information',
       'productDetail.language': 'Language',
       'productDetail.status': 'Status',
@@ -632,12 +636,14 @@ const resources = {
       'food.originalPrice': 'Pôvodná cena',
       'food.promotionPrice': 'Akčná cena',
       'food.viewDetails': 'Zobraziť detaily',
+      'food.customizable': 'Prispôsobiteľné',
 
       // Product Detail
       'productDetail.noDescription': 'Žiadny popis nie je k dispozícii',
       'productDetail.likes': 'páči sa mi',
       'productDetail.sold': 'predané',
       'productDetail.youSave': 'Ušetríte',
+      'productDetail.customizeYourOrder': 'Prispôsobte si svoju objednávku',
       'productDetail.additionalInfo': 'Dodatočné informácie',
       'productDetail.language': 'Jazyk',
       'productDetail.status': 'Stav',

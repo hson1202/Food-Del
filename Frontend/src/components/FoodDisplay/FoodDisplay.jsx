@@ -3,7 +3,7 @@ import './FoodDisplay.css'
 import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../FoodItem/FoodItem'
 
-const FoodDisplay = ({category}) => {
+const FoodDisplay = ({category, onViewDetails}) => {
     const {food_list} = useContext(StoreContext)
     const scrollContainerRef = useRef(null)
     const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -66,11 +66,14 @@ const FoodDisplay = ({category}) => {
                         description={item.description} 
                         price={item.price} 
                         image={item.image}
+                        sku={item.sku}
                         isPromotion={item.isPromotion}
                         originalPrice={item.originalPrice}
                         promotionPrice={item.promotionPrice}
                         soldCount={item.soldCount}
                         likes={item.likes}
+                        options={item.options}
+                        onViewDetails={onViewDetails}
                     />
                 ))}
             </div>
@@ -100,4 +103,4 @@ const FoodDisplay = ({category}) => {
     )
 }
 
-export default FoodDisplay;
+export default FoodDisplay

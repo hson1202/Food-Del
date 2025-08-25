@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import './Products.css'
 import axios from 'axios'
 import { toast } from 'react-toastify'
@@ -11,6 +11,7 @@ import config from '../../config/config'
 
 const Products = ({ url }) => {
   const { t } = useTranslation();
+  const getErrMsg = (e, fallback) => (e && e.response && (e.response.data && (e.response.data.message || e.response.data.error))) || (e && e.message) || fallback;
   const [foodList, setFoodList] = useState([])
   const [categories, setCategories] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -19,7 +20,7 @@ const Products = ({ url }) => {
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'inactive'
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
-  const [editForm, setEditForm] = useState({
+  const INITIAL_EDIT_FORM = {
     sku: '',
     name: '',
     nameVI: '',
@@ -32,8 +33,11 @@ const Products = ({ url }) => {
     isPromotion: false,
     promotionPrice: '',
     soldCount: 0,
-    image: null
-  })
+    image: null,
+    imagePreview: null,
+    options: []
+  }
+  const [editForm, setEditForm] = useState(INITIAL_EDIT_FORM)
   const [error, setError] = useState(null)
   const [newProduct, setNewProduct] = useState({
     sku: '',
@@ -49,85 +53,106 @@ const Products = ({ url }) => {
     quantity: 0,
     isPromotion: false,
     promotionPrice: '',
-    soldCount: 0
+    soldCount: 0,
+    options: [] // Thêm options array
   })
 
-  useEffect(() => {
-    fetchFoodList()
-    fetchCategories()
-  }, [])
+  // State cho quản lý options - đơn giản hóa
+  const [showOptionsForm, setShowOptionsForm] = useState(false)
+  const [currentOption, setCurrentOption] = useState({
+    name: '',
+    defaultChoiceCode: '',
+    choices: []
+  })
+  const [editingOptionIndex, setEditingOptionIndex] = useState(-1)
+  const [editingChoiceIndex, setEditingChoiceIndex] = useState(-1)
+  const [currentChoice, setCurrentChoice] = useState({
+    code: '',
+    label: '',
+    price: 0,
+    image: null
+  })
 
-  const fetchFoodList = async (showLoadingToast = false) => {
-    setIsLoading(true)
-    setError(null)
-    
-    if (showLoadingToast) {
-      toast.info('🔄 Đang tải lại products...', { autoClose: 1000 })
-    }
-    
-    try {
-      const params = {};
-      const response = await axios.get(`${config.BACKEND_URL}/api/food/list`, { params })
-      if (response.data && response.data.data) {
-        setFoodList(response.data.data)
-        if (showLoadingToast) {
-          toast.success(`✅ Đã tải lại ${response.data.data.length} products`, { autoClose: 2000 })
-        }
-      } else {
-        setFoodList([])
-        console.warn('No data received from API')
-      }
-    } catch (error) {
-      console.error('Error fetching food list:', error)
-      setError('Failed to fetch products: ' + (error.message || 'Unknown error'))
-      toast.error(t('products.fetchError') || 'Failed to fetch products')
-      setFoodList([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
+ // useEffect
+useEffect(() => {
+  const controller1 = new AbortController();
+  const controller2 = new AbortController();
+  fetchFoodList(false, controller1.signal);
+  fetchCategories(controller2.signal);
+  return () => { controller1.abort(); controller2.abort(); };
+}, []);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(`${config.BACKEND_URL}/api/category`)
-      console.log('Categories response:', response.data) // Debug log
-      if (response.data && (response.data.data || response.data)) {
-        setCategories(response.data.data || response.data)
-      } else {
-        setCategories([])
-        console.warn('No categories received from API')
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-      setError('Failed to fetch categories: ' + (error.message || 'Unknown error'))
-      toast.error('Failed to fetch categories')
-      setCategories([])
-    }
+const fetchFoodList = async (showToast = false, signal) => {
+  setIsLoading(true); setError(null);
+  try {
+    const { data } = await axios.get(`${config.BACKEND_URL}/api/food/list`, { signal });
+    const items = data?.data ?? [];
+    setFoodList(Array.isArray(items) ? items : []);
+    if (showToast) toast.success(`✅ Tải ${items.length} sản phẩm`);
+  } catch (e) {
+    if (axios.isCancel(e)) return;
+    setError(`Failed to fetch products: ${e.message ?? 'Unknown'}`);
+    toast.error(t('products.fetchError') || 'Failed to fetch products');
+  } finally { setIsLoading(false); }
+};
+
+const fetchCategories = async (signal) => {
+  try {
+    const { data } = await axios.get(`${config.BACKEND_URL}/api/category`, { signal });
+    const items = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+    setCategories(items);
+  } catch (e) {
+    if (axios.isCancel(e)) return;
+    setError(`Failed to fetch categories: ${e.message ?? 'Unknown'}`);
+    toast.error('Failed to fetch categories');
+    setCategories([]);
   }
+};
 
   const handleDeleteProduct = async (productId) => {
-    if (window.confirm(t('products.deleteConfirm') || 'Are you sure you want to delete this product?')) {
+    if (!productId) {
+      toast.error('Missing product id')
+      return
+    }
+    if (!window.confirm(t('products.deleteConfirm') || 'Are you sure you want to delete this product?')) return
+
+    const baseUrl = String(config.BACKEND_URL || '').replace(/\/+$/, '')
+    const base = `${baseUrl}/api/food`
+    const trials = [
+      async () => axios.delete(`${base}/remove/${encodeURIComponent(productId)}`),
+      async () => axios.delete(`${base}/remove`, { params: { id: productId } }),
+      async () => axios.post(`${base}/remove`, { id: productId }),
+      async () => axios.delete(`${base}/delete/${encodeURIComponent(productId)}`)
+    ]
+
+    let lastErr = null
+    for (const run of trials) {
       try {
-        const response = await axios.delete(`${config.BACKEND_URL}/api/food/remove`, { data: { id: productId } })
-        if (response.data) {
+        const res = await run()
+        const ok = (res.status >= 200 && res.status < 300) && (res.data?.success !== false)
+        if (ok) {
           toast.success(t('products.deleteSuccess') || 'Product deleted successfully')
           fetchFoodList()
+          return
         }
-      } catch (error) {
-        console.error('Error deleting product:', error)
-        if (error.response && error.response.data && error.response.data.error) {
-          toast.error(`Failed to delete product: ${error.response.data.error}`)
-        } else if (error.message) {
-          toast.error(`Failed to delete product: ${error.message}`)
-        } else {
-          toast.error(t('products.deleteError') || 'Failed to delete product')
+        lastErr = new Error(res.data?.message || 'Delete not acknowledged')
+      } catch (e) {
+        if (e?.response && ![404, 405].includes(e.response.status)) {
+          toast.error(`Failed to delete: ${e.response.status} ${e.response.data?.message || e.message}`)
+          return
         }
+        lastErr = e
       }
     }
+
+    const msg = lastErr?.response
+      ? `${lastErr.response.status} ${lastErr.response.data?.message || lastErr.message}`
+      : (lastErr?.message || 'Unknown error')
+    toast.error(`Failed to delete product: ${msg}`)
   }
 
-  const handleEdit = (product) => {
-    setEditingProduct(product);
+  const handleEditProduct = (product) => {
+    setEditingProduct(product)
     setEditForm({
       sku: product.sku || '',
       name: product.name || '',
@@ -136,58 +161,61 @@ const Products = ({ url }) => {
       nameSK: product.nameSK || '',
       description: product.description || '',
       price: product.price || '',
-              category: product.category || product.categoryId || '',
+      category: product.category || '',
       quantity: product.quantity || 0,
       isPromotion: product.isPromotion || false,
       promotionPrice: product.promotionPrice || '',
-      soldCount: product.soldCount || 0
+      soldCount: product.soldCount || 0,
+      options: product.options || [] // Ensure options are included
     });
   };
 
-  const handleCancelEdit = () => {
-    // Clean up preview URL if exists
-    if (editForm.imagePreview) {
-      URL.revokeObjectURL(editForm.imagePreview);
+  const closeEditForm = () => {
+    if (editForm.imagePreview) URL.revokeObjectURL(editForm.imagePreview);
+    if (editingProduct) {
+      setEditingProduct(null);
+      setEditForm(INITIAL_EDIT_FORM);
     }
-    
-    setEditingProduct(null);
-    setEditForm({
-      sku: '',
-      name: '',
-      nameVI: '',
-      nameEN: '',
-      nameSK: '',
-      description: '',
-      price: '',
-      category: '',
-      quantity: 0,
-      isPromotion: false,
-      originalPrice: '',
-      promotionPrice: '',
-      soldCount: 0,
-      likes: 0,
-      image: null,
-      imagePreview: null
-    });
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setEditForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    
+    if (type === 'checkbox') {
+      setEditForm(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      const numericFields = new Set(['price', 'quantity', 'promotionPrice', 'soldCount']);
+      setEditForm(prev => ({
+        ...prev,
+        [name]: numericFields.has(name)
+          ? (name === 'quantity' || name === 'soldCount' ? (parseInt(value) || 0) : (Number(value) || 0))
+          : value
+      }));
+    }
   };
 
   const handleEditImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image file size must be less than 5MB')
+        return
+      }
+      
       setEditForm(prev => ({
         ...prev,
         image: file,
-        imagePreview: previewUrl  // Add preview URL
+        imagePreview: URL.createObjectURL(file)
       }));
     }
   };
@@ -195,9 +223,59 @@ const Products = ({ url }) => {
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     
-    console.log('🔍 Submitting edit for product:', editingProduct._id);
-    console.log('🔍 Edit form data:', editForm);
+    // Validation
+    if (!editForm.sku || !editForm.sku.trim()) {
+      toast.error('SKU is required')
+      return
+    }
     
+    if (!editForm.name || !editForm.name.trim()) {
+      toast.error('Product name is required')
+      return
+    }
+    if (!(Number(editForm.price) > 0)) {
+      toast.error('Valid price is required');
+      return;
+    }
+    
+    if (!editForm.category || !editForm.category.trim()) {
+      toast.error('Category is required')
+      return
+    }
+    
+    if (editForm.isPromotion && (!editForm.promotionPrice || parseFloat(editForm.promotionPrice) <= 0)) {
+      toast.error('Promotion price is required when promotion is enabled')
+      return
+    }
+    
+    if (editForm.isPromotion && parseFloat(editForm.promotionPrice) >= parseFloat(editForm.price)) {
+      toast.error('Promotion price must be less than regular price')
+      return
+    }
+    
+    if (editForm.quantity === undefined || editForm.quantity === null || isNaN(Number(editForm.quantity)) || Number(editForm.quantity) < 0) {
+      toast.error('Valid quantity is required (must be >= 0)')
+      return
+    }
+
+    // Validate options if they exist
+    if (editForm.options && editForm.options.length > 0) {
+      for (let i = 0; i < editForm.options.length; i++) {
+        const option = editForm.options[i]
+        if (!option.name || !option.choices || option.choices.length === 0 || !option.defaultChoiceCode) {
+          toast.error(`Option ${i + 1} is incomplete. Please check all fields.`)
+          return
+        }
+        
+        // Check if default choice exists
+        const defaultChoiceExists = option.choices.find(choice => choice.code === option.defaultChoiceCode)
+        if (!defaultChoiceExists) {
+          toast.error(`Default choice for option "${option.name}" not found`)
+          return
+        }
+      }
+    }
+
     try {
       // Create FormData for file upload
       const formData = new FormData();
@@ -206,10 +284,32 @@ const Products = ({ url }) => {
       Object.keys(editForm).forEach(key => {
         if (key === 'image' && editForm[key] instanceof File) {
           formData.append('image', editForm[key]);
+        } else if (key === 'options') {
+          // Handle options separately
+          if (editForm[key] && editForm[key].length > 0) {
+            try {
+              const safeOptions = (editForm[key] || []).map(o => ({
+                ...o,
+                choices: (o.choices || []).map(c => {
+                  const { image, ...rest } = c;
+                  return { ...rest, price: Number(rest.price) || 0 };
+                })
+              }));
+              formData.append('options', JSON.stringify(safeOptions))
+            } catch (error) {
+              console.error('Error stringifying options:', error)
+              toast.error('Error processing options data')
+              return
+            }
+          }
         } else if (key !== 'image') {
           formData.append(key, editForm[key]);
         }
       });
+      formData.set('price', String(Number(editForm.price)));          // đảm bảo là số
+formData.set('quantity', String(Number(editForm.quantity) || 0));
+formData.set('promotionPrice', String(Number(editForm.promotionPrice) || 0));
+formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "true"/"false"
       
       const response = await axios.put(`${config.BACKEND_URL}/api/food/edit/${editingProduct._id}`, formData, {
         headers: {
@@ -243,7 +343,8 @@ const Products = ({ url }) => {
           promotionPrice: '',
           soldCount: 0,
           image: null,
-          imagePreview: null
+          imagePreview: null,
+          options: [] // Reset options
         });
         fetchFoodList(); // Refresh list
       } else {
@@ -273,13 +374,7 @@ const Products = ({ url }) => {
       }
     } catch (error) {
       console.error('Error updating product status:', error)
-      if (error.response && error.response.data && error.response.data.error) {
-        toast.error(`Failed to update status: ${error.response.data.error}`)
-      } else if (error.message) {
-        toast.error(`Failed to update status: ${error.message}`)
-      } else {
-        toast.error(t('products.statusUpdateError') || 'Failed to update product status')
-      }
+      toast.error(`Failed to update status: ${getErrMsg(error, 'Unknown error')}`)
     }
   }
 
@@ -297,10 +392,11 @@ const Products = ({ url }) => {
       return
     }
     
-    if (!newProduct.price || parseFloat(newProduct.price) <= 0) {
-      toast.error('Valid price is required')
-      return
+    if (!(Number(newProduct.price) > 0)) {
+      toast.error('Valid price is required');
+      return;
     }
+    
     
     if (!newProduct.category || !newProduct.category.trim()) {
       toast.error('Category is required')
@@ -322,6 +418,24 @@ const Products = ({ url }) => {
       return
     }
 
+    // Validate options if they exist
+    if (newProduct.options && newProduct.options.length > 0) {
+      for (let i = 0; i < newProduct.options.length; i++) {
+        const option = newProduct.options[i]
+        if (!option.name || !option.choices || option.choices.length === 0 || !option.defaultChoiceCode) {
+          toast.error(`Option ${i + 1} is incomplete. Please check all fields.`)
+          return
+        }
+        
+        // Check if default choice exists
+        const defaultChoiceExists = option.choices.find(choice => choice.code === option.defaultChoiceCode)
+        if (!defaultChoiceExists) {
+          toast.error(`Default choice for option "${option.name}" not found`)
+          return
+        }
+      }
+    }
+
     const formData = new FormData()
           formData.append('sku', newProduct.sku)
       formData.append('name', newProduct.name)
@@ -330,18 +444,37 @@ const Products = ({ url }) => {
       formData.append('nameSK', newProduct.nameSK)
       formData.append('slug', newProduct.slug)
       formData.append('description', newProduct.description)
-    formData.append('price', newProduct.price)
             formData.append('category', newProduct.category)
-        formData.append('quantity', newProduct.quantity)
-        formData.append('isPromotion', newProduct.isPromotion)
-    
-    if (newProduct.isPromotion) {
-      // originalPrice removed - using regular price as base
-      formData.append('promotionPrice', newProduct.promotionPrice)
-    }
+            formData.append('price', String(Number(newProduct.price)));
+            formData.append('quantity', String(Number(newProduct.quantity) || 0));
+            formData.append('isPromotion', String(!!newProduct.isPromotion));
+            if (newProduct.isPromotion) {
+              formData.append('promotionPrice', String(Number(newProduct.promotionPrice) || 0));
+            }
     
     if (newProduct.image) {
       formData.append('image', newProduct.image)
+    }
+
+    // Add options data
+    if (newProduct.options && newProduct.options.length > 0) {
+      try {
+        const safeOptions = (newProduct.options || []).map(o => ({
+          ...o,
+          choices: (o.choices || []).map(c => {
+            const { image, ...rest } = c;
+            return { ...rest, price: Number(rest.price) || 0 };
+          })
+        }));
+        console.log('🔍 Admin - Adding options to formData:', safeOptions)
+        formData.append('options', JSON.stringify(safeOptions))
+      } catch (error) {
+        console.error('Error stringifying options:', error)
+        toast.error('Error processing options data')
+        return
+      }
+    } else {
+      console.log('🔍 Admin - No options to add')
     }
 
     setIsLoading(true)
@@ -368,20 +501,15 @@ const Products = ({ url }) => {
           quantity: 0,
           isPromotion: false,
           promotionPrice: '',
-          soldCount: 0
+          soldCount: 0,
+          options: [] // Reset options
         })
         setShowAddForm(false)
         fetchFoodList()
       }
     } catch (error) {
       console.error('Error adding product:', error)
-      if (error.response && error.response.data && error.response.data.error) {
-        toast.error(`Failed to add product: ${error.response.data.error}`)
-      } else if (error.message) {
-        toast.error(`Failed to add product: ${error.message}`)
-      } else {
-        toast.error('Failed to add product')
-      }
+      toast.error(`Failed to add product: ${getErrMsg(error, 'Unknown error')})`)
     } finally {
       setIsLoading(false)
     }
@@ -390,8 +518,194 @@ const Products = ({ url }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0]
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image file size must be less than 5MB')
+        return
+      }
+      
       setNewProduct({ ...newProduct, image: file })
     }
+  }
+
+  // Auto-generate slug from name if empty
+  useEffect(() => {
+    if (!newProduct.slug && newProduct.name) {
+      const slug = newProduct.name
+        .toLowerCase().trim().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')
+      setNewProduct(p => ({ ...p, slug }))
+    }
+  }, [newProduct.name])
+
+  // Functions để quản lý Options - đơn giản hóa
+  const addOption = () => {
+    if (!currentOption.name.trim()) {
+      toast.error('Option name is required')
+      return
+    }
+    
+    if (currentOption.choices.length === 0) {
+      toast.error('At least one choice is required')
+      return
+    }
+    
+    if (!currentOption.defaultChoiceCode) {
+      toast.error('Default choice is required')
+      return
+    }
+    
+    // Check if option name already exists
+    const existingOption = newProduct.options.find(option => option.name === currentOption.name)
+    if (existingOption && editingOptionIndex === -1) {
+      toast.error('Option name already exists')
+      return
+    }
+    
+    if (editingOptionIndex >= 0) {
+      // Edit existing option
+      const updatedOptions = [...newProduct.options]
+      updatedOptions[editingOptionIndex] = { ...currentOption }
+      setNewProduct({ ...newProduct, options: updatedOptions })
+      setEditingOptionIndex(-1)
+    } else {
+      // Add new option
+      setNewProduct({ 
+        ...newProduct, 
+        options: [...newProduct.options, { ...currentOption }] 
+      })
+    }
+    
+    // Reset form
+    setCurrentOption({
+      name: '',
+      defaultChoiceCode: '',
+      choices: []
+    })
+    setShowOptionsForm(false)
+    toast.success('Option added successfully')
+  }
+
+  const editOption = (index) => {
+    const option = newProduct.options[index]
+    setCurrentOption({ ...option })
+    setEditingOptionIndex(index)
+    setShowOptionsForm(true)
+  }
+
+  const deleteOption = (index) => {
+    if (window.confirm('Are you sure you want to delete this option?')) {
+      const updatedOptions = newProduct.options.filter((_, i) => i !== index)
+      setNewProduct({ ...newProduct, options: updatedOptions })
+      toast.success('Option deleted successfully')
+    }
+  }
+
+  const addChoice = () => {
+    if (!currentChoice.code.trim()) {
+      toast.error('Choice code is required')
+      return
+    }
+    
+    if (!currentChoice.label.trim()) {
+      toast.error('Choice label is required')
+      return
+    }
+    
+    if (currentChoice.price === undefined || currentChoice.price === null || isNaN(Number(currentChoice.price))) {
+      toast.error('Valid choice price is required')
+      return
+    }
+    
+    // Check if choice code already exists in current option
+    const existingChoice = currentOption.choices.find(choice => choice.code === currentChoice.code)
+    if (existingChoice && editingChoiceIndex === -1) {
+      toast.error('Choice code already exists in this option')
+      return
+    }
+    
+    if (editingChoiceIndex >= 0) {
+      // Edit existing choice
+      const updatedChoices = [...currentOption.choices]
+      updatedChoices[editingChoiceIndex] = { ...currentChoice }
+      setCurrentOption({ ...currentOption, choices: updatedChoices })
+      setEditingChoiceIndex(-1)
+    } else {
+      // Add new choice
+      setCurrentOption({ 
+        ...currentOption, 
+        choices: [...currentOption.choices, { ...currentChoice }] 
+      })
+    }
+    
+    // Reset choice form
+    setCurrentChoice({
+      code: '',
+      label: '',
+      price: 0,
+      image: null
+    })
+    
+    toast.success('Choice added successfully')
+  }
+
+  const editChoice = (index) => {
+    const choice = currentOption.choices[index]
+    setCurrentChoice({ ...choice })
+    setEditingChoiceIndex(index)
+  }
+
+  const deleteChoice = (index) => {
+    if (window.confirm('Are you sure you want to delete this choice?')) {
+      const updatedChoices = currentOption.choices.filter((_, i) => i !== index)
+      setCurrentOption({ ...currentOption, choices: updatedChoices })
+      
+      // Reset default choice if deleted choice was the default
+      if (currentOption.defaultChoiceCode === currentOption.choices[index].code) {
+        setCurrentOption({ ...currentOption, defaultChoiceCode: '' })
+      }
+      
+      toast.success('Choice deleted successfully')
+    }
+  }
+
+  const handleChoiceImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select a valid image file')
+        return
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image file size must be less than 5MB')
+        return
+      }
+      
+      setCurrentChoice({ ...currentChoice, image: file })
+    }
+  }
+
+  const resetOptionsForm = () => {
+    setCurrentOption({
+      name: '',
+      defaultChoiceCode: '',
+      choices: []
+    })
+    setCurrentChoice({
+      code: '',
+      label: '',
+      price: 0,
+      image: null
+    })
+    setEditingOptionIndex(-1)
+    setEditingChoiceIndex(-1)
+    setShowOptionsForm(false)
   }
 
   const handlePromotionToggle = () => {
@@ -414,50 +728,40 @@ const Products = ({ url }) => {
     return category ? category.name : categoryId
   }
 
-  const filteredProducts = foodList.filter(product => {
-    const searchTermLower = searchTerm.toLowerCase()
-    const matchesSearch = product.name.toLowerCase().includes(searchTermLower) ||
-                         (product.nameVI && product.nameVI.toLowerCase().includes(searchTermLower)) ||
-                         (product.nameEN && product.nameEN.toLowerCase().includes(searchTermLower)) ||
-                         (product.nameSK && product.nameSK.toLowerCase().includes(searchTermLower)) ||
-                         product.category.toLowerCase().includes(searchTermLower)
-    const matchesCategory = filterCategory === 'all' || product.category === filterCategory || product.categoryId === filterCategory
-    
-    // Improved status filtering with fallback
-    let matchesStatus = true
+  const filteredProducts = useMemo(() => foodList
+  .filter(p => {
+    const term = searchTerm.trim().toLowerCase();
+    const name = (p.name || '').toLowerCase();
+    const nameVI = (p.nameVI || '').toLowerCase();
+    const nameEN = (p.nameEN || '').toLowerCase();
+    const nameSK = (p.nameSK || '').toLowerCase();
+    const cat = (p.category || p.categoryId || '').toString().toLowerCase();
+
+    const matchesSearch = !term || name.includes(term) || nameVI.includes(term) ||
+                          nameEN.includes(term) || nameSK.includes(term) || cat.includes(term);
+
+    const matchesCategory = filterCategory === 'all'
+      ? true
+      : (p.category === filterCategory || p.categoryId === filterCategory);
+
+    let matchesStatus = true;
     if (statusFilter !== 'all') {
-      // Normalize status to handle case sensitivity and whitespace
-      const productStatus = product.status ? product.status.toString().toLowerCase().trim() : ''
-      const filterStatus = statusFilter.toLowerCase().trim()
-      
-      // Debug log
-      if (product.name === 'test') {
-        console.log(`DEBUG - Product: ${product.name}, Raw status: "${product.status}", Normalized: "${productStatus}", Filter: "${filterStatus}"`)
-      }
-      
-      if (filterStatus === 'active') {
-        matchesStatus = productStatus === 'active' || productStatus === ''
-      } else if (filterStatus === 'inactive') {
-        matchesStatus = productStatus === 'inactive'
-        if (product.name === 'test') {
-          console.log(`DEBUG - Inactive check for ${product.name}: ${matchesStatus}`)
-        }
-      }
+      const st = (p.status || '').toString().toLowerCase().trim();
+      matchesStatus = statusFilter === 'active' ? (st === 'active' || st === '')
+                                                : (st === 'inactive');
     }
-    
-    return matchesSearch && matchesCategory && matchesStatus
-  }).sort((a, b) => {
-    // Sort by quantity: low stock first, then by name
-    const quantityA = a.quantity || 0
-    const quantityB = b.quantity || 0
-    
-    if (quantityA <= 5 && quantityB > 5) return -1
-    if (quantityA > 5 && quantityB <= 5) return 1
-    if (quantityA === 0 && quantityB > 0) return -1
-    if (quantityA > 0 && quantityB === 0) return 1
-    
-    return a.name.localeCompare(b.name)
+    return matchesSearch && matchesCategory && matchesStatus;
   })
+  .sort((a, b) => {
+    const qa = Number(a.quantity) || 0;
+    const qb = Number(b.quantity) || 0;
+    // ưu tiên: 0 trước, rồi <=5, rồi >5; sau đó theo tên
+    if (qa === 0 && qb !== 0) return -1;
+    if (qb === 0 && qa !== 0) return 1;
+    if (qa <= 5 && qb > 5) return -1;
+    if (qb <= 5 && qa > 5) return 1;
+    return (a.name || '').localeCompare(b.name || '');
+  }), [foodList, searchTerm, filterCategory, statusFilter]);
 
   const getStatusBadge = (status) => {
     if (!status) {
@@ -513,18 +817,18 @@ const Products = ({ url }) => {
     <div className='products-page'>
       <div className="products-header">
         <div className="header-content">
-          <h1>{t('products.title') || 'Products Management'}</h1>
-          <p>{t('products.subtitle') || 'Manage your food products'}</p>
+          <h1>{t('products.title', { defaultValue: 'Products Management' })}</h1>
+          <p>{t('products.subtitle', { defaultValue: 'Manage your food products' })}</p>
         </div>
         <div className="header-actions">
           <button className="refresh-btn" onClick={() => fetchFoodList(true)}>
-            <span>🔄</span> {t('common.refresh') || 'Refresh'}
+            <span>🔄</span> {t('common.refresh', { defaultValue: 'Refresh' })}
           </button>
           <button 
             onClick={() => setShowAddForm(!showAddForm)} 
             className="btn-add-product"
           >
-            {showAddForm ? (t('common.cancel') || 'Cancel') : (t('products.addNew') || 'Add New Product')}
+            {showAddForm ? t('common.cancel', { defaultValue: 'Cancel' }) : t('products.addNew', { defaultValue: 'Add New Product' })}
           </button>
         </div>
       </div>
@@ -556,11 +860,11 @@ const Products = ({ url }) => {
       {/* Add Product Form */}
       {showAddForm && (
         <div className="add-product-section">
-          <h2>{t('products.addNew')}</h2>
+          <h2>{t('products.addNew', { defaultValue: 'Add New Product' })}</h2>
           <form onSubmit={handleAddProduct} className="product-form">
                                 <div className="form-row">
                       <div className="form-group">
-                        <label htmlFor="sku">{t('products.sku')} *</label>
+                        <label htmlFor="sku">{t('products.sku', { defaultValue: 'SKU' })} *</label>
                         <input
                           type="text"
                           id="sku"
@@ -571,7 +875,7 @@ const Products = ({ url }) => {
                         />
                       </div>
                       <div className="form-group">
-                            <label>{t('products.name') || 'Name'}</label>
+                            <label>{t('products.name', { defaultValue: 'Name' })}</label>
                             <input
                                 type="text"
                                 value={newProduct.name}
@@ -580,7 +884,7 @@ const Products = ({ url }) => {
                             />
                         </div>
                         <div className="form-group">
-                            <label>{t('products.nameVI') || 'Name (Vietnamese)'}</label>
+                            <label>{t('products.nameVI', { defaultValue: 'Name (Vietnamese)' })}</label>
                             <input
                                 type="text"
                                 value={newProduct.nameVI}
@@ -588,7 +892,7 @@ const Products = ({ url }) => {
                             />
                         </div>
                         <div className="form-group">
-                            <label>{t('products.nameEN') || 'Name (English)'}</label>
+                            <label>{t('products.nameEN', { defaultValue: 'Name (English)' })}</label>
                             <input
                                 type="text"
                                 value={newProduct.nameEN}
@@ -596,7 +900,7 @@ const Products = ({ url }) => {
                             />
                         </div>
                         <div className="form-group">
-                            <label>{t('products.nameSK') || 'Name (Slovak)'}</label>
+                            <label>{t('products.nameSK', { defaultValue: 'Name (Slovak)' })}</label>
                             <input
                                 type="text"
                                 value={newProduct.nameSK}
@@ -608,7 +912,7 @@ const Products = ({ url }) => {
 
                     <div className="form-row">
                       <div className="form-group">
-                        <label htmlFor="description">{t('products.description')}</label>
+                        <label htmlFor="description">{t('products.description', { defaultValue: 'Description' })}</label>
                         <textarea
                           id="description"
                           value={newProduct.description}
@@ -623,7 +927,7 @@ const Products = ({ url }) => {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="category">{t('products.category')} *</label>
+                <label htmlFor="category">{t('products.category', { defaultValue: 'Category' })} *</label>
                 <select
                   id="category"
                   value={newProduct.category}
@@ -639,12 +943,12 @@ const Products = ({ url }) => {
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="price">{t('products.price')} *</label>
+                <label htmlFor="price">{t('products.price', { defaultValue: 'Price' })} *</label>
                 <input
                   type="number"
                   id="price"
                   value={newProduct.price}
-                  onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                  onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) || 0 })}
                   placeholder="Enter price"
                   min="0"
                   step="0.01"
@@ -652,7 +956,7 @@ const Products = ({ url }) => {
                 />
                                       </div>
                         <div className="form-group">
-                            <label>{t('products.slug') || 'Slug'}</label>
+                            <label>{t('products.slug', { defaultValue: 'Slug' })}</label>
                             <input
                                 type="text"
                                 value={newProduct.slug}
@@ -664,7 +968,7 @@ const Products = ({ url }) => {
 
                     <div className="form-row">
               <div className="form-group">
-                <label htmlFor="quantity">{t('products.quantity') || 'Quantity'} *</label>
+                <label htmlFor="quantity">{t('products.quantity', { defaultValue: 'Quantity' })} *</label>
                 <input
                   type="number"
                   id="quantity"
@@ -682,7 +986,7 @@ const Products = ({ url }) => {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="image">{t('products.image')}</label>
+                <label htmlFor="image">{t('products.image', { defaultValue: 'Image' })}</label>
                 <input
                   type="file"
                   id="image"
@@ -701,7 +1005,7 @@ const Products = ({ url }) => {
                     checked={newProduct.isPromotion}
                     onChange={handlePromotionToggle}
                   />
-                  {t('products.promotion')}
+                  {t('products.promotion', { defaultValue: 'Promotion' })}
                 </label>
               </div>
 
@@ -710,7 +1014,7 @@ const Products = ({ url }) => {
                   <div className="form-row">
 
                     <div className="form-group">
-                      <label htmlFor="promotionPrice">{t('products.promotionPrice')} *</label>
+                      <label htmlFor="promotionPrice">{t('products.promotionPrice', { defaultValue: 'Promotion Price' })} *</label>
                       <input
                         type="number"
                         id="promotionPrice"
@@ -734,16 +1038,514 @@ const Products = ({ url }) => {
               )}
             </div>
 
+            {/* Variant Options Section - Redesigned like Shopify */}
+            <div className="options-section">
+              <div className="section-header">
+                <h3>🔄 Product Options & Variants</h3>
+                <p>Add customizable options like protein type, size, spiciness, etc. (Similar to Shopify)</p>
+              </div>
+
+              {/* Display existing options */}
+              {newProduct.options.length > 0 && (
+                <div className="existing-options">
+                  <h4>Current Options:</h4>
+                  {newProduct.options.map((option, optionIndex) => (
+                    <div key={optionIndex} className="option-item">
+                      <div className="option-header">
+                        <h5>{option.name}</h5>
+                        <div className="option-actions">
+                          <button 
+                            type="button" 
+                            onClick={() => editOption(optionIndex)}
+                            className="btn-edit"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => deleteOption(optionIndex)}
+                            className="btn-delete"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </div>
+                      <div className="choices-list">
+                        {option.choices.map((choice, choiceIndex) => (
+                          <div key={choiceIndex} className="choice-item">
+                            <span className="choice-code">{choice.code}</span>
+                            <span className="choice-label">{choice.label}</span>
+                            <span className="choice-price">€{Number(choice.price).toFixed(2)}</span>
+                            {choice.image && (
+                              <div className="choice-image">
+                                <img 
+                                  src={
+                                    choice.image.startsWith('http')
+                                      ? choice.image
+                                      : `${config.BACKEND_URL}/images/${choice.image}`
+                                  }
+                                  alt={`${choice.label} choice`}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJJbWFnZSBFcnJvcjwvdGV4dD48L3N2Zz4=';
+                                  }}
+                                  style={{ width: '30px', height: '30px', objectFit: 'cover', borderRadius: '3px' }}
+                                />
+                              </div>
+                            )}
+                            {option.defaultChoiceCode === choice.code && (
+                              <span className="default-badge">Default</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Simple Add Option Form - Like Shopify */}
+              {!showOptionsForm && (
+                <div className="simple-option-form">
+                                      <div className="form-row">
+                      <div className="form-group">
+                        <label>Option Name</label>
+                        <input
+                          type="text"
+                          value={currentOption.name}
+                          onChange={(e) => setCurrentOption({...currentOption, name: e.target.value})}
+                          placeholder="e.g., Protein, Size, Spiciness"
+                        />
+                      </div>
+                    </div>
+
+                  {/* Quick Add Choices - Like Shopify */}
+                  <div className="quick-choices-section">
+                    <h5>Choices (Quick Add):</h5>
+                    <div className="quick-choice-inputs">
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Choice 1</label>
+                          <input
+                            type="text"
+                            placeholder="e.g., Chicken"
+                            onChange={(e) => {
+                              const choices = [...currentOption.choices]
+                              if (choices[0]) {
+                                choices[0].label = e.target.value
+                                choices[0].code = 'a'
+                              } else {
+                                choices.push({ code: 'a', label: e.target.value, price: 0, image: null })
+                              }
+                              setCurrentOption({...currentOption, choices, defaultChoiceCode: 'a'})
+                            }}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            step="0.01"
+                            onChange={(e) => {
+                              const choices = [...currentOption.choices]
+                              if (choices[0]) {
+                                choices[0].price = parseFloat(e.target.value) || 0
+                              }
+                              setCurrentOption({...currentOption, choices})
+                            }}
+                          />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const choices = [...currentOption.choices]
+                                if (choices[0]) {
+                                  choices[0].image = file
+                                }
+                                setCurrentOption({...currentOption, choices})
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Choice 2</label>
+                          <input
+                            type="text"
+                            placeholder="e.g., Beef"
+                            onChange={(e) => {
+                              const choices = [...currentOption.choices]
+                              if (choices[1]) {
+                                choices[1].label = e.target.value
+                                choices[1].code = 'b'
+                              } else if (choices.length > 0) {
+                                choices.push({ code: 'b', label: e.target.value, price: 0, image: null })
+                              }
+                              setCurrentOption({...currentOption, choices})
+                            }}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            step="0.01"
+                            onChange={(e) => {
+                              const choices = [...currentOption.choices]
+                              if (choices[1]) {
+                                choices[1].price = parseFloat(e.target.value) || 0
+                              }
+                              setCurrentOption({...currentOption, choices})
+                            }}
+                          />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const choices = [...currentOption.choices]
+                                if (choices[1]) {
+                                  choices[1].image = file
+                                }
+                                setCurrentOption({...currentOption, choices})
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Choice 3</label>
+                          <input
+                            type="text"
+                            placeholder="e.g., Shrimp"
+                            onChange={(e) => {
+                              const choices = [...currentOption.choices]
+                              if (choices[2]) {
+                                choices[2].label = e.target.value
+                                choices[2].code = 'c'
+                              } else if (choices.length > 1) {
+                                choices.push({ code: 'c', label: e.target.value, price: 0, image: null })
+                              }
+                              setCurrentOption({...currentOption, choices})
+                            }}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            step="0.01"
+                            onChange={(e) => {
+                              const choices = [...currentOption.choices]
+                              if (choices[2]) {
+                                choices[2].price = parseFloat(e.target.value) || 0
+                              }
+                              setCurrentOption({...currentOption, choices})
+                            }}
+                          />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const choices = [...currentOption.choices]
+                                if (choices[2]) {
+                                  choices[2].image = file
+                                }
+                                setCurrentOption({...currentOption, choices})
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Choice 4</label>
+                          <input
+                            type="text"
+                            placeholder="e.g., Tofu"
+                            onChange={(e) => {
+                              const choices = [...currentOption.choices]
+                              if (choices[3]) {
+                                choices[3].label = e.target.value
+                                choices[3].code = 'd'
+                              } else if (choices.length > 2) {
+                                choices.push({ code: 'd', label: e.target.value, price: 0, image: null })
+                              }
+                              setCurrentOption({...currentOption, choices})
+                            }}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Price"
+                            step="0.01"
+                            onChange={(e) => {
+                              const choices = [...currentOption.choices]
+                              if (choices[3]) {
+                                choices[3].price = parseFloat(e.target.value) || 0
+                              }
+                              setCurrentOption({...currentOption, choices})
+                            }}
+                          />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const choices = [...currentOption.choices]
+                                if (choices[3]) {
+                                  choices[3].image = file
+                                }
+                                setCurrentOption({...currentOption, choices})
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Default Choice Selection */}
+                    {currentOption.choices.length > 0 && (
+                      <div className="default-choice-section">
+                        <label>Default Choice:</label>
+                        <select
+                          value={currentOption.defaultChoiceCode}
+                          onChange={(e) => setCurrentOption({...currentOption, defaultChoiceCode: e.target.value})}
+                        >
+                          <option value="">Select default choice</option>
+                          {currentOption.choices.map((choice) => (
+                            <option key={choice.code} value={choice.code}>
+                              {choice.code} - {choice.label} (€{choice.price})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Add Option Button */}
+                    <div className="option-actions">
+                      <button 
+                        type="button" 
+                        onClick={addOption}
+                        className="btn-primary"
+                        disabled={!currentOption.name || currentOption.choices.length === 0 || !currentOption.defaultChoiceCode}
+                      >
+                        ➕ Add Option
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={resetOptionsForm}
+                        className="btn-secondary"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Advanced Options Form (Hidden by default) */}
+              {showOptionsForm && (
+                <div className="advanced-option-form">
+                  <h4>Advanced Options Editor</h4>
+                  <p>Use this for complex options with images and custom codes</p>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Option Name *</label>
+                      <input
+                        type="text"
+                        value={currentOption.name}
+                        onChange={(e) => setCurrentOption({...currentOption, name: e.target.value})}
+                        placeholder="e.g., Protein, Size, Spiciness"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Pricing Mode *</label>
+                      <select
+                        value={currentOption.pricingMode}
+                        onChange={(e) => setCurrentOption({...currentOption, pricingMode: e.target.value})}
+                      >
+                        <option value="add">Add to base price</option>
+                        <option value="override">Override base price</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Advanced Choices Management */}
+                  <div className="choices-section">
+                    <h5>Advanced Choices:</h5>
+                    
+                    {/* Display existing choices */}
+                    {currentOption.choices.length > 0 && (
+                      <div className="choices-list">
+                        {currentOption.choices.map((choice, index) => (
+                          <div key={index} className="choice-item">
+                                                    <span className="choice-code">{choice.code}</span>
+                        <span className="choice-label">{choice.label}</span>
+                        <span className="choice-price">€{Number(choice.price).toFixed(2)}</span>
+                        {choice.image && (
+                          <div className="choice-image">
+                            <img 
+                              src={
+                                choice.image.startsWith('http')
+                                  ? choice.image
+                                  : `${config.BACKEND_URL}/images/${choice.image}`
+                              }
+                              alt={`${choice.label} choice`}
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJJbWFnZSBFcnJvcjwvdGV4dD48L3N2Zz4=';
+                              }}
+                              style={{ width: '30px', height: '30px', objectFit: 'cover', borderRadius: '3px' }}
+                            />
+                          </div>
+                        )}
+                            <div className="choice-actions">
+                              <button 
+                                type="button" 
+                                onClick={() => editChoice(index)}
+                                className="btn-edit-small"
+                              >
+                                ✏️
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => deleteChoice(index)}
+                                className="btn-delete-small"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add/Edit Choice Form */}
+                    <div className="choice-form">
+                      <h6>{editingChoiceIndex >= 0 ? 'Edit Choice' : 'Add New Choice'}</h6>
+                      
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Code *</label>
+                          <input
+                            type="text"
+                            value={currentChoice.code}
+                            onChange={(e) => setCurrentChoice({...currentChoice, code: e.target.value})}
+                            placeholder="e.g., a, b, c"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Label *</label>
+                          <input
+                            type="text"
+                            value={currentChoice.label}
+                            onChange={(e) => setCurrentChoice({...currentChoice, label: e.target.value})}
+                            placeholder="e.g., Chicken, Beef, Shrimp"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Price *</label>
+                          <input
+                            type="number"
+                            value={currentChoice.price}
+                            onChange={(e) => setCurrentChoice({...currentChoice, price: parseFloat(e.target.value) || 0})}
+                            placeholder="0.00"
+                            step="0.01"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Image (Optional)</label>
+                          <input
+                            type="file"
+                            onChange={handleChoiceImageChange}
+                            accept="image/*"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="choice-actions">
+                        <button 
+                          type="button" 
+                          onClick={addChoice}
+                          className="btn-primary"
+                        >
+                          {editingChoiceIndex >= 0 ? 'Update Choice' : 'Add Choice'}
+                        </button>
+                        {editingChoiceIndex >= 0 && (
+                          <button 
+                            type="button" 
+                            onClick={() => setEditingChoiceIndex(-1)}
+                            className="btn-secondary"
+                          >
+                            Cancel Edit
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Default Choice Selection */}
+                    {currentOption.choices.length > 0 && (
+                      <div className="default-choice-section">
+                        <label>Default Choice:</label>
+                        <select
+                          value={currentOption.defaultChoiceCode}
+                          onChange={(e) => setCurrentOption({...currentOption, defaultChoiceCode: e.target.value})}
+                        >
+                          <option value="">Select default choice</option>
+                          {currentOption.choices.map((choice) => (
+                            <option key={choice.code} value={choice.code}>
+                              {choice.code} - {choice.label} (€{choice.price})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="option-actions">
+                    <button 
+                      type="button" 
+                      onClick={addOption}
+                      className="btn-primary"
+                      disabled={!currentOption.name || currentOption.choices.length === 0 || !currentOption.defaultChoiceCode}
+                    >
+                      {editingOptionIndex >= 0 ? 'Update Option' : 'Add Option'}
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={resetOptionsForm}
+                      className="btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Toggle between Simple and Advanced */}
+              <div className="options-toggle">
+                <button 
+                  type="button" 
+                  onClick={() => setShowOptionsForm(!showOptionsForm)}
+                  className="btn-toggle"
+                >
+                  {showOptionsForm ? '🔽 Use Simple Mode' : '🔼 Use Advanced Mode'}
+                </button>
+              </div>
+            </div>
+
             <div className="form-actions">
               <button type="submit" disabled={isLoading} className="btn-primary">
-                {isLoading ? t('common.loading') : t('products.addNew')}
+                {isLoading ? t('common.loading', { defaultValue: 'Loading' }) : t('products.addNew', { defaultValue: 'Add New Product' })}
               </button>
               <button 
                 type="button" 
                 onClick={() => setShowAddForm(false)} 
                 className="btn-secondary"
               >
-                {t('common.cancel')}
+                {t('common.cancel', { defaultValue: 'Cancel' })}
               </button>
             </div>
           </form>
@@ -833,24 +1635,18 @@ const Products = ({ url }) => {
                       product.image && product.image.startsWith('http')
                         ? product.image
                         : product.image 
-                          ? `${url}/images/${product.image}`
+                          ? `${config.BACKEND_URL}/images/${product.image}`
                           : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='
                     }
                     alt={product.name || 'Product'} 
-                    onError={(e) => {
-                      console.error('Image failed to load:', e.target.src);
-                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlsaT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBFcnJvcjwvdGV4dD48L3N2Zz4=';
-                      e.target.onerror = null;
-                    }}
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBFcnJvcjwvdGV4dD48L3N2Zz4='; }}
                     style={{ width: '100%', height: '200px', objectFit: 'cover' }}
                   />
                   <div className="product-overlay">
-                    <button
-                      onClick={() => handleStatusToggle(product._id, product.status)}
-                      className={`status-toggle ${product.status}`}
-                    >
-                      {getStatusBadge(product.status)}
-                    </button>
+                  <button onClick={() => handleStatusToggle(product._id, product.status)} className="status-toggle">
+  {getStatusBadge(product.status)}
+  <span className="sr-only">{t('products.toggleStatus')}</span>
+</button>
                     {(product.quantity || 0) === 0 && (
                       <div className="out-of-stock-badge">
                         <span className="out-of-stock-icon">🚫</span>
@@ -877,19 +1673,58 @@ const Products = ({ url }) => {
                   <div className="product-pricing">
                     {product.isPromotion && product.promotionPrice ? (
                       <div className="promotion-pricing">
-                        <div className="original-price">€{product.price}</div>
-                        <div className="promotion-price">€{product.promotionPrice}</div>
+                        <div className="original-price">€{Number(product.price).toFixed(2)}</div>
+                        <div className="promotion-price">€{Number(product.promotionPrice).toFixed(2)}</div>
                         <div className="discount-badge">
                           Save €{(parseFloat(product.price) - parseFloat(product.promotionPrice)).toFixed(2)}
                         </div>
                       </div>
                     ) : (
-                      <div className="regular-price">€{product.price || '0.00'}</div>
+                      <div className="regular-price">€{(Number(product.price) || 0).toFixed(2)}</div>
+                    )}
+                    
+                    {/* Display variant options if available */}
+                    {product.options && product.options.length > 0 && (
+                      <div className="variant-options">
+                        <div className="variant-label">Variants:</div>
+                        {product.options.map((option, optionIndex) => (
+                          <div key={optionIndex} className="variant-option">
+                            <span className="variant-name">{option.name}:</span>
+                            <div className="variant-choices">
+                              {option.choices.map((choice, choiceIndex) => (
+                                <div key={choiceIndex} className="variant-choice">
+                                  <div className="choice-info">
+                                    <span className="choice-label">{choice.label}</span>
+                                    <span className="choice-price">€{Number(choice.price).toFixed(2)}</span>
+                                  </div>
+                                  {choice.image && (
+                                    <div className="choice-image">
+                                      <img 
+                                        src={
+                                          choice.image.startsWith('http')
+                                            ? choice.image
+                                            : `${config.BACKEND_URL}/images/${choice.image}`
+                                        }
+                                        alt={`${choice.label} variant`}
+                                        onError={(e) => {
+                                          e.target.onerror = null;
+                                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5WYXJpYW50IEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+                                        }}
+                                        style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <div className="product-actions">
                     <button
-                      onClick={() => handleEdit(product)}
+                      onClick={() => handleEditProduct(product)}
                       className="btn-edit"
                     >
                       {t('common.edit')}
@@ -916,7 +1751,7 @@ const Products = ({ url }) => {
         editForm={editForm}
         onInputChange={handleInputChange}
         onSubmit={handleSubmitEdit}
-        onCancel={handleCancelEdit}
+        onCancel={closeEditForm}
         categories={categories}
         onImageChange={handleEditImageChange}
         url={url}
@@ -925,32 +1760,56 @@ const Products = ({ url }) => {
       {/* Summary Stats */}
       <div className="products-summary">
         <div className="summary-card">
-          <h3>{t('dashboard.totalProducts')}</h3>
+          <h3>{t('dashboard.totalProducts', { defaultValue: 'Total Products' })}</h3>
           <p>{foodList.length}</p>
         </div>
         <div className="summary-card">
-          <h3>Active Products</h3>
-          <p>{foodList.filter(product => product.status === 'active').length}</p>
+          <h3>{t('dashboard.activeProducts', { defaultValue: 'Active Products' })}</h3>
+          <p>{foodList.filter(p => {
+            const st = (p.status || '').toString().toLowerCase().trim();
+            return st === 'active' || st === '';
+          }).length}</p>
         </div>
         <div className="summary-card">
-          <h3>Categories</h3>
+          <h3>{t('dashboard.categories', { defaultValue: 'Categories' })}</h3>
           <p>{categories.length}</p>
         </div>
         <div className="summary-card">
-          <h3>Total Stock</h3>
-          <p>{foodList.reduce((sum, product) => sum + (product.quantity || 0), 0)}</p>
+          <h3>{t('dashboard.totalStock', { defaultValue: 'Total Stock' })}</h3>
+          <p>{foodList.reduce((sum, product) => sum + (Number(product.quantity) || 0), 0)}</p>
         </div>
         <div className="summary-card">
-          <h3>Low Stock Items</h3>
+          <h3>{t('dashboard.lowStockItems', { defaultValue: 'Low Stock Items' })}</h3>
           <p>{foodList.filter(product => (product.quantity || 0) <= 5 && (product.quantity || 0) > 0).length}</p>
         </div>
         <div className="summary-card">
-          <h3>Out of Stock</h3>
+          <h3>{t('dashboard.outOfStock', { defaultValue: 'Out of Stock' })}</h3>
           <p>{foodList.filter(product => (product.quantity || 0) === 0).length}</p>
         </div>
-        <div className="summary-card">
-          <h3>Average Price</h3>
-          <p>€{foodList.length > 0 ? (foodList.reduce((sum, product) => sum + product.price, 0) / foodList.length).toFixed(2) : '0.00'}</p>
+                <div className="summary-card">
+          <h3>{t('dashboard.averagePrice', { defaultValue: 'Average Price' })}</h3>
+          <p>
+€{
+  foodList.length
+    ? (
+        foodList.reduce((s, p) => {
+          // Calculate average considering variants
+          let totalPrice = Number(p.price) || 0;
+          if (p.options && p.options.length > 0) {
+            // Add variant prices to calculation
+            p.options.forEach(option => {
+              if (option.choices && option.choices.length > 0) {
+                const avgVariantPrice = option.choices.reduce((sum, choice) => sum + (Number(choice.price) || 0), 0) / option.choices.length;
+                totalPrice += avgVariantPrice;
+              }
+            });
+          }
+          return s + totalPrice;
+        }, 0) / foodList.length
+      ).toFixed(2)
+    : '0.00'
+}
+</p>
         </div>
       </div>
 

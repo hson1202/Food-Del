@@ -5,8 +5,84 @@ import { StoreContext } from '../../Context/StoreContext'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
+// ---- Pricing helpers ----
+const hasOverrideOpt = (product) =>
+  Array.isArray(product?.options) && product.options.some(o => o.pricingMode === 'override');
+
+const computeVariantPrice = (product, selectedOptions = {}) => {
+  const opts = Array.isArray(product?.options) ? product.options : [];
+  let price = Number(product?.price) || 0;
+
+  for (const o of opts) {
+    if (o.pricingMode === 'override') {
+      const code = selectedOptions[o.name] || o.defaultChoiceCode;
+      const ch = (o.choices || []).find(c => c.code === code);
+      if (ch) {
+        price = Number(ch.price) || 0;
+        break;
+      }
+    }
+  }
+
+  for (const o of opts) {
+    if (o.pricingMode === 'add') {
+      const code = selectedOptions[o.name] || o.defaultChoiceCode;
+      const ch = (o.choices || []).find(c => c.code === code);
+      if (ch) price += Number(ch.price) || 0;
+    }
+  }
+
+  return price;
+};
+
+const variantPriceRange = (product) => {
+  const opts = Array.isArray(product?.options) ? product.options : [];
+  const base = Number(product?.price) || 0;
+
+  if (opts.length === 0) return { min: base, max: base };
+
+  const overrideOpts = opts.filter(o => o.pricingMode === 'override');
+  const addOpts = opts.filter(o => o.pricingMode === 'add');
+
+  const addMin = addOpts.reduce((s, o) => {
+    const arr = (o.choices || []).map(c => Number(c.price) || 0);
+    return s + (arr.length ? Math.min(...arr) : 0);
+  }, 0);
+  const addMax = addOpts.reduce((s, o) => {
+    const arr = (o.choices || []).map(c => Number(c.price) || 0);
+    return s + (arr.length ? Math.max(...arr) : 0);
+  }, 0);
+
+  if (overrideOpts.length > 0) {
+    const overAll = overrideOpts.flatMap(o => (o.choices || []).map(c => Number(c.price) || 0));
+    if (overAll.length === 0) return { min: addMin, max: addMax };
+    const minOver = Math.min(...overAll);
+    const maxOver = Math.max(...overAll);
+    return { min: minOver + addMin, max: maxOver + addMax };
+  }
+
+  return { min: base + addMin, max: base + addMax };
+};
+
+const buildDefaultSelections = (product) => {
+  const selected = {};
+  (product?.options || []).forEach(o => {
+    if (o.defaultChoiceCode) selected[o.name] = o.defaultChoiceCode;
+  });
+  return selected;
+};
+
+const pickImageFromSelections = (product, selectedOptions = {}) => {
+  for (const o of (product?.options || [])) {
+    const code = selectedOptions[o.name] || o.defaultChoiceCode;
+    const ch = (o.choices || []).find(c => c.code === code);
+    if (ch?.image) return ch.image;
+  }
+  return product?.image || '';
+};
+
 const CartPopup = ({ onClose }) => {
-  const { cartItems, food_list, addToCart, removeFromCart, getTotalCartAmount, url } = useContext(StoreContext)
+  const { cartItems, cartItemsData, food_list, addToCart, removeFromCart, getTotalCartAmount, url } = useContext(StoreContext)
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [recommendedItems, setRecommendedItems] = useState([])
@@ -27,32 +103,61 @@ const CartPopup = ({ onClose }) => {
   };
 
   const formatPrice = (price) => {
+    const n = Number(price);
+    if (isNaN(n) || n < 0) return '€0';
     const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
-    }).format(price);
-    
+    }).format(n);
     return formatted.replace(/\.00$/, '');
   };
 
-  // Get cart items with details
+  // Get cart items with details including options
   const getCartItems = () => {
     const items = []
     for (const itemId in cartItems) {
       if (cartItems[itemId] > 0) {
-        const itemInfo = food_list.find((product) => product._id === itemId)
+        // Try to get item from cartItemsData first (for items with options)
+        let itemInfo = cartItemsData[itemId];
+        
+        // If not in cartItemsData, fall back to food_list
+        if (!itemInfo) {
+          itemInfo = food_list.find((product) => product._id === itemId)
+        }
+        
         if (itemInfo) {
           items.push({
             ...itemInfo,
-            quantity: cartItems[itemId]
+            quantity: cartItems[itemId],
+            cartItemId: itemId // Store the actual cart key
           })
         }
       }
     }
     return items
   }
+
+  // Format selected options for display
+  const formatSelectedOptions = (item) => {
+    if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
+      return null;
+    }
+
+    const optionTexts = [];
+    Object.entries(item.selectedOptions).forEach(([optionName, choiceCode]) => {
+      const option = item.options?.find(opt => opt.name === optionName);
+      if (option) {
+        const choice = option.choices.find(c => c.code === choiceCode);
+        if (choice) {
+          optionTexts.push(`${optionName}: ${choice.label}`);
+        }
+      }
+    });
+
+    return optionTexts.join(', ');
+  };
 
   // Smart upsale algorithm
   const generateRecommendations = () => {
@@ -140,34 +245,55 @@ const CartPopup = ({ onClose }) => {
                 <h3>{t('cart.items')} ({cartItemsList.length})</h3>
                 <div className="cart-items-list">
                   {cartItemsList.map((item) => (
-                    <div key={item._id} className="cart-item">
+                    <div key={item.cartItemId} className="cart-item">
                       <div className="cart-item-image">
-                        <img src={(item.image && item.image.startsWith('http')) ? item.image : (url + "/images/" + item.image)} alt={getLocalizedName(item)} />
+                        {(() => {
+                          const fallback = pickImageFromSelections(item, item.selectedOptions) || item.image;
+                          const imgSrc = item.currentImage
+                            ? (item.currentImage.startsWith('http') ? item.currentImage : `${url}/images/${item.currentImage}`)
+                            : (fallback && fallback.startsWith('http') ? fallback : `${url}/images/${fallback}`);
+                          return (
+                            <img 
+                              src={imgSrc}
+                              alt={getLocalizedName(item)} 
+                            />
+                          );
+                        })()}
                       </div>
                       <div className="cart-item-info">
                         <h4>{getLocalizedName(item)}</h4>
+                        {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
+                          <div className="cart-item-options">
+                            <span className="options-text">{formatSelectedOptions(item)}</span>
+                          </div>
+                        )}
                         <div className="cart-item-price">
-                          {item.isPromotion ? (
-                            <div className="promotion-pricing">
-                              <span className="original-price">{formatPrice(item.originalPrice)}</span>
-                              <span className="promotion-price">{formatPrice(item.promotionPrice)}</span>
-                            </div>
-                          ) : (
-                            <span className="regular-price">{formatPrice(item.price)}</span>
-                          )}
+                          {(() => {
+                            const unitPrice = (item.currentPrice != null)
+                              ? Number(item.currentPrice)
+                              : computeVariantPrice(item, item.selectedOptions);
+                            return (
+                              <span className="regular-price">{formatPrice(unitPrice)}</span>
+                            );
+                          })()}
                         </div>
                       </div>
                       <div className="cart-item-controls">
-                        <button onClick={() => removeFromCart(item._id)}>
+                        <button onClick={() => removeFromCart(item.cartItemId)}>
                           <img src={assets.remove_icon_red} alt="" />
                         </button>
                         <span className="quantity">{item.quantity}</span>
-                        <button onClick={() => addToCart(item._id)}>
+                        <button onClick={() => addToCart(item.cartItemId, item)}>
                           <img src={assets.add_icon_green} alt="" />
                         </button>
                       </div>
                       <div className="cart-item-total">
-                        {formatPrice((item.isPromotion ? item.promotionPrice : item.price) * item.quantity)}
+                        {(() => {
+                          const unitPrice = (item.currentPrice != null)
+                            ? Number(item.currentPrice)
+                            : computeVariantPrice(item, item.selectedOptions);
+                          return formatPrice(unitPrice * item.quantity);
+                        })()}
                       </div>
                     </div>
                   ))}
@@ -184,31 +310,44 @@ const CartPopup = ({ onClose }) => {
                       <div key={item._id} className="recommended-item">
                         <div className="recommended-image">
                           <img src={(item.image && item.image.startsWith('http')) ? item.image : (url + "/images/" + item.image)} alt={getLocalizedName(item)} />
-                          {item.isPromotion && (
+                          {item.isPromotion && !hasOverrideOpt(item) && (
                             <div className="promo-badge">-{Math.round(((item.originalPrice - item.promotionPrice) / item.originalPrice) * 100)}%</div>
                           )}
                         </div>
                         <div className="recommended-info">
                           <h5>{getLocalizedName(item)}</h5>
                           <div className="recommended-price">
-                            {item.isPromotion ? (
-                              <>
-                                <span className="old-price">{formatPrice(item.originalPrice)}</span>
-                                <span className="new-price">{formatPrice(item.promotionPrice)}</span>
-                              </>
-                            ) : (
-                              <span className="price">{formatPrice(item.price)}</span>
-                            )}
+                            {(() => {
+                              const r = variantPriceRange(item);
+                              return r.min === r.max ? (
+                                <span className="price">{formatPrice(r.min)}</span>
+                              ) : (
+                                <>
+                                  <span className="price">{formatPrice(r.min)}</span>
+                                  <span className="price"> – {formatPrice(r.max)}</span>
+                                </>
+                              );
+                            })()}
                           </div>
-                          {item.soldCount > 0 && (
-                            <div className="popularity">⭐ {item.soldCount}+ {t('productDetail.sold')}</div>
-                          )}
                         </div>
                         <button 
                           className="add-recommended-btn"
-                          onClick={() => addToCart(item._id)}
+                          onClick={() => {
+                            const selected = buildDefaultSelections(item);
+                            const price = computeVariantPrice(item, selected);
+                            const img = pickImageFromSelections(item, selected);
+                            const cartKey = item.options?.length
+                              ? `${item._id}_${JSON.stringify(selected)}`
+                              : item._id;
+                            addToCart(cartKey, {
+                              ...item,
+                              selectedOptions: selected,
+                              currentPrice: price,
+                              currentImage: img
+                            });
+                          }}
                         >
-                          +
+                          <img src={assets.add_icon_green} alt="" />
                         </button>
                       </div>
                     ))}
@@ -222,17 +361,12 @@ const CartPopup = ({ onClose }) => {
                   <span>{t('cart.subtotal')}</span>
                   <span>{formatPrice(getTotalCartAmount())}</span>
                 </div>
-                <div className="summary-row">
-                  <span>{t('cart.delivery')}</span>
-                  <span>{formatPrice(2)}</span>
-                </div>
                 <div className="summary-row total">
                   <span>{t('cart.total')}</span>
-                  <span>{formatPrice(getTotalCartAmount() + 2)}</span>
+                  <span>{formatPrice(getTotalCartAmount())}</span>
                 </div>
-                
                 <button className="checkout-btn" onClick={handleCheckout}>
-                  🚀 {t('cart.checkout')} ({formatPrice(getTotalCartAmount() + 2)})
+                  {t('cart.checkout')} ({getTotalItems()} {t('cart.items')})
                 </button>
               </div>
             </>

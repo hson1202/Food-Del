@@ -16,7 +16,25 @@ const foodSchema = new mongoose.Schema({
       // originalPrice removed - using regular price as base
   promotionPrice: { type: Number },
   soldCount: { type: Number, default: 0, min: 0 },
-  status: { type: String, enum: ["active", "inactive"], default: "active" }
+  status: { type: String, enum: ["active", "inactive"], default: "active" },
+  // Variant Options
+  options: [{
+    name: { type: String, required: true, trim: true },
+    type: { type: String, default: 'select', enum: ['select'] },
+    defaultChoiceCode: { type: String, required: true },
+    choices: [{
+      code: { type: String, required: true, trim: true },
+      label: { type: String, required: true, trim: true },
+      price: { type: Number, required: true },
+      image: { type: String, default: "" }
+    }],
+    pricingMode: { 
+      type: String, 
+      enum: ['override', 'add'], 
+      default: 'add',
+      required: true
+    }
+  }]
 }, { timestamps: true });
 
 // ---- helpers ----

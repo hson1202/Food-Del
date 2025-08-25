@@ -1,533 +1,188 @@
-.food-item{  
-    width: 100%;  
-    margin: auto;  
-    border-radius: 20px;  
-    transition: all 0.3s ease;  
-    animation: fadeIn 0.6s ease-out;
-    background: white;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+.food-item {
+    width: 100%;
+    margin: auto;
+    border-radius: 15px;
+    box-shadow: 0px 0px 20px #888888;
+    transition: 0.3s;
+    animation: fadeIn 1s;
     cursor: pointer;
     position: relative;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
 }
 
 .food-item:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    border-color: rgba(40, 167, 69, 0.2);
+    transform: scale(1.03);
+    transition: 0.2s;
 }
 
-.food-item-image{  
-    width: 100%;  
-    height: 220px;
-    object-fit: cover;
-    border-radius: 20px 20px 0px 0px;  
-    transition: transform 0.3s ease;
-}  
-
-.food-item:hover .food-item-image {
-    transform: scale(1.05);
+.food-item img {
+    width: 100%;
+    border-radius: 15px 15px 0px 0px;
 }
 
-.food-item-info{  
-    padding: 20px;  
-}  
-
-.food-item-name{  
-    margin-bottom: 12px;  
+.food-item-info {
+    padding: 20px;
 }
 
-.food-item-name p{  
-    font-size: 18px;  
-    font-weight: 700;
-    color: #2c3e50;
-    margin: 0;
-    line-height: 1.4;
-    letter-spacing: -0.02em;
-}  
+.food-item-name p {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
 
 .food-item-stats {
     display: flex;
-    gap: 16px;
+    gap: 15px;
     margin-bottom: 15px;
-    flex-wrap: wrap;
 }
 
 .stat-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: #7f8c8d;
-    background: #f8f9fa;
-    padding: 6px 10px;
-    border-radius: 20px;
-    font-weight: 500;
+    gap: 5px;
+    font-size: 14px;
+    color: #666;
 }
 
 .stat-icon {
-    font-size: 14px;
-    color: #28a745;
-}
-
-.stat-text {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 16px;
 }
 
 .food-item-pricing {
-    margin-top: 12px;
-}
-
-.regular-price {
-    color: #2c3e50;
-    font-size: 18px;
-    font-weight: 700;
+    margin-bottom: 15px;
 }
 
 .promotion-pricing {
     display: flex;
-    align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
+    align-items: center;
 }
 
 .original-price {
-    color: #95a5a6;
-    font-size: 15px;
     text-decoration: line-through;
-    font-weight: 500;
+    color: #999;
+    font-size: 16px;
 }
 
 .promotion-price {
     color: #e74c3c;
+    font-weight: bold;
     font-size: 18px;
-    font-weight: 700;
 }
 
-.promotion-badge {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    z-index: 2;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.regular-price {
+    color: #2c3e50;
+    font-weight: bold;
+    font-size: 18px;
 }
 
-.food-item-img-container{  
-    position: relative;  
-}  
-
-
-
-/* Bottom Actions */
 .food-item-actions {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: center;
 }
 
 .add-to-cart-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #28a745, #20c997);
+    background: #27ae60;
     color: white;
     border: none;
-    padding: 14px 18px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 25px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    font-size: 16px;
+    font-weight: 500;
+    transition: 0.3s;
 }
 
 .add-to-cart-btn:hover {
-    background: linear-gradient(135deg, #20c997, #17a2b8);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
-}
-
-.add-to-cart-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-}
-
-.add-to-cart-btn img {
-    width: 18px;
-    height: 18px;
-    filter: brightness(0) invert(1);
+    background: #229954;
 }
 
 .quantity-controls-bottom {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 18px;
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    padding: 12px 24px;
-    border-radius: 25px;
-    border: 2px solid #dee2e6;
-    margin-top: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.quantity-controls-bottom .qty-btn {
-    background: white;
-    border: 2px solid #dee2e6;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    width: 36px;
-    height: 36px;
-}
-
-.quantity-controls-bottom .qty-btn:hover {
-    background: #28a745;
-    border-color: #28a745;
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.quantity-controls-bottom .qty-btn:hover img {
-    filter: brightness(0) invert(1);
-}
-
-.quantity-controls-bottom .qty-btn img {
-    width: 20px;
-    height: 20px;
-    transition: filter 0.2s ease;
-}
-
-.quantity-controls-bottom .quantity {
-    font-size: 18px;
-    font-weight: 800;
-    color: #2c3e50;
-    min-width: 35px;
-    text-align: center;
-    background: white;
-    padding: 8px 12px;
-    border-radius: 20px;
-    border: 2px solid #dee2e6;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .food-item {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    padding: 18px;
-    border-radius: 16px;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
-  }
-
-  .food-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-  }
-
-  .food-item-img-container {
-    flex-shrink: 0;
-    width: 90px;
-    height: 90px;
-    border-radius: 16px;
-    overflow: hidden;
-  }
-
-  .food-item-image {
-    width: 90px;
-    height: 90px;
-    border-radius: 16px;
-    transition: transform 0.3s ease;
-  }
-
-  .food-item:hover .food-item-image {
-    transform: scale(1.08);
-  }
-
-  .promotion-badge {
-    top: 8px;
-    left: 8px;
-    padding: 5px 8px;
-    font-size: 10px;
-    border-radius: 15px;
-  }
-
-  .quantity-indicator {
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
-    font-size: 13px;
-    background: linear-gradient(135deg, #28a745, #20c997);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-  }
-
-  .food-item-info {
-    flex: 1;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
     gap: 10px;
-  }
+}
 
-  .food-item-name p {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0;
-    line-height: 1.3;
-    color: #2c3e50;
-  }
-
-  .food-item-stats {
-    display: none; /* Hide stats on mobile for cleaner look */
-  }
-
-  .food-item-pricing {
-    margin: 0;
-  }
-
-  .regular-price {
-    font-size: 16px;
-    font-weight: 700;
-    color: #2c3e50;
-  }
-
-  .promotion-pricing {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
-  }
-
-  .original-price {
-    font-size: 13px;
-    color: #95a5a6;
-  }
-
-  .promotion-price {
-    font-size: 16px;
-    font-weight: 700;
-    color: #e74c3c;
-  }
-
-  .food-item-actions {
-    flex-shrink: 0;
-    margin: 0;
-    padding: 0;
+.qty-btn {
+    background: #e74c3c;
     border: none;
-    width: auto;
-  }
-
-  .add-to-cart-btn {
-    width: auto;
-    padding: 10px 14px;
-    font-size: 13px;
-    min-width: 70px;
-    border-radius: 20px;
-    font-weight: 600;
-  }
-
-  .quantity-controls-bottom {
-    padding: 8px 12px;
-    gap: 10px;
-    border-radius: 25px;
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    border: 1px solid #dee2e6;
-    margin-top: 8px;
-  }
-
-  .quantity-controls-bottom .qty-btn {
-    padding: 6px;
-    width: 32px;
-    height: 32px;
-  }
-
-  .quantity-controls-bottom .qty-btn img {
-    width: 18px;
-    height: 18px;
-  }
-
-  .quantity-controls-bottom .quantity {
-    font-size: 16px;
-    min-width: 25px;
-    padding: 6px 10px;
-  }
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
 }
 
-/* Small Mobile Design */
-@media (max-width: 576px) {
-  .food-item {
-    gap: 15px;
-    padding: 15px;
-    border-radius: 14px;
-  }
+.qty-btn:hover {
+    background: #c0392b;
+}
 
-  .food-item-img-container {
-    width: 80px;
-    height: 80px;
-    border-radius: 14px;
-  }
+.qty-btn img {
+    width: 15px;
+    height: 15px;
+}
 
-  .food-item-image {
-    width: 80px;
-    height: 80px;
-    border-radius: 14px;
-  }
+.quantity {
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
 
-  .promotion-badge {
-    top: 6px;
-    left: 6px;
-    padding: 4px 6px;
-    font-size: 9px;
-    border-radius: 12px;
-  }
-
-  .quantity-indicator {
-    top: 6px;
-    right: 6px;
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
-  }
-
-  .food-item-info {
-    gap: 8px;
-  }
-
-  .food-item-name p {
-    font-size: 15px;
-    font-weight: 700;
-  }
-
-  .regular-price {
-    font-size: 15px;
-    font-weight: 700;
-  }
-
-  .promotion-price {
-    font-size: 15px;
-    font-weight: 700;
-  }
-
-  .add-to-cart-btn {
-    padding: 8px 12px;
+/* Options badge */
+.options-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #3498db;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
     font-size: 12px;
-    min-width: 60px;
-    border-radius: 18px;
-  }
-
-  .quantity-controls-bottom {
-    padding: 6px 10px;
-    gap: 8px;
-    border-radius: 20px;
-  }
-
-  .quantity-controls-bottom .qty-btn {
-    padding: 5px;
-    width: 28px;
-    height: 28px;
-  }
-
-  .quantity-controls-bottom .qty-btn img {
-    width: 16px;
-    height: 16px;
-  }
-
-  .quantity-controls-bottom .quantity {
-    font-size: 14px;
-    min-width: 20px;
-    padding: 5px 8px;
-  }
+    font-weight: 500;
+    z-index: 2;
 }
 
-/* Extra Small Mobile Design */
-@media (max-width: 480px) {
-  .food-item {
-    gap: 12px;
-    padding: 12px;
-    border-radius: 12px;
-  }
+/* Promotion badge */
+.promotion-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #e74c3c;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 2;
+}
 
-  .food-item-img-container {
-    width: 70px;
-    height: 70px;
-    border-radius: 12px;
-  }
+/* Price range display */
+.price-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
 
-  .food-item-image {
-    width: 70px;
-    height: 70px;
-    border-radius: 12px;
-  }
-
-  .food-item-name p {
-    font-size: 14px;
-  }
-
-  .regular-price {
-    font-size: 14px;
-  }
-
-  .promotion-price {
-    font-size: 14px;
-  }
-
-  .add-to-cart-btn {
-    padding: 7px 10px;
-    font-size: 11px;
-    min-width: 55px;
-    border-radius: 16px;
-  }
-
-  .quantity-controls-bottom {
-    padding: 5px 8px;
-    gap: 6px;
-  }
-
-  .quantity-controls-bottom .qty-btn {
-    width: 26px;
-    height: 26px;
-  }
-
-  .quantity-controls-bottom .quantity {
-    font-size: 13px;
-    min-width: 18px;
-    padding: 4px 6px;
-  }
+/* Responsive */
+@media (max-width: 768px) {
+    .food-item-info {
+        padding: 15px;
+    }
+    
+    .food-item-name p {
+        font-size: 18px;
+    }
+    
+    .food-item-stats {
+        gap: 10px;
+    }
+    
+    .stat-item {
+        font-size: 12px;
+    }
 }

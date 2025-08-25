@@ -17,6 +17,7 @@ const Home = () => {
   const [category, setCategory] = useState("All");
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // 🖼️ EASY IMAGE REPLACEMENT - Thay đổi hình ảnh ở đây
   // Có sẵn: back1, back2, back3, back4, back5, back6, back7, back8, back9, back10, back11, back12, back13, back14, back15, back16
@@ -53,6 +54,14 @@ const Home = () => {
     }
   };
 
+  const handleViewDetails = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const closeProductDetail = () => {
+    setSelectedProduct(null);
+  };
+
   return (
     <div>
       <Header/>
@@ -62,7 +71,15 @@ const Home = () => {
         categories={categories}
         loading={loading}
       />
-      <FoodDisplay category={category}/>
+      <FoodDisplay category={category} onViewDetails={handleViewDetails}/>
+      
+      {/* Product Detail Popup */}
+      {selectedProduct && (
+        <ProductDetail 
+          product={selectedProduct} 
+          onClose={closeProductDetail}
+        />
+      )}
       
       {/* About Us Section */}
       <div className='about-us-section' id='about-us'>

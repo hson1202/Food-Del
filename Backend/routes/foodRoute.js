@@ -272,7 +272,10 @@ foodRouter.post("/test-category", async (req, res) => {
 
 foodRouter.post("/add", upload.single("image"), handleMulterError, addFood)
 foodRouter.get("/list", listFood)
-foodRouter.delete("/remove", removeFood)
+// Accept multiple delete patterns for robustness
+foodRouter.delete("/remove", removeFood) // DELETE /remove?id=...
+foodRouter.delete("/remove/:id", removeFood) // DELETE /remove/:id
+foodRouter.post("/remove", removeFood) // POST /remove { id }
 foodRouter.put("/status", updateFoodStatus)
 foodRouter.put("/edit/:id", upload.single("image"), handleMulterError, updateFood)
 foodRouter.put("/quantity", updateFoodQuantity)
