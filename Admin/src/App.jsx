@@ -22,6 +22,7 @@ const App = () => {
   const url = config.BACKEND_URL
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -30,6 +31,14 @@ const App = () => {
     }
     setLoading(false);
   }, []);
+
+  const handleMenuToggle = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleSidebarClose = () => {
+    setSidebarOpen(false);
+  };
 
   if (loading) {
     return (
@@ -60,10 +69,10 @@ const App = () => {
   return (
     <div>
       <ToastContainer/>
-      <Navbar setIsAuthenticated={setIsAuthenticated}/>
+      <Navbar setIsAuthenticated={setIsAuthenticated} onMenuToggle={handleMenuToggle}/>
       <hr/>
       <div className="app-content">
-        <Sidebar/>
+        <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose}/>
         <Routes>
           <Route path='/admin' element={<Dashboard url={url}/>}/>
           <Route path='/admin/orders' element={<Orders url={url}/>}/>

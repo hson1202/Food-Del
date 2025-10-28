@@ -740,11 +740,12 @@
 
 @media (max-width: 768px) {
   .dashboard {
-    padding: 20px;
+    padding: 16px;
   }
   
   .dashboard-header {
-    padding: 24px;
+    padding: 20px;
+    margin-bottom: 24px;
   }
   
   .header-content {
@@ -754,23 +755,93 @@
   }
   
   .header-text h1 {
-    font-size: 28px;
+    font-size: 24px;
+    line-height: 1.2;
+  }
+  
+  .header-text p {
+    font-size: 14px;
+  }
+  
+  .refresh-btn {
+    padding: 8px 16px;
+    font-size: 13px;
   }
   
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
   }
   
   .stat-card {
-    padding: 24px;
+    padding: 20px;
+  }
+  
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    margin-bottom: 16px;
   }
   
   .stat-content h3 {
-    font-size: 32px;
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+  
+  .stat-content p {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .stat-details {
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  
+  .detail-item {
+    font-size: 11px;
+  }
+  
+  .stat-trend {
+    font-size: 12px;
+  }
+  
+  .time-stats-section {
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .time-stats-section h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
   }
   
   .time-stats-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .time-stat-card {
+    padding: 16px;
+  }
+  
+  .time-stat-card h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .stat-item {
+    padding: 6px 0;
+  }
+  
+  .stat-label {
+    font-size: 12px;
+  }
+  
+  .stat-value {
+    font-size: 14px;
   }
   
   .section-header {
@@ -781,65 +852,192 @@
   
   .actions-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .action-btn {
+    padding: 20px;
+    gap: 12px;
+  }
+  
+  .action-btn span {
+    font-size: 20px;
+  }
+  
+  .action-btn strong {
+    font-size: 14px;
+  }
+  
+  .action-btn small {
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .dashboard {
-    padding: 16px;
+    padding: 12px;
   }
   
-  .dashboard-header,
-  .time-stats-section,
-  .recent-orders-section,
-  .quick-actions {
-    padding: 20px;
+  .dashboard-header {
+    padding: 16px;
+    margin-bottom: 20px;
   }
   
   .header-text h1 {
-    font-size: 24px;
+    font-size: 20px;
+    line-height: 1.1;
   }
   
-  .stat-card {
-    padding: 20px;
+  .header-text p {
+    font-size: 13px;
   }
   
-  .stat-content h3 {
-    font-size: 28px;
-  }
-  
-  .time-stats-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .orders-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .order-card {
-    padding: 20px;
-  }
-  
-  .order-main-info {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .order-status-amount {
-    align-items: flex-start;
-    min-width: auto;
-  }
-  
-  .orders-table {
+  .refresh-btn {
+    padding: 6px 12px;
     font-size: 12px;
   }
   
-  .orders-table th,
-  .orders-table td {
-    padding: 12px 8px;
+  .stats-grid {
+    gap: 12px;
+    margin-bottom: 20px;
   }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  
+  .stat-content h3 {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  
+  .stat-content p {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  
+  .stat-details {
+    gap: 3px;
+    margin-bottom: 8px;
+  }
+  
+  .detail-item {
+    font-size: 10px;
+  }
+  
+  .stat-trend {
+    font-size: 11px;
+  }
+  
+  .time-stats-section {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .time-stats-section h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  
+  .time-stats-grid {
+    gap: 12px;
+  }
+  
+  .time-stat-card {
+    padding: 12px;
+  }
+  
+  .time-stat-card h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .stat-item {
+    padding: 4px 0;
+  }
+  
+  .stat-label {
+    font-size: 11px;
+  }
+  
+  .stat-value {
+    font-size: 13px;
+  }
+  
+  .quick-actions {
+    padding: 16px;
+  }
+  
+  .quick-actions h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  
+  .actions-grid {
+    gap: 12px;
+  }
+  
+  .action-btn {
+    padding: 16px;
+    gap: 10px;
+  }
+  
+  .action-btn span {
+    font-size: 18px;
+  }
+  
+  .action-btn strong {
+    font-size: 13px;
+  }
+  
+  .action-btn small {
+    font-size: 11px;
+  }
+}
+
+/* ===== MOBILE FLAT/MINIMAL OVERRIDES ===== */
+@media (max-width: 768px) {
+  /* Reduce gradients and heavy shadows */
+  .dashboard-header,
+  .time-stats-section,
+  .quick-actions {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #eef2f7;
+  }
+
+  .stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #eef2f7;
+  }
+
+  /* Hide the top gradient bar on cards */
+  .stat-card::before { height: 0; background: transparent; }
+
+  /* Simplify icon containers */
+  .stat-icon {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #1f2937;
+  }
+
+  /* Use denser grid: 2 columns on small phones/tablets */
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Force single column on extra-small devices */
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: 1fr; }
 }
 
 

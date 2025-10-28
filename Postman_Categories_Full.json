@@ -1,0 +1,346 @@
+{
+  "info": {
+    "name": "Import Categories - Complete with Auth",
+    "description": "Complete collection to import 19 categories\n\n📋 CÁCH DÙNG:\n1. Import collection này vào Postman\n2. Chạy request 'LOGIN ADMIN' đầu tiên\n3. Token sẽ tự động lưu vào variable\n4. Chạy tất cả các request import categories",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 LOGIN ADMIN (Chạy đầu tiên)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/admin/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "admin", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Auto save token",
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.success && jsonData.token) {",
+              "        pm.collectionVariables.set('authToken', jsonData.token);",
+              "        console.log('Token saved:', jsonData.token.substring(0, 20) + '...');",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📥 Import All Categories",
+      "item": [
+        {
+          "name": "1. BENTO",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"BENTO\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161007/food-delivery/uploads/file_wvf5hn.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "2. CALIFORNIA MAKI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"CALIFORNIA MAKI / ROLL\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161506/food-delivery/uploads/file_ogaj8v.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "3. CALIFORNIA TEMPURA ROLL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"CALIFORNIA TEMPURA ROLL\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161524/food-delivery/uploads/file_gzauxv.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "4. CHIRASHI SUSHI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"CHIRASHI SUSHI\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161551/food-delivery/uploads/file_vtxf1i.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "5. FUTOMAKI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"FUTOMAKI\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161581/food-delivery/uploads/file_dtsglq.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "6. HLAVNÉ JEDLÁ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"HLAVNÉ JEDLÁ\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161697/food-delivery/uploads/file_bjuwjh.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "7. MAKI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"MAKI\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161723/food-delivery/uploads/file_u7gtte.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "8. NIGIRI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"NIGIRI\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161735/food-delivery/uploads/file_r9unlr.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "9. NÁPOJE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"NÁPOJE\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161757/food-delivery/uploads/file_nt6wpv.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "10. POKE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"POKE\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161173/food-delivery/uploads/file_l2ltlg.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "11. POLIEVKY",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"POLIEVKY\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755161792/food-delivery/uploads/file_khrz9h.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "12. PREDJEDLÁ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"PREDJEDLÁ\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755162102/food-delivery/uploads/file_muj1zi.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "13. PRÍLOHA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"PRÍLOHA\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755162178/food-delivery/uploads/file_yqa2os.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "14. REZANCE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"REZANCE\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755162583/food-delivery/uploads/file_gjblqy.webp\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "15. Ryžové rezance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Ryžové rezance (vietnamské)\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755162359/food-delivery/uploads/file_eknrxj.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "16. SASHIMI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"SASHIMI\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755162375/food-delivery/uploads/file_wxyesn.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "17. SUSHI SETY",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"SUSHI SETY\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755162468/food-delivery/uploads/file_mqkibn.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "18. TATARÁK",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"TATARÁK\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1755162431/food-delivery/uploads/file_ilrgvh.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        },
+        {
+          "name": "19. ŠALÁT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "token", "value": "{{authToken}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"ŠALÁT\",\"description\":\"\",\"image\":\"https://res.cloudinary.com/dypybd75u/image/upload/v1756226889/food-delivery/uploads/file_vs8krr.jpg\",\"isActive\":true,\"sortOrder\":0,\"language\":\"vi\"}"
+            },
+            "url": {"raw": "{{baseUrl}}/api/category", "host": ["{{baseUrl}}"], "path": ["api", "category"]}
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
+

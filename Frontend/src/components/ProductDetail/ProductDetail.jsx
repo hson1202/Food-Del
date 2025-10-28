@@ -98,15 +98,25 @@ const ProductDetail = ({ product, onClose }) => {
   // Initialize options, price and image when product changes
   useEffect(() => {
     if (!product) return;
-
-    const initialSelected = buildDefaultSelections(product);
-    const price = computeVariantPrice(product, initialSelected);
-    const img = pickImageFromSelections(product, initialSelected);
-
-    setSelectedOptions(initialSelected);
-    setCurrentPrice(price);
-    setCurrentImage(img);
-  }, [product])
+    
+    // Initialize selected options with defaults
+    const defaultSelections = {};
+    if (product.options && product.options.length > 0) {
+      product.options.forEach(option => {
+        if (option.defaultChoiceCode) {
+          defaultSelections[option.name] = option.defaultChoiceCode;
+        }
+      });
+    }
+    setSelectedOptions(defaultSelections);
+    
+    // Set initial price and image
+    const initialPrice = computeVariantPrice(product, defaultSelections);
+    setCurrentPrice(initialPrice);
+    
+    const initialImage = pickImageFromSelections(product, defaultSelections);
+    setCurrentImage(initialImage);
+  }, [product]);
 
   // Function to get the appropriate name based on current language
   const getLocalizedName = () => {
@@ -141,13 +151,15 @@ const ProductDetail = ({ product, onClose }) => {
   };
 
   const handleOptionChange = (optionName, choiceCode) => {
-    const newOptions = { ...selectedOptions, [optionName]: choiceCode }
-    setSelectedOptions(newOptions)
-
-    const price = computeVariantPrice(product, newOptions)
-    const img = pickImageFromSelections(product, newOptions)
-    setCurrentPrice(price)
-    setCurrentImage(img)
+    const newSelectedOptions = { ...selectedOptions, [optionName]: choiceCode };
+    setSelectedOptions(newSelectedOptions);
+    
+    // Update price and image based on new selections
+    const newPrice = computeVariantPrice(product, newSelectedOptions);
+    setCurrentPrice(newPrice);
+    
+    const newImage = pickImageFromSelections(product, newSelectedOptions);
+    setCurrentImage(newImage);
   }
 
   const handleAddToCart = () => {
@@ -185,11 +197,30 @@ const ProductDetail = ({ product, onClose }) => {
       ? `${product._id}_${JSON.stringify(selectedOptions)}`
       : product._id
     
-    removeFromCart(cartKey)
+    // Check if item exists in cart before removing
+    if (cartItems[cartKey] && cartItems[cartKey] > 0) {
+      removeFromCart(cartKey)
+    }
   }
 
   const handleIncreaseQuantity = () => {
-    handleAddToCart()
+    // Check if item is already in cart
+    const cartKey = product.options && product.options.length > 0 
+      ? `${product._id}_${JSON.stringify(selectedOptions)}`
+      : product._id
+    
+    if (cartItems[cartKey] && cartItems[cartKey] > 0) {
+      // Item exists, just add one more
+      addToCart(cartKey, {
+        ...product,
+        selectedOptions,
+        currentPrice,
+        currentImage
+      })
+    } else {
+      // Item doesn't exist, add to cart
+      handleAddToCart()
+    }
   }
 
   return (

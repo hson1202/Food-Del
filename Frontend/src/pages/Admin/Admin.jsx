@@ -69,7 +69,7 @@ const Admin = () => {
     }))
   }
 
-  const handleSubmitEdit = async (e) => {
+  const handlSubmitEdit = async (e) => {
     e.preventDefault()
     
     try {

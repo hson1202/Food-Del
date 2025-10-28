@@ -6,15 +6,36 @@
   overflow-x: hidden; /* Ngăn horizontal scroll */
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .app-content {
-    flex-direction: column;
+    min-height: calc(100vh - 56px); /* Navbar height nhỏ hơn trên mobile */
   }
 }
 
-@media (max-width: 500px) {
+/* Main content area */
+.app-content > *:not(.sidebar) {
+  flex: 1;
+  margin-left: 280px; /* Sidebar width */
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
   .app-content > *:not(.sidebar) {
-    margin-top: 50px;
+    margin-left: 260px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-content > *:not(.sidebar) {
+    margin-left: 0;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-content > *:not(.sidebar) {
+    padding: 12px;
   }
 }

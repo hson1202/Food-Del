@@ -797,10 +797,86 @@
 
 @media (max-width: 768px) {
   .users-page {
-    padding: 20px;
+    padding: 16px;
   }
   
   .users-header {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .header-text h1 {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+  
+  .header-text p {
+    font-size: 14px;
+  }
+  
+  .refresh-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .users-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-content h3 {
+    font-size: 20px;
+  }
+  
+  .stat-content p {
+    font-size: 12px;
+  }
+  
+  .users-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .user-card {
+    padding: 16px;
+  }
+  
+  .user-avatar {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .user-info h3 {
+    font-size: 16px;
+  }
+  
+  .user-info p {
+    font-size: 13px;
+  }
+  
+  .user-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .btn-edit,
+  .btn-delete {
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
     padding: 24px;
   }
   
@@ -851,7 +927,71 @@
 
 @media (max-width: 480px) {
   .users-page {
+    padding: 12px;
+  }
+  
+  .users-header {
     padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .header-text h1 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  
+  .header-text p {
+    font-size: 13px;
+  }
+  
+  .refresh-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .users-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-content h3 {
+    font-size: 18px;
+  }
+  
+  .stat-content p {
+    font-size: 11px;
+  }
+  
+  .users-grid {
+    gap: 12px;
+  }
+  
+  .user-card {
+    padding: 12px;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .user-info h3 {
+    font-size: 14px;
+  }
+  
+  .user-info p {
+    font-size: 12px;
+  }
+  
+  .btn-edit,
+  .btn-delete {
+    padding: 6px 12px;
+    font-size: 12px;
   }
   
   .users-header,

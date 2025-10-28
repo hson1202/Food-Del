@@ -1181,14 +1181,119 @@
 }
 
 @media (max-width: 768px) {
+  .orders-page {
+    padding: 16px;
+  }
+  
   .orders-header {
-    padding: 24px;
+    padding: 20px;
+    margin-bottom: 20px;
   }
   
   .header-content {
     flex-direction: column;
     gap: 16px;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .header-text h1 {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+  
+  .header-text p {
+    font-size: 14px;
+  }
+  
+  .refresh-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .orders-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-content h3 {
+    font-size: 20px;
+  }
+  
+  .stat-content p {
+    font-size: 12px;
+  }
+  
+  .orders-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .order-card {
+    padding: 16px;
+    min-height: auto;
+  }
+  
+  .order-header {
+    flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .order-id {
+    font-size: 12px;
+  }
+  
+  .order-status {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  .order-amount {
+    font-size: 16px;
+  }
+  
+  .order-items {
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .order-item {
+    padding: 8px;
+  }
+  
+  .item-image {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .item-info h4 {
+    font-size: 13px;
+  }
+  
+  .item-info p {
+    font-size: 11px;
+  }
+  
+  .item-price {
+    font-size: 12px;
+  }
+  
+  .order-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .btn-update,
+  .btn-delete {
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 13px;
   }
   
   .header-text h1 {
@@ -1258,11 +1363,48 @@
   }
   
   .orders-header {
-    padding: 20px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .header-text h1 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  
+  .header-text p {
+    font-size: 13px;
+  }
+  
+  .refresh-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .orders-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-content h3 {
+    font-size: 18px;
+  }
+  
+  .stat-content p {
+    font-size: 11px;
+  }
+  
+  .orders-grid {
+    gap: 12px;
   }
   
   .order-card {
-    padding: 16px;
+    padding: 12px;
   }
   
   .order-header {

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './Navbar.css'
 import {assets} from '../../assets/assets'
 import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher'
@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import '../../i18n'
 
-const Navbar = ({ setIsAuthenticated }) => {
+const Navbar = ({ setIsAuthenticated, onMenuToggle }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -19,8 +19,15 @@ const Navbar = ({ setIsAuthenticated }) => {
 
   return (
     <div className='navbar'>
-        <div className="navbar-logo">
-          <h1>Viet Bowls</h1>
+        <div className="navbar-left">
+          <button className="hamburger-menu" onClick={onMenuToggle}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div className="navbar-logo">
+            <h1>Viet Bowls</h1>
+          </div>
         </div>
         <div className="navbar-right">
           <LanguageSwitcher />
