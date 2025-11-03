@@ -14,6 +14,8 @@ const StoreContextProvider =(props)=>{
     const [token,setToken]=useState("")
     const [food_list,setFoodList]=useState([]);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoadingFood, setIsLoadingFood] = useState(false);
+    const [foodPagination, setFoodPagination] = useState(null);
 
     const addToCart =async (itemId, itemData = null) =>{  
         if (!cartItems[itemId]) {  
@@ -64,7 +66,9 @@ const StoreContextProvider =(props)=>{
                 
                 // If not in cartItemsData, fall back to food_list
                 if (!itemInfo) {
-                    itemInfo = food_list.find((product)=>product._id===itemId)
+                    // Extract actual product ID (before the underscore for items with options)
+                    const actualProductId = itemId.split('_')[0];
+                    itemInfo = food_list.find((product)=>product._id===actualProductId)
                 }
                 
                 if (itemInfo) {
@@ -106,9 +110,33 @@ const StoreContextProvider =(props)=>{
             return totalAmount;
     }
 
-    const fetchFoodList=async ()=>{
-        const response= await axios.get(url+"/api/food/list?forUser=true")
-        setFoodList(response.data.data)
+    const fetchFoodList = async (page = 1, append = false) => {
+        setIsLoadingFood(true);
+        try {
+            // Load all products for user (better UX, faster filtering)
+            // If you have many products and want pagination, change noPagination to false and add &page=${page}&limit=20
+            const response = await axios.get(url + "/api/food/list?forUser=true&noPagination=true");
+            
+            if (append) {
+                // Append for infinite scroll (if pagination enabled)
+                setFoodList(prev => [...prev, ...(response.data.data || [])]);
+            } else {
+                // Replace for initial load or refresh
+                setFoodList(response.data.data || []);
+            }
+            
+            setFoodPagination(response.data.pagination || null);
+        } catch (error) {
+            console.error('Error fetching food list:', error);
+            setFoodList([]);
+        } finally {
+            setIsLoadingFood(false);
+        }
+    }
+    
+    const loadMoreFood = async () => {
+        if (!foodPagination || !foodPagination.hasMore || isLoadingFood) return;
+        await fetchFoodList(foodPagination.page + 1, true);
     }
     const loadCartData = async (token) => {
         const response = await axios.post(url+"/api/cart/get",{},{headers:{token}});
@@ -142,13 +170,17 @@ const StoreContextProvider =(props)=>{
         cartItemsData,
         setCartItems,  
         addToCart,  
-        removeFromCart  ,
+        removeFromCart,
         getTotalCartAmount,
         url,
         token,
         setToken,
         isMobileMenuOpen,
-        setIsMobileMenuOpen
+        setIsMobileMenuOpen,
+        isLoadingFood,
+        foodPagination,
+        loadMoreFood,
+        fetchFoodList
     }
 
     return (

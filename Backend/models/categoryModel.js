@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 const categorySchema = new mongoose.Schema({
     name: { 
         type: String, 
-        required: true, 
-        unique: true 
+        required: true
     },
     description: { 
         type: String, 
@@ -31,6 +30,9 @@ const categorySchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+// Ensure uniqueness per language, not globally by name
+categorySchema.index({ name: 1, language: 1 }, { unique: true });
 
 const categoryModel = mongoose.models.category || mongoose.model("category", categorySchema);
 

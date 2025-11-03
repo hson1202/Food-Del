@@ -1,0 +1,168 @@
+{
+  "items": [
+    {
+      "sku": "PO001",
+      "name": "Ostrokyslá Polievka (0,3l)",
+      "nameVI": "Súp Chua Cay (0,3l)",
+      "nameEN": "Hot and Sour Soup (0.3l)",
+      "nameSK": "Ostrokyslá Polievka (0,3l)",
+      "description": "Kurací vývar, kuracie mäso, vajce, huby, zelenina, čili, ocot",
+      "price": 1.50,
+      "category": "Soups",
+      "quantity": 100,
+      "allergens": "1, 3, 6"
+    },
+    {
+      "sku": "PO002",
+      "name": "Lososová Polievka (0,3l)",
+      "nameVI": "Súp Cá Hồi (0,3l)",
+      "nameEN": "Salmon Soup (0.3l)",
+      "nameSK": "Lososová Polievka (0,3l)",
+      "description": "Pikantný lososový vývar, lososové kúsky, zelenina, kôpor",
+      "price": 2.50,
+      "category": "Soups",
+      "quantity": 100,
+      "allergens": "4, 6"
+    },
+    {
+      "sku": "PO003",
+      "name": "Hanojský Vývar (0,3l)",
+      "nameVI": "Phở Hà Nội (0,3l)",
+      "nameEN": "Hanoi Broth (0.3l)",
+      "nameSK": "Hanojský Vývar (0,3l)",
+      "description": "Hanojský vývar, kuracie mäso, rýžové rezance, cibuľka",
+      "price": 1.50,
+      "category": "Soups",
+      "quantity": 100,
+      "allergens": "9"
+    },
+    {
+      "sku": "PO004",
+      "name": "Miso Shiro (0,3l)",
+      "nameVI": "Súp Miso (0,3l)",
+      "nameEN": "Miso Soup (0.3l)",
+      "nameSK": "Miso Shiro (0,3l)",
+      "description": "Vegetariánsky vývar s hodvábnym tofu a riasami",
+      "price": 2.50,
+      "category": "Soups",
+      "quantity": 100,
+      "allergens": "6"
+    },
+    {
+      "sku": "PO005",
+      "name": "Tom Kha Gai (0,3l)",
+      "nameVI": "Tom Kha Gà (0,3l)",
+      "nameEN": "Tom Kha Gai (0.3l)",
+      "nameSK": "Tom Kha Gai (0,3l)",
+      "description": "Thajská pikantná polievka, citrónová tráva, kokosové mlieko",
+      "price": 3.00,
+      "category": "Soups",
+      "quantity": 100,
+      "allergens": "2, 4, 6",
+      "options": [
+        {
+          "name": "Protein",
+          "nameVI": "Loại thịt",
+          "nameEN": "Protein",
+          "nameSK": "Mäso",
+          "type": "select",
+          "defaultChoiceCode": "chicken",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "chicken",
+              "label": "with Chicken",
+              "labelVI": "với thịt gà",
+              "labelEN": "with Chicken",
+              "labelSK": "s kuracím mäsom",
+              "price": 3.00,
+              "image": ""
+            },
+            {
+              "code": "shrimp",
+              "label": "with Shrimp",
+              "labelVI": "với tôm",
+              "labelEN": "with Shrimp",
+              "labelSK": "s krevetami",
+              "price": 3.50,
+              "image": ""
+            },
+            {
+              "code": "tofu",
+              "label": "with Tofu",
+              "labelVI": "với đậu phụ",
+              "labelEN": "with Tofu",
+              "labelSK": "s tofu",
+              "price": 3.00,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "PO006",
+      "name": "Tom Yum (0,3l)",
+      "nameVI": "Tom Yum (0,3l)",
+      "nameEN": "Tom Yum (0.3l)",
+      "nameSK": "Tom Yum (0,3l)",
+      "description": "Mlieko, jemne pikantné, zelenina",
+      "price": 3.00,
+      "category": "Soups",
+      "quantity": 100,
+      "allergens": "2, 4, 6",
+      "options": [
+        {
+          "name": "Protein",
+          "nameVI": "Loại thịt",
+          "nameEN": "Protein",
+          "nameSK": "Mäso",
+          "type": "select",
+          "defaultChoiceCode": "chicken",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "chicken",
+              "label": "with Chicken",
+              "labelVI": "với thịt gà",
+              "labelEN": "with Chicken",
+              "labelSK": "s kuracím mäsom",
+              "price": 3.00,
+              "image": ""
+            },
+            {
+              "code": "shrimp",
+              "label": "with Shrimp",
+              "labelVI": "với tôm",
+              "labelEN": "with Shrimp",
+              "labelSK": "s krevetami",
+              "price": 3.50,
+              "image": ""
+            },
+            {
+              "code": "tofu",
+              "label": "with Tofu",
+              "labelVI": "với đậu phụ",
+              "labelEN": "with Tofu",
+              "labelSK": "s tofu",
+              "price": 3.00,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "PO007",
+      "name": "Gyoza Soup (0,3l)",
+      "nameVI": "Súp Gyoza (0,3l)",
+      "nameEN": "Gyoza Soup (0.3l)",
+      "nameSK": "Gyoza Soup (0,3l)",
+      "description": "Silný vývar s udon rezancami a gyoza taštičkami",
+      "price": 3.90,
+      "category": "Soups",
+      "quantity": 100
+    }
+  ]
+}
+

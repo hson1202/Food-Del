@@ -1,0 +1,136 @@
+{
+  "items": [
+    {
+      "sku": "P001",
+      "name": "Gyoza 150g (6ks)",
+      "nameVI": "Gyoza 150g (6 viên)",
+      "nameEN": "Gyoza 150g (6pcs)",
+      "nameSK": "Gyoza 150g (6ks)",
+      "description": "Knedličky plnené kuracím mäsom alebo zeleninou s hubami, podávané so sladkou chilli omáčkou",
+      "price": 5.80,
+      "category": "Starters",
+      "quantity": 100,
+      "allergens": "1, 3, 6, 11"
+    },
+    {
+      "sku": "P002",
+      "name": "Edamame Fazule",
+      "nameVI": "Đậu Edamame",
+      "nameEN": "Edamame Beans",
+      "nameSK": "Edamame Fazule",
+      "description": "Sójové dietne lúpané bôby",
+      "price": 4.50,
+      "category": "Starters",
+      "quantity": 100,
+      "allergens": "6"
+    },
+    {
+      "sku": "P003",
+      "name": "Nem Cuon - Čerstvé Letné Závitky (2ks)",
+      "nameVI": "Nem Cuốn - Gỏi Cuốn Tươi (2 cuốn)",
+      "nameEN": "Fresh Spring Rolls (2pcs)",
+      "nameSK": "Nem Cuon - Čerstvé Letné Závitky (2ks)",
+      "description": "Rýžové rezance, šalát, vietnamské bylinky, krevety, kuracie mäso, zelenina obalovaná v rýžovom papieri, podávané s arašidovou omáčkou",
+      "price": 4.50,
+      "category": "Starters",
+      "quantity": 100,
+      "allergens": "2, 4, 5, 6",
+      "options": [
+        {
+          "name": "Filling",
+          "nameVI": "Nhân",
+          "nameEN": "Filling",
+          "nameSK": "Náplň",
+          "type": "select",
+          "defaultChoiceCode": "chicken",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "chicken",
+              "label": "with Chicken",
+              "labelVI": "với thịt gà",
+              "labelEN": "with Chicken",
+              "labelSK": "s kuracím mäsom",
+              "price": 4.50,
+              "image": ""
+            },
+            {
+              "code": "shrimp",
+              "label": "with Shrimp",
+              "labelVI": "với tôm",
+              "labelEN": "with Shrimp",
+              "labelSK": "s krevetami",
+              "price": 5.00,
+              "image": ""
+            },
+            {
+              "code": "vegetarian",
+              "label": "Vegetarian",
+              "labelVI": "chay",
+              "labelEN": "Vegetarian",
+              "labelSK": "vegetariánske",
+              "price": 4.50,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "P004",
+      "name": "Nem - Vyprážané Závitky (210g)",
+      "nameVI": "Nem - Chả Giò Chiên (210g)",
+      "nameEN": "Fried Spring Rolls (210g)",
+      "nameSK": "Nem - Vyprážané Závitky (210g)",
+      "description": "Vajce, zelenina, huby, sklenené rezance obalované v rýžovom papieri",
+      "price": 5.00,
+      "category": "Starters",
+      "quantity": 100,
+      "allergens": "3, 4, 6",
+      "options": [
+        {
+          "name": "Filling",
+          "nameVI": "Nhân",
+          "nameEN": "Filling",
+          "nameSK": "Náplň",
+          "type": "select",
+          "defaultChoiceCode": "pork",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "pork",
+              "label": "with Pork",
+              "labelVI": "với thịt heo",
+              "labelEN": "with Pork",
+              "labelSK": "s bravčovým mäsom",
+              "price": 5.00,
+              "image": ""
+            },
+            {
+              "code": "vegetarian",
+              "label": "Vegetarian",
+              "labelVI": "chay",
+              "labelEN": "Vegetarian",
+              "labelSK": "vegetariánske",
+              "price": 5.00,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "P005",
+      "name": "Tempura Krevety (150g)",
+      "nameVI": "Tôm Tempura (150g)",
+      "nameEN": "Tempura Shrimp (150g)",
+      "nameSK": "Tempura Krevety (150g)",
+      "description": "Tempura fried shrimp",
+      "price": 6.50,
+      "category": "Starters",
+      "quantity": 100,
+      "allergens": "1, 2, 3, 7"
+    }
+  ]
+}
+

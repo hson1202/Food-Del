@@ -133,6 +133,36 @@ const ProductDetail = ({ product, onClose }) => {
     }
   };
 
+  // Function to get localized option name
+  const getLocalizedOptionName = (option) => {
+    const currentLang = i18n.language;
+    switch (currentLang) {
+      case 'vi':
+        return option.nameVI || option.name;
+      case 'en':
+        return option.nameEN || option.name;
+      case 'sk':
+        return option.nameSK || option.name;
+      default:
+        return option.name;
+    }
+  };
+
+  // Function to get localized choice label
+  const getLocalizedChoiceLabel = (choice) => {
+    const currentLang = i18n.language;
+    switch (currentLang) {
+      case 'vi':
+        return choice.labelVI || choice.label;
+      case 'en':
+        return choice.labelEN || choice.label;
+      case 'sk':
+        return choice.labelSK || choice.label;
+      default:
+        return choice.label;
+    }
+  };
+
   const formatPrice = (price) => {
     const n = Number(price);
     if (isNaN(n) || n < 0) return '€0';
@@ -275,7 +305,7 @@ const ProductDetail = ({ product, onClose }) => {
                 <h4>{t('productDetail.customizeYourOrder')}</h4>
                 {product.options.map((option, index) => (
                   <div key={index} className="option-group">
-                    <label className="option-label">{option.name}</label>
+                    <label className="option-label">{getLocalizedOptionName(option)}</label>
                     <div className="option-choices">
                       {option.choices.map((choice) => (
                         <label key={choice.code} className="option-choice">
@@ -287,7 +317,7 @@ const ProductDetail = ({ product, onClose }) => {
                             onChange={() => handleOptionChange(option.name, choice.code)}
                           />
                           <div className="choice-content">
-                            <span className="choice-label">{choice.label}</span>
+                            <span className="choice-label">{getLocalizedChoiceLabel(choice)}</span>
                             <span className="choice-price">{formatPrice(choice.price)}</span>
                           </div>
                         </label>

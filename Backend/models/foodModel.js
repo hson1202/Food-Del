@@ -20,11 +20,17 @@ const foodSchema = new mongoose.Schema({
   // Variant Options
   options: [{
     name: { type: String, required: true, trim: true },
+    nameVI: { type: String, trim: true },
+    nameEN: { type: String, trim: true },
+    nameSK: { type: String, trim: true },
     type: { type: String, default: 'select', enum: ['select'] },
     defaultChoiceCode: { type: String, required: true },
     choices: [{
       code: { type: String, required: true, trim: true },
       label: { type: String, required: true, trim: true },
+      labelVI: { type: String, trim: true },
+      labelEN: { type: String, trim: true },
+      labelSK: { type: String, trim: true },
       price: { type: Number, required: true },
       image: { type: String, default: "" }
     }],

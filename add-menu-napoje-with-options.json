@@ -1,0 +1,293 @@
+{
+  "items": [
+    {
+      "sku": "N008",
+      "name": "Foco",
+      "nameVI": "Nước Foco",
+      "nameEN": "Foco Juice",
+      "nameSK": "Foco",
+      "description": "Foco exotic juice drink",
+      "price": 2.50,
+      "category": "Drinks",
+      "quantity": 100,
+      "options": [
+        {
+          "name": "Flavor",
+          "nameVI": "Hương vị",
+          "nameEN": "Flavor",
+          "nameSK": "Príchuť",
+          "type": "select",
+          "defaultChoiceCode": "lychee",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "lychee",
+              "label": "Lychee",
+              "labelVI": "Vải",
+              "labelEN": "Lychee",
+              "labelSK": "Liči",
+              "price": 2.50,
+              "image": ""
+            },
+            {
+              "code": "mango",
+              "label": "Mango",
+              "labelVI": "Xoài",
+              "labelEN": "Mango",
+              "labelSK": "Mango",
+              "price": 2.50,
+              "image": ""
+            },
+            {
+              "code": "coconut",
+              "label": "Coconut",
+              "labelVI": "Dừa",
+              "labelEN": "Coconut",
+              "labelSK": "Kokos",
+              "price": 2.50,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "N009",
+      "name": "Vinut",
+      "nameVI": "Nước Vinut",
+      "nameEN": "Vinut Juice",
+      "nameSK": "Vinut",
+      "description": "Vinut juice drink",
+      "price": 2.50,
+      "category": "Drinks",
+      "quantity": 100,
+      "options": [
+        {
+          "name": "Flavor",
+          "nameVI": "Hương vị",
+          "nameEN": "Flavor",
+          "nameSK": "Príchuť",
+          "type": "select",
+          "defaultChoiceCode": "lychee",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "lychee",
+              "label": "Lychee",
+              "labelVI": "Vải",
+              "labelEN": "Lychee",
+              "labelSK": "Liči",
+              "price": 2.50,
+              "image": ""
+            },
+            {
+              "code": "strawberry",
+              "label": "Strawberry",
+              "labelVI": "Dâu tây",
+              "labelEN": "Strawberry",
+              "labelSK": "Jahoda",
+              "price": 2.50,
+              "image": ""
+            },
+            {
+              "code": "coconut",
+              "label": "Coconut",
+              "labelVI": "Dừa",
+              "labelEN": "Coconut",
+              "labelSK": "Kokos",
+              "price": 2.50,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "N010",
+      "name": "Aloe Vera",
+      "nameVI": "Nước Lô Hội",
+      "nameEN": "Aloe Vera Drink",
+      "nameSK": "Aloe Vera",
+      "description": "Aloe Vera drink",
+      "price": 2.50,
+      "category": "Drinks",
+      "quantity": 100,
+      "options": [
+        {
+          "name": "Flavor",
+          "nameVI": "Hương vị",
+          "nameEN": "Flavor",
+          "nameSK": "Príchuť",
+          "type": "select",
+          "defaultChoiceCode": "strawberry",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "strawberry",
+              "label": "Strawberry",
+              "labelVI": "Dâu tây",
+              "labelEN": "Strawberry",
+              "labelSK": "Jahoda",
+              "price": 2.50,
+              "image": ""
+            },
+            {
+              "code": "mango",
+              "label": "Mango",
+              "labelVI": "Xoài",
+              "labelEN": "Mango",
+              "labelSK": "Mango",
+              "price": 2.50,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "N011",
+      "name": "Minerálka neperlivá",
+      "nameVI": "Nước khoáng không có ga",
+      "nameEN": "Still Mineral Water",
+      "nameSK": "Minerálka neperlivá",
+      "description": "Still mineral water",
+      "price": 1.50,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N012",
+      "name": "Minerálka jemne perlivá",
+      "nameVI": "Nước khoáng có ít ga",
+      "nameEN": "Lightly Sparkling Water",
+      "nameSK": "Minerálka jemne perlivá",
+      "description": "Lightly sparkling mineral water",
+      "price": 1.50,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N013",
+      "name": "Minerálka perlivá",
+      "nameVI": "Nước khoáng có ga",
+      "nameEN": "Sparkling Mineral Water",
+      "nameSK": "Minerálka perlivá",
+      "description": "Sparkling mineral water",
+      "price": 1.50,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N014",
+      "name": "Fuzetea",
+      "nameVI": "Trà Fuzetea",
+      "nameEN": "Fuzetea",
+      "nameSK": "Fuzetea",
+      "description": "Fuzetea ice tea",
+      "price": 2.00,
+      "category": "Drinks",
+      "quantity": 100,
+      "options": [
+        {
+          "name": "Flavor",
+          "nameVI": "Hương vị",
+          "nameEN": "Flavor",
+          "nameSK": "Príchuť",
+          "type": "select",
+          "defaultChoiceCode": "lemon",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "lemon",
+              "label": "Lemon",
+              "labelVI": "Chanh",
+              "labelEN": "Lemon",
+              "labelSK": "Citrón",
+              "price": 2.00,
+              "image": ""
+            },
+            {
+              "code": "strawberry",
+              "label": "Strawberry",
+              "labelVI": "Dâu tây",
+              "labelEN": "Strawberry",
+              "labelSK": "Jahoda",
+              "price": 2.00,
+              "image": ""
+            },
+            {
+              "code": "peach",
+              "label": "Peach",
+              "labelVI": "Đào",
+              "labelEN": "Peach",
+              "labelSK": "Broskyňa",
+              "price": 2.00,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "N015",
+      "name": "Cappy",
+      "nameVI": "Nước ép Cappy",
+      "nameEN": "Cappy Juice",
+      "nameSK": "Cappy",
+      "description": "Cappy fruit juice",
+      "price": 1.80,
+      "category": "Drinks",
+      "quantity": 100,
+      "options": [
+        {
+          "name": "Flavor",
+          "nameVI": "Hương vị",
+          "nameEN": "Flavor",
+          "nameSK": "Príchuť",
+          "type": "select",
+          "defaultChoiceCode": "orange",
+          "pricingMode": "override",
+          "choices": [
+            {
+              "code": "orange",
+              "label": "Orange",
+              "labelVI": "Cam",
+              "labelEN": "Orange",
+              "labelSK": "Pomaranč",
+              "price": 1.80,
+              "image": ""
+            },
+            {
+              "code": "strawberry",
+              "label": "Strawberry",
+              "labelVI": "Dâu tây",
+              "labelEN": "Strawberry",
+              "labelSK": "Jahoda",
+              "price": 1.80,
+              "image": ""
+            },
+            {
+              "code": "apple",
+              "label": "Apple",
+              "labelVI": "Táo",
+              "labelEN": "Apple",
+              "labelSK": "Jablko",
+              "price": 1.80,
+              "image": ""
+            },
+            {
+              "code": "multivitamin",
+              "label": "Multivitamin",
+              "labelVI": "Đa vitamin",
+              "labelEN": "Multivitamin",
+              "labelSK": "Multivitamín",
+              "price": 1.80,
+              "image": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

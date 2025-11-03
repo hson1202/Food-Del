@@ -1,17 +1,47 @@
-import React, { useContext } from 'react'
-import './FoodItem.css'
-import { assets } from '../../assets/assets'
-import { StoreContext } from '../../Context/StoreContext'
-import { useTranslation } from 'react-i18next'
+import React, { useContext, useMemo, memo, useCallback } from 'react';
+import './FoodItem.css';
+import { assets } from '../../assets/assets';
+import { StoreContext } from '../../Context/StoreContext';
+import { useTranslation } from 'react-i18next';
+import LazyImage from '../LazyImage/LazyImage';
+import { getOptimizedImageUrl } from '../../utils/imageUtils';
 
-const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, sku, isPromotion, originalPrice, promotionPrice, soldCount = 0, likes = 0, options, onViewDetails, compact = false}) => {
-  const {cartItems, addToCart, removeFromCart, url} = useContext(StoreContext);
+/**
+ * FoodItem Component - OPTIMIZED VERSION
+ * 
+ * Improvements:
+ * - React.memo để tránh re-render không cần thiết
+ * - useMemo cho expensive calculations
+ * - useCallback cho event handlers
+ * - LazyImage thay vì <img> thông thường
+ * - Optimized image URLs
+ */
+const FoodItem = memo(({
+  id, 
+  name, 
+  nameVI, 
+  nameEN, 
+  nameSK, 
+  price, 
+  description, 
+  image, 
+  sku, 
+  isPromotion, 
+  originalPrice, 
+  promotionPrice, 
+  soldCount = 0, 
+  likes = 0, 
+  options, 
+  onViewDetails, 
+  compact = false
+}) => {
+  const { cartItems, addToCart, removeFromCart, url } = useContext(StoreContext);
   const { i18n, t } = useTranslation();
   
   const currentLanguage = i18n.language;
   
-  // Function to get the appropriate name based on current language
-  const getLocalizedName = () => {
+  // Memoize localized name
+  const getLocalizedName = useMemo(() => {
     switch (currentLanguage) {
       case 'vi':
         return nameVI || name;
@@ -22,9 +52,10 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
       default:
         return name;
     }
-  };
+  }, [currentLanguage, name, nameVI, nameEN, nameSK]);
 
-  const formatPrice = (price) => {
+  // Memoize format price function
+  const formatPrice = useCallback((price) => {
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
       return '€0';
     }
@@ -37,18 +68,20 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
     }).format(Number(price));
     
     return formatted.replace(/\.00$/, '');
-  };
+  }, []);
 
-  // Calculate price range for products with options
-  const getPriceDisplay = () => {
+  // Memoize price calculations
+  const { priceDisplay, discount } = useMemo(() => {
+    let display = formatPrice(price);
+    let discountPercent = 0;
+
+    // Calculate price range for products with options
     if (options && options.length > 0) {
       const prices = [];
       
-      // Calculate all possible price combinations
       const calculatePriceCombinations = () => {
         const combinations = [];
         
-        // Helper function to generate all combinations
         const generateCombinations = (currentOptions, optionIndex) => {
           if (optionIndex === options.length) {
             combinations.push([...currentOptions]);
@@ -86,40 +119,35 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
         
-        if (minPrice === maxPrice) {
-          return formatPrice(minPrice);
-        } else {
-          return `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`;
-        }
+        display = minPrice === maxPrice 
+          ? formatPrice(minPrice)
+          : `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`;
       }
     }
     
-    // Fallback to regular price display
-    if (isPromotion && promotionPrice) {
-      return (
-        <div className="price-container">
-          <span className="original-price">{formatPrice(originalPrice)}</span>
-          <span className="promotion-price">{formatPrice(promotionPrice)}</span>
-        </div>
-      );
+    // Calculate discount
+    if (isPromotion && originalPrice && promotionPrice) {
+      discountPercent = Math.round(((originalPrice - promotionPrice) / originalPrice) * 100);
     }
-    
-    return formatPrice(price);
-  };
 
-  const calculateDiscount = () => {
-    if (!isPromotion || !originalPrice || !promotionPrice) return 0;
-    return Math.round(((originalPrice - promotionPrice) / originalPrice) * 100);
-  };
+    return { priceDisplay: display, discount: discountPercent };
+  }, [price, options, isPromotion, originalPrice, promotionPrice, formatPrice]);
 
-  const handleCardClick = (e) => {
-    // Prevent popup when clicking on quantity controls
-    if (e.target.closest('.quantity-controls-overlay')) {
+  // Memoize optimized image URL
+  const imgSrc = useMemo(() => 
+    getOptimizedImageUrl(image, url, { 
+      width: compact ? 150 : 400,
+      quality: 'auto:good'
+    }),
+    [image, url, compact]
+  );
+
+  // Memoize callback handlers
+  const handleCardClick = useCallback((e) => {
+    if (e.target.closest('.quantity-controls-overlay') || 
+        e.target.closest('.food-item-actions')) {
       return;
     }
-    
-    // Debug: Log options data
-    console.log('🔍 FoodItem - Options data:', options)
     
     onViewDetails({
       _id: id,
@@ -140,48 +168,37 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
       status: 'active',
       language: 'vi'
     });
-  };
+  }, [id, name, nameVI, nameEN, nameSK, description, price, image, sku, 
+      isPromotion, originalPrice, promotionPrice, soldCount, likes, options, onViewDetails]);
 
-  // Build image src
-  const imgSrc =
-    image && image.startsWith('http')
-      ? image
-      : image
-        ? (url + "/images/" + image)
-        : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjkwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iOTAiIGZpbGw9IiNmNWY1ZjUiLz48L3N2Zz4=';
+  const handleAddToCart = useCallback((e) => {
+    e?.stopPropagation();
+    addToCart(id);
+  }, [id, addToCart]);
+
+  const handleRemoveFromCart = useCallback((e) => {
+    e?.stopPropagation();
+    removeFromCart(id);
+  }, [id, removeFromCart]);
 
   const currentPrice = isPromotion && promotionPrice ? promotionPrice : price;
 
+  // Compact view
   if (compact) {
     return (
       <div className="food-item compact" onClick={handleCardClick}>
         <div className="food-row">
           <div className="thumb">
-            <img src={imgSrc} alt={getLocalizedName()} loading="lazy" decoding="async" />
+            <LazyImage 
+              src={imgSrc}
+              alt={getLocalizedName}
+              className="food-item-image-compact"
+              width="80px"
+              height="80px"
+            />
           </div>
-          <div className="title">{getLocalizedName()}</div>
+          <div className="title">{getLocalizedName}</div>
           <div className="price-now">{formatPrice(currentPrice)}</div>
-          <div className="compact-controls" onClick={(e) => e.stopPropagation()}>
-            {!cartItems[id] ? (
-              <button 
-                className="add-compact"
-                aria-label={t('food.addToCart')}
-                onClick={() => addToCart(id)}
-              >
-                +
-              </button>
-            ) : (
-              <div className="qty-compact">
-                <button className="qty-btn-small" onClick={() => removeFromCart(id)} aria-label={t('food.decrease')}>
-                  −
-                </button>
-                <span className="quantity-small">{cartItems[id]}</span>
-                <button className="qty-btn-small" onClick={() => addToCart(id)} aria-label={t('food.increase')}>
-                  +
-                </button>
-              </div>
-            )}
-          </div>
         </div>
 
         <div className="price-block">
@@ -195,22 +212,23 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
           )}
         </div>
       </div>
-    )
+    );
   }
 
+  // Normal view
   return (
     <div className="food-item" onClick={handleCardClick}>
       <div className="food-item-img-container">
-        <img 
+        <LazyImage 
           src={imgSrc}
-          alt={getLocalizedName()}
+          alt={getLocalizedName}
           className="food-item-image"
         />
         
         {/* Promotion Badge */}
-        {isPromotion && promotionPrice && (
+        {isPromotion && promotionPrice && discount > 0 && (
           <div className="promotion-badge">
-            -{calculateDiscount()}%
+            -{discount}%
           </div>
         )}
 
@@ -224,9 +242,10 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
        
       <div className="food-item-info">  
         <div className="food-item-name">  
-          <p>{getLocalizedName()}</p>  
+          <p>{getLocalizedName}</p>  
         </div>  
         
+        {/* Stats */}
         <div className="food-item-stats">
           {likes > 0 && (
             <div className="stat-item">
@@ -242,26 +261,34 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
           )}
         </div>
         
+        {/* Pricing */}
         <div className="food-item-pricing">
-          {getPriceDisplay()}
+          {isPromotion && promotionPrice ? (
+            <div className="price-container">
+              <span className="original-price">{formatPrice(originalPrice || price)}</span>
+              <span className="promotion-price">{formatPrice(promotionPrice)}</span>
+            </div>
+          ) : (
+            <span className="price">{priceDisplay}</span>
+          )}
         </div>
         
-        {/* Bottom quantity controls */}
+        {/* Cart Controls */}
         <div className="food-item-actions" onClick={(e) => e.stopPropagation()}>
           {!cartItems[id] ? (
             <button 
               className="add-to-cart-btn"
-              onClick={() => addToCart(id)}
+              onClick={handleAddToCart}
             >
               {t('food.addToCart')}
             </button>
           ) : (
             <div className="quantity-controls-bottom">
-              <button className="qty-btn" onClick={() => removeFromCart(id)}>
+              <button className="qty-btn" onClick={handleRemoveFromCart}>
                 <img src={assets.remove_icon_red} alt="" />
               </button>
               <span className="quantity">{cartItems[id]}</span>
-              <button className="qty-btn" onClick={() => addToCart(id)}>
+              <button className="qty-btn" onClick={handleAddToCart}>
                 <img src={assets.add_icon_green} alt="" />
               </button>
             </div>
@@ -269,7 +296,10 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
         </div>
       </div>  
     </div>
-  )
-}
+  );
+});
 
-export default FoodItem
+FoodItem.displayName = 'FoodItem';
+
+export default FoodItem;
+

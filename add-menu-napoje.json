@@ -1,0 +1,82 @@
+{
+  "items": [
+    {
+      "sku": "N001",
+      "name": "Cola",
+      "nameVI": "Coca Cola",
+      "nameEN": "Cola",
+      "nameSK": "Cola",
+      "description": "Coca Cola",
+      "price": 2.00,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N002",
+      "name": "Cola Zero",
+      "nameVI": "Coca Cola Zero",
+      "nameEN": "Cola Zero",
+      "nameSK": "Cola Zero",
+      "description": "Coca Cola Zero",
+      "price": 2.00,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N003",
+      "name": "Fanta",
+      "nameVI": "Fanta",
+      "nameEN": "Fanta",
+      "nameSK": "Fanta",
+      "description": "Fanta",
+      "price": 2.00,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N004",
+      "name": "Sprite",
+      "nameVI": "Sprite",
+      "nameEN": "Sprite",
+      "nameSK": "Sprite",
+      "description": "Sprite",
+      "price": 2.00,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N005",
+      "name": "Monster",
+      "nameVI": "Monster Energy",
+      "nameEN": "Monster",
+      "nameSK": "Monster",
+      "description": "Monster Energy Drink",
+      "price": 2.20,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N006",
+      "name": "Kinley",
+      "nameVI": "Kinley",
+      "nameEN": "Kinley",
+      "nameSK": "Kinley",
+      "description": "Kinley Tonic Water",
+      "price": 2.00,
+      "category": "Drinks",
+      "quantity": 100
+    },
+    {
+      "sku": "N007",
+      "name": "Number 1",
+      "nameVI": "Number 1",
+      "nameEN": "Number 1",
+      "nameSK": "Number 1",
+      "description": "Number 1 Energy Drink",
+      "price": 2.50,
+      "category": "Drinks",
+      "quantity": 100
+    }
+  ]
+}
+

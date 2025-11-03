@@ -1,0 +1,88 @@
+{
+  "info": {
+    "name": "Add Tom Yum with Options",
+    "description": "Example: Add món có options trong Postman"
+  },
+  "item": [
+    {
+      "name": "Add Tom Yum",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "token",
+            "value": "{{admin_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "PO006",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Tom Yum (0,3l)",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Tom Yum (0,3l)",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Tom Yum (0.3l)",
+              "type": "text"
+            },
+            {
+              "key": "nameSK",
+              "value": "Tom Yum (0,3l)",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Mlieko, jemne pikantné, zelenina",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "3.00",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Polievky",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "100",
+              "type": "text"
+            },
+            {
+              "key": "allergens",
+              "value": "2, 4, 6",
+              "type": "text"
+            },
+            {
+              "key": "options",
+              "value": "[{\"name\":\"Protein\",\"nameVI\":\"Loại thịt\",\"nameEN\":\"Protein\",\"nameSK\":\"Mäso\",\"type\":\"select\",\"defaultChoiceCode\":\"chicken\",\"pricingMode\":\"override\",\"choices\":[{\"code\":\"chicken\",\"label\":\"with Chicken\",\"labelVI\":\"với thịt gà\",\"labelEN\":\"with Chicken\",\"labelSK\":\"s kuracím mäsom\",\"price\":3.00,\"image\":\"\"},{\"code\":\"shrimp\",\"label\":\"with Shrimp\",\"labelVI\":\"với tôm\",\"labelEN\":\"with Shrimp\",\"labelSK\":\"s krevetami\",\"price\":3.50,\"image\":\"\"},{\"code\":\"tofu\",\"label\":\"with Tofu\",\"labelVI\":\"với đậu phụ\",\"labelEN\":\"with Tofu\",\"labelSK\":\"s tofu\",\"price\":3.00,\"image\":\"\"}]}]",
+              "type": "text",
+              "description": "MUST BE STRINGIFIED JSON!"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/food/add",
+          "host": ["{{base_url}}"],
+          "path": ["api", "food", "add"]
+        }
+      }
+    }
+  ]
+}
+

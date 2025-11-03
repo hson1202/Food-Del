@@ -23,6 +23,8 @@
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  display: flex; /* allow sticky close button to align */
+  flex-direction: column;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease-out;
 }
@@ -40,31 +42,32 @@
 
 /* Close Button */
 .close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(255, 255, 255, 0.9);
+  position: sticky; /* stays visible while scrolling */
+  top: 0;
+  align-self: flex-end;
+  margin: 8px;
+  background: transparent;
   border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 5; /* above content */
+  transition: background 0.15s ease;
+  box-shadow: none;
 }
 
 .close-btn:hover {
-  background: white;
-  transform: scale(1.05);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .close-btn img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  filter: none; /* keep icon black */
 }
 
 /* Content */
@@ -491,7 +494,9 @@
   }
 
   .product-detail-modal {
-    max-height: 95vh;
+    width: 92vw; /* leave margins on mobile */
+    max-width: 560px; /* avoid too wide on large phones */
+    max-height: 88vh; /* smaller than full height */
     border-radius: 12px;
   }
 
@@ -576,6 +581,12 @@
 }
 
 @media (max-width: 480px) {
+  .product-detail-modal {
+    width: 94vw;
+    max-width: 480px;
+    max-height: 82vh;
+  }
+
   .product-detail-content {
     padding: 15px;
   }
@@ -639,6 +650,6 @@
   border-radius: 4px;
 }
 
-.product-detail-modal::-webkit-scrollbar-thumb:hover {
+  .product-detail-modal::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }

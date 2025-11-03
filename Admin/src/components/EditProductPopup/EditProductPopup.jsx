@@ -15,6 +15,9 @@ const EditProductPopup = ({
   const [showOptionsForm, setShowOptionsForm] = useState(false);
   const [currentOption, setCurrentOption] = useState({
     name: '',
+    nameVI: '',
+    nameEN: '',
+    nameSK: '',
     type: 'select',
     defaultChoiceCode: '',
     choices: [],
@@ -25,6 +28,9 @@ const EditProductPopup = ({
   const [currentChoice, setCurrentChoice] = useState({
     code: '',
     label: '',
+    labelVI: '',
+    labelEN: '',
+    labelSK: '',
     price: 0,
     image: null
   });
@@ -32,6 +38,9 @@ const EditProductPopup = ({
   // Memoize initial states để tránh tạo lại object không cần thiết
   const initialOption = useMemo(() => ({
     name: '',
+    nameVI: '',
+    nameEN: '',
+    nameSK: '',
     type: 'select',
     defaultChoiceCode: '',
     choices: [],
@@ -41,6 +50,9 @@ const EditProductPopup = ({
   const initialChoice = useMemo(() => ({
     code: '',
     label: '',
+    labelVI: '',
+    labelEN: '',
+    labelSK: '',
     price: 0,
     image: null
   }), []);
@@ -488,7 +500,7 @@ const EditProductPopup = ({
                   
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Option Name *</label>
+                      <label>Option Name * (Default)</label>
                       <input
                         type="text"
                         value={currentOption.name}
@@ -505,6 +517,39 @@ const EditProductPopup = ({
                         <option value="add">Add to base price</option>
                         <option value="override">Override base price</option>
                       </select>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Option Name (Slovak)</label>
+                      <input
+                        type="text"
+                        value={currentOption.nameSK || ''}
+                        onChange={(e) => handleOptionChange('nameSK', e.target.value)}
+                        placeholder="e.g., Protein"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Option Name (Vietnamese)</label>
+                      <input
+                        type="text"
+                        value={currentOption.nameVI || ''}
+                        onChange={(e) => handleOptionChange('nameVI', e.target.value)}
+                        placeholder="e.g., Loại thịt"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Option Name (English)</label>
+                      <input
+                        type="text"
+                        value={currentOption.nameEN || ''}
+                        onChange={(e) => handleOptionChange('nameEN', e.target.value)}
+                        placeholder="e.g., Protein"
+                      />
                     </div>
                   </div>
 
@@ -553,16 +598,7 @@ const EditProductPopup = ({
                             type="text"
                             value={currentChoice.code}
                             onChange={(e) => handleChoiceChange('code', e.target.value)}
-                            placeholder="e.g., a, b, c"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Label *</label>
-                          <input
-                            type="text"
-                            value={currentChoice.label}
-                            onChange={(e) => handleChoiceChange('label', e.target.value)}
-                            placeholder="e.g., Chicken, Beef, Shrimp"
+                            placeholder="e.g., chicken, beef"
                           />
                         </div>
                         <div className="form-group">
@@ -574,6 +610,51 @@ const EditProductPopup = ({
                             placeholder="0.00"
                             step="0.01"
                             min="0"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Label * (Default)</label>
+                          <input
+                            type="text"
+                            value={currentChoice.label}
+                            onChange={(e) => handleChoiceChange('label', e.target.value)}
+                            placeholder="e.g., with Chicken"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Label (Slovak)</label>
+                          <input
+                            type="text"
+                            value={currentChoice.labelSK || ''}
+                            onChange={(e) => handleChoiceChange('labelSK', e.target.value)}
+                            placeholder="e.g., s kuracím mäsom"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Label (Vietnamese)</label>
+                          <input
+                            type="text"
+                            value={currentChoice.labelVI || ''}
+                            onChange={(e) => handleChoiceChange('labelVI', e.target.value)}
+                            placeholder="e.g., với thịt gà"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>Label (English)</label>
+                          <input
+                            type="text"
+                            value={currentChoice.labelEN || ''}
+                            onChange={(e) => handleChoiceChange('labelEN', e.target.value)}
+                            placeholder="e.g., with chicken"
                           />
                         </div>
                       </div>

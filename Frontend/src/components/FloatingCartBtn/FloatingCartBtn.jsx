@@ -36,12 +36,15 @@ const FloatingCartBtn = () => {
   }
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('de-DE', {
+    const n = Number(price);
+    if (isNaN(n) || n < 0) return '€0';
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price)
+      maximumFractionDigits: 2
+    }).format(n);
+    return formatted.replace(/\.00$/, '');
   }
 
   // Chỉ hiển thị khi có items trong cart và mobile menu không mở

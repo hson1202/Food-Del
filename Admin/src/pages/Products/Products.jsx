@@ -20,6 +20,12 @@ const Products = ({ url }) => {
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'inactive'
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(20)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
   const INITIAL_EDIT_FORM = {
     sku: '',
     name: '',
@@ -73,22 +79,39 @@ const Products = ({ url }) => {
     image: null
   })
 
- // useEffect
+ // useEffect - Fetch when page, filter, or status changes
 useEffect(() => {
   const controller1 = new AbortController();
   const controller2 = new AbortController();
   fetchFoodList(false, controller1.signal);
   fetchCategories(controller2.signal);
   return () => { controller1.abort(); controller2.abort(); };
-}, []);
+}, [currentPage, itemsPerPage, statusFilter, filterCategory, searchTerm]);
 
 const fetchFoodList = async (showToast = false, signal) => {
   setIsLoading(true); setError(null);
   try {
-    const { data } = await axios.get(`${config.BACKEND_URL}/api/food/list`, { signal });
+    // Build query params with pagination
+    const params = new URLSearchParams({
+      page: currentPage,
+      limit: itemsPerPage,
+    });
+    
+    if (statusFilter !== 'all') params.append('status', statusFilter);
+    if (filterCategory !== 'all') params.append('category', filterCategory);
+    if (searchTerm.trim()) params.append('search', searchTerm.trim());
+    
+    const { data } = await axios.get(`${config.BACKEND_URL}/api/food/list?${params}`, { signal });
     const items = data?.data ?? [];
     setFoodList(Array.isArray(items) ? items : []);
-    if (showToast) toast.success(`✅ Tải ${items.length} sản phẩm`);
+    
+    // Set pagination info from response
+    if (data.pagination) {
+      setTotalItems(data.pagination.total);
+      setTotalPages(data.pagination.totalPages);
+    }
+    
+    if (showToast) toast.success(`✅ Tải ${items.length} sản phẩm (Trang ${currentPage}/${totalPages || 1})`);
   } catch (e) {
     if (axios.isCancel(e)) return;
     setError(`Failed to fetch products: ${e.message ?? 'Unknown'}`);
@@ -728,30 +751,9 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
     return category ? category.name : categoryId
   }
 
+  // Backend now handles filtering and pagination, so just use the foodList directly
+  // Sorting by quantity for visual priority (optional - can be removed if backend handles it)
   const filteredProducts = useMemo(() => foodList
-  .filter(p => {
-    const term = searchTerm.trim().toLowerCase();
-    const name = (p.name || '').toLowerCase();
-    const nameVI = (p.nameVI || '').toLowerCase();
-    const nameEN = (p.nameEN || '').toLowerCase();
-    const nameSK = (p.nameSK || '').toLowerCase();
-    const cat = (p.category || p.categoryId || '').toString().toLowerCase();
-
-    const matchesSearch = !term || name.includes(term) || nameVI.includes(term) ||
-                          nameEN.includes(term) || nameSK.includes(term) || cat.includes(term);
-
-    const matchesCategory = filterCategory === 'all'
-      ? true
-      : (p.category === filterCategory || p.categoryId === filterCategory);
-
-    let matchesStatus = true;
-    if (statusFilter !== 'all') {
-      const st = (p.status || '').toString().toLowerCase().trim();
-      matchesStatus = statusFilter === 'active' ? (st === 'active' || st === '')
-                                                : (st === 'inactive');
-    }
-    return matchesSearch && matchesCategory && matchesStatus;
-  })
   .sort((a, b) => {
     const qa = Number(a.quantity) || 0;
     const qb = Number(b.quantity) || 0;
@@ -761,7 +763,7 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
     if (qa <= 5 && qb > 5) return -1;
     if (qb <= 5 && qa > 5) return 1;
     return (a.name || '').localeCompare(b.name || '');
-  }), [foodList, searchTerm, filterCategory, statusFilter]);
+  }), [foodList]);
 
   const getStatusBadge = (status) => {
     if (!status) {
@@ -1595,14 +1597,20 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
             type="text"
             placeholder="Search products by name or category..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset to page 1 on search
+            }}
             className="search-input"
           />
         </div>
         <div className="filter-box">
           <select
             value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
+            onChange={(e) => {
+              setFilterCategory(e.target.value);
+              setCurrentPage(1); // Reset to page 1 on filter change
+            }}
             className="filter-select"
           >
                             <option value="all">All Categories</option>
@@ -1611,6 +1619,21 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
                     {category.name}
                   </option>
                 ))}
+          </select>
+        </div>
+        <div className="filter-box">
+          <label style={{ marginRight: '10px', fontSize: '14px', fontWeight: '500' }}>Status:</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1); // Reset to page 1 on status change
+            }}
+            className="filter-select"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
         </div>
       </div>
@@ -1743,6 +1766,113 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {!isLoading && totalPages > 0 && (
+        <div className="pagination-section" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '20px',
+          background: 'white',
+          borderRadius: '10px',
+          marginTop: '20px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          <div className="pagination-info" style={{ fontSize: '14px', color: '#666' }}>
+            Hiển thị {foodList.length > 0 ? ((currentPage - 1) * itemsPerPage + 1) : 0} - {Math.min(currentPage * itemsPerPage, totalItems)} của {totalItems} sản phẩm
+          </div>
+          
+          <div className="pagination-controls" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                background: currentPage === 1 ? '#f5f5f5' : 'white',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                opacity: currentPage === 1 ? 0.5 : 1
+              }}
+            >
+              ⏮️ Đầu
+            </button>
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                background: currentPage === 1 ? '#f5f5f5' : 'white',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                opacity: currentPage === 1 ? 0.5 : 1
+              }}
+            >
+              ◀️ Trước
+            </button>
+            
+            <span style={{ padding: '0 15px', fontWeight: 'bold', color: '#333' }}>
+              Trang {currentPage} / {totalPages}
+            </span>
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                background: currentPage === totalPages ? '#f5f5f5' : 'white',
+                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                opacity: currentPage === totalPages ? 0.5 : 1
+              }}
+            >
+              Sau ▶️
+            </button>
+            
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                background: currentPage === totalPages ? '#f5f5f5' : 'white',
+                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                opacity: currentPage === totalPages ? 0.5 : 1
+              }}
+            >
+              Cuối ⏭️
+            </button>
+          </div>
+          
+          <div className="items-per-page" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label style={{ fontSize: '14px', color: '#666' }}>Items/trang:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1); // Reset to page 1 when changing items per page
+              }}
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Edit Product Popup */}
       <EditProductPopup

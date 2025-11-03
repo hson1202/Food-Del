@@ -28,7 +28,7 @@ const getAllCategoriesAdmin = async (req, res) => {
 // Add new category
 const addCategory = async (req, res) => {
     try {
-        const { name, description, sortOrder } = req.body;
+        const { name, description, sortOrder, language } = req.body;
         // Use Cloudinary URL or local filename
         let image_url = '';
         
@@ -46,7 +46,9 @@ const addCategory = async (req, res) => {
             name,
             description: description || '',
             image: image_url,
-            sortOrder: sortOrder || 0
+            sortOrder: sortOrder || 0,
+            // allow explicit language, fallback to model default
+            ...(language ? { language } : {})
         };
 
         const category = new categoryModel(categoryData);
@@ -56,9 +58,9 @@ const addCategory = async (req, res) => {
     } catch (error) {
         console.error('Error adding category:', error);
         if (error.code === 11000) {
-            res.json({ success: false, message: "Category name already exists" });
+            res.json({ success: false, message: "Category already exists for this language" });
         } else {
-            res.json({ success: false, message: "Error adding category" });
+            res.json({ success: false, message: "Error adding category", error: error.message });
         }
     }
 };
@@ -146,11 +148,53 @@ const toggleCategoryStatus = async (req, res) => {
     }
 };
 
+// Bulk reset categories (admin): delete all and insert procdded list
+const resetCategories = async (req, res) => {
+    try {
+        // Accept either an object { categories: [...] } or a raw array [...]
+        const payload = Array.isArray(req.body) ? req.body : req.body?.categories;
+
+        if (!Array.isArray(payload) || payload.length === 0) {
+            return res.status(400).json({ success: false, message: "'categories' must be a non-empty array" });
+        }
+
+        // Remove all existing
+        await categoryModel.deleteMany({});
+
+        // Insert new
+        const docs = await categoryModel.insertMany(payload.map(c => ({
+            name: c.name,
+            description: c.description || '',
+            image: c.image || '',
+            sortOrder: Number(c.sortOrder) || 0,
+            language: c.language || 'en'
+        })));
+
+        res.json({ success: true, message: `Inserted ${docs.length} categories`, data: docs });
+    } catch (error) {
+        console.error('Error resetting categories:', error);
+        res.status(500).json({ success: false, message: 'Error resetting categories', error: error.message });
+    }
+};
+
+// Delete ALL categories (admin only usage)
+const clearAllCategories = async (_req, res) => {
+    try {
+        const result = await categoryModel.deleteMany({});
+        res.json({ success: true, message: `Deleted ${result.deletedCount} categories` });
+    } catch (error) {
+        console.error('Error clearing categories:', error);
+        res.status(500).json({ success: false, message: 'Error clearing categories', error: error.message });
+    }
+};
+
 export {
     getAllCategories,
     getAllCategoriesAdmin,
     addCategory,
     updateCategory,
     deleteCategory,
-    toggleCategoryStatus
+    toggleCategoryStatus,
+    resetCategories,
+    clearAllCategories
 }; 

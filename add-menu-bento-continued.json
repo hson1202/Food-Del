@@ -1,0 +1,125 @@
+{
+  "items": [
+    {
+      "sku": "B006",
+      "name": "Tori Bento",
+      "nameVI": "Bento Gà",
+      "nameEN": "Chicken Bento",
+      "nameSK": "Tori Bento",
+      "description": "Chrumkavé kuracie mäso, zelenina, šalát, ryža, teriyaki omáčka, mango omáčka, sezam. Maki: losos (3ks), avokádo (3ks), California sesame (4ks)",
+      "price": 10.50,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "1, 4, 6, 11"
+    },
+    {
+      "sku": "B007",
+      "name": "Kamo Bento",
+      "nameVI": "Bento Vịt",
+      "nameEN": "Duck Bento",
+      "nameSK": "Kamo Bento",
+      "description": "Chrumkavá kačica, zelenina, šalát, ryža, teriyaki omáčka, mango omáčka, sezam. Maki: losos (3ks), avokádo (3ks), California sesame (4ks)",
+      "price": 10.90,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "1, 4, 6, 11"
+    },
+    {
+      "sku": "B008",
+      "name": "Sake Bento",
+      "nameVI": "Bento Cá Hồi",
+      "nameEN": "Salmon Bento",
+      "nameSK": "Sake Bento",
+      "description": "Grilovaný losos, zelenina, šalát, ryža, teriyaki omáčka, mango omáčka, sezam. Maki: losos (3ks), avokádo (3ks), California sesame (4ks)",
+      "price": 11.90,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "4, 6, 11"
+    },
+    {
+      "sku": "B009",
+      "name": "Gyuniku Bento",
+      "nameVI": "Bento Bò",
+      "nameEN": "Beef Bento",
+      "nameSK": "Gyuniku Bento",
+      "description": "Hovädzie mäso, zelenina, šalát, ryža, teriyaki omáčka, mango omáčka, sezam. Maki: losos (3ks), avokádo (3ks), California sesame (4ks)",
+      "price": 10.90,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "6, 11"
+    },
+    {
+      "sku": "B010",
+      "name": "Tofu Bento",
+      "nameVI": "Bento Đậu Phụ",
+      "nameEN": "Tofu Bento",
+      "nameSK": "Tofu Bento",
+      "description": "Tofu, zelenina, šalát, ryža, teriyaki omáčka, mango omáčka, sezam. Maki: uhorka (3ks), avokádo (3ks), California sesame vege (4ks)",
+      "price": 9.50,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "6, 11"
+    },
+    {
+      "sku": "B011",
+      "name": "Tori Soba Bento",
+      "nameVI": "Bento Gà Soba",
+      "nameEN": "Chicken Soba Bento",
+      "nameSK": "Tori Soba Bento",
+      "description": "Opekané rezance, kuracie mäso, zelenina, šalát, ryža, teriyaki omáčka, mango omáčka, sezam. Maki: losos (3ks), avokádo (3ks), California sesame (4ks)",
+      "price": 9.50,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "1, 4, 6, 11"
+    },
+    {
+      "sku": "B012",
+      "name": "Nigiri Maki Bento",
+      "nameVI": "Bento Nigiri Maki",
+      "nameEN": "Nigiri Maki Bento",
+      "nameSK": "Nigiri Maki Bento",
+      "description": "Wakame šalát, Nigiri: losos (1ks), tuniak (1ks), kreveta (1ks), Maki: losos (3ks), avokádo (3ks), California sesame (4ks)",
+      "price": 11.90,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "2, 4, 6, 11"
+    },
+    {
+      "sku": "B013",
+      "name": "Sashimi Bento",
+      "nameVI": "Bento Sashimi",
+      "nameEN": "Sashimi Bento",
+      "nameSK": "Sashimi Bento",
+      "description": "Wakame šalát, Nigiri: losos (1ks), tuniak (1ks), kreveta (1ks), Maki: losos (3ks), avokádo (3ks), Sashimi: losos (2ks), tuniak (2ks), kreveta (2ks)",
+      "price": 12.90,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "A: 2, 4, 6, 11"
+    },
+    {
+      "sku": "B014",
+      "name": "Vege Bento",
+      "nameVI": "Bento Chay",
+      "nameEN": "Vegetarian Bento",
+      "nameSK": "Vege Bento",
+      "description": "Wakame šalát, Nigiri: inagi tofu (1ks), avokádo (1ks), mango (1ks), Maki: uhorka (3ks), avokádo (3ks), California sesame vege (4ks)",
+      "price": 8.90,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "A: 6, 11"
+    },
+    {
+      "sku": "B015",
+      "name": "Salmon Bento",
+      "nameVI": "Bento Cá Hồi Premium",
+      "nameEN": "Premium Salmon Bento",
+      "nameSK": "Salmon Bento",
+      "description": "Wakame šalát, Nigiri: losos (3ks), Maki: losos (6ks), Sashimi: losos (5ks)",
+      "price": 13.90,
+      "category": "Bento",
+      "quantity": 100,
+      "allergens": "A: 4, 6"
+    }
+  ]
+}
+

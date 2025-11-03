@@ -91,13 +91,22 @@ const addFood = async (req, res) => {
   }
 };
 
-//list food items
+//list food items with pagination
 const listFood = async (req, res) => {
   try {
     console.log('=== LIST FOOD DEBUG ===')
     console.log('Query params:', req.query)
 
-    const { status = 'all', search, category, forUser = false } = req.query
+    const { 
+      status = 'all', 
+      search, 
+      category, 
+      forUser = false,
+      page = 1,
+      limit = 20,
+      noPagination = false // Option to get all items (for frontend initial load if needed)
+    } = req.query
+    
     const filter = {}
 
     // Nếu là request từ user (frontend), chỉ trả về sản phẩm active
@@ -117,10 +126,52 @@ const listFood = async (req, res) => {
     }
 
     console.log('Filter applied:', filter)
-    const foods = await foodModel.find(filter).sort({ createdAt: -1 })
-    console.log('Foods found:', foods.length)
+    
+    // Get total count for pagination
+    const totalCount = await foodModel.countDocuments(filter)
+    
+    // If noPagination is true, return all items (useful for frontend)
+    if (noPagination === 'true' || noPagination === true) {
+      const foods = await foodModel.find(filter).sort({ createdAt: -1 })
+      console.log('Foods found (no pagination):', foods.length)
+      return res.json({ 
+        success: true, 
+        data: foods, 
+        filter: filter, 
+        count: foods.length,
+        total: totalCount,
+        pagination: false
+      })
+    }
+    
+    // Calculate pagination
+    const pageNum = Math.max(1, parseInt(page))
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit))) // Max 100 items per page
+    const skip = (pageNum - 1) * limitNum
+    const totalPages = Math.ceil(totalCount / limitNum)
+    
+    // Fetch paginated data
+    const foods = await foodModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+    
+    console.log(`Foods found: ${foods.length} (Page ${pageNum}/${totalPages}, Total: ${totalCount})`)
 
-    res.json({ success: true, data: foods, filter: filter, count: foods.length })
+    res.json({ 
+      success: true, 
+      data: foods, 
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: totalCount,
+        totalPages: totalPages,
+        hasMore: pageNum < totalPages
+      },
+      filter: filter, 
+      count: foods.length
+    })
   } catch (error) {
     console.error('Error listing foods:', error)
     res.status(500).json({ success: false, message: "Error listing foods", error: error.message })

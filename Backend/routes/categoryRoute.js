@@ -5,7 +5,9 @@ import {
     addCategory,
     updateCategory,
     deleteCategory,
-    toggleCategoryStatus
+    toggleCategoryStatus,
+    resetCategories,
+    clearAllCategories
 } from "../controllers/categoryController.js";
 import { upload } from "../middleware/upload.js";
 
@@ -22,5 +24,7 @@ categoryRouter.post("/", upload.single("image"), addCategory);
 categoryRouter.put("/:id", upload.single("image"), updateCategory);
 categoryRouter.delete("/:id", deleteCategory);
 categoryRouter.put("/:id/toggle", toggleCategoryStatus);
+categoryRouter.post("/reset", resetCategories);
+categoryRouter.post("/clear", clearAllCategories);
 
 export default categoryRouter; 

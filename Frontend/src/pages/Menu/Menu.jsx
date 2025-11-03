@@ -15,7 +15,7 @@ import config from '../../config/config'
 const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eager: true, as: 'url' })
 
 const Menu = () => {
-  const { food_list, cartItems, getTotalCartAmount } = useContext(StoreContext)
+  const { food_list, cartItems, getTotalCartAmount, isLoadingFood } = useContext(StoreContext)
   const { i18n } = useTranslation()
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -24,12 +24,20 @@ const Menu = () => {
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showCartPopup, setShowCartPopup] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     fetchCategories()
     handleScroll()
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth <= 768)
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
   }, [])
 
   const fetchCategories = async () => {
@@ -187,7 +195,7 @@ const Menu = () => {
       {/* Food Section */}
       <div id="food-section" className="food-section">
 
-        {loading ? (
+        {(loading || isLoadingFood) ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
             <p>Loading delicious dishes...</p>
@@ -236,6 +244,7 @@ const Menu = () => {
                   likes={food.likes}
                   options={food.options}
                   onViewDetails={handleViewDetails}
+                  compact={isMobile}
                 />
               </div>
             ))}
