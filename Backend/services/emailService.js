@@ -2,31 +2,27 @@ import nodemailer from 'nodemailer'
 
 // Create transporter (you'll need to configure this with your email provider)
 export const createTransporter = () => {
-  // TEMPORARILY DISABLED - Email service is turned off
-  console.log('📧 Email service is temporarily disabled');
-  return null;
-  
-  // Uncomment this when you want to enable email service
-  /*
   // Check if email configuration is available
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
     console.log('⚠️ Email configuration not found. Emails will not be sent.');
+    console.log('⚠️ Please configure EMAIL_USER and EMAIL_PASSWORD in your .env file');
     return null;
   }
   
   try {
-    return nodemailer.createTransport({
+    const transporter = nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || 'gmail', // 'gmail', 'outlook', 'yahoo', etc.
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD
       }
     })
+    console.log('✅ Email service configured successfully');
+    return transporter;
   } catch (error) {
     console.error('❌ Error creating email transporter:', error.message);
     return null;
   }
-  */
 }
 
 // Send reservation confirmation email
@@ -161,6 +157,49 @@ export const sendAdminNotification = async (contactMessage) => {
   }
 }
 
+// Send order confirmation email
+export const sendOrderConfirmation = async (order) => {
+  try {
+    // Kiểm tra xem có email không
+    if (!order.customerInfo?.email) {
+      console.log('⚠️ Order confirmation email not sent: No email address provided');
+      return { 
+        success: true, 
+        messageId: 'no_email',
+        message: 'Order confirmation not sent (no email address provided)'
+      }
+    }
+
+    const transporter = createTransporter()
+    
+    // If no transporter available, return success but log warning
+    if (!transporter) {
+      console.log('⚠️ Email not sent: Email service not configured');
+      return { 
+        success: true, 
+        messageId: 'email_not_configured',
+        message: 'Order confirmation not sent (email service not configured)'
+      }
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: order.customerInfo.email,
+      subject: `Order Confirmation #${order.trackingCode} - VIET BOWLS`,
+      html: generateOrderConfirmationEmailHTML(order),
+      text: generateOrderConfirmationEmailText(order)
+    }
+    
+    const result = await transporter.sendMail(mailOptions)
+    console.log('✅ Order confirmation email sent successfully:', result.messageId)
+    return { success: true, messageId: result.messageId }
+    
+  } catch (error) {
+    console.error('❌ Error sending order confirmation email:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 // Generate HTML email content for confirmation
 const generateConfirmationEmailHTML = (reservation) => {
   const formatDate = (date) => {
@@ -231,9 +270,8 @@ const generateConfirmationEmailHTML = (reservation) => {
           
           <div class="contact-info">
             <h4>📍 Restaurant Information</h4>
-            <p><strong>Address:</strong> 123 Main Street, City, State 12345</p>
-            <p><strong>Phone:</strong> +1 (555) 123-4567</p>
-            <p><strong>Email:</strong> info@vietbowls.com</p>
+            <p><strong>Address:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
+            <p><strong>Email:</strong> vietbowlssala666@gmail.com</p>
           </div>
           
           <p><strong>Important Notes:</strong></p>
@@ -285,9 +323,8 @@ Number of Guests: ${reservation.numberOfPeople} ${reservation.numberOfPeople ===
 ${reservation.note ? `Special Requests: ${reservation.note}` : ''}
 
 RESTAURANT INFORMATION:
-Address: 123 Main Street, City, State 12345
-Phone: +1 (555) 123-4567
-Email: info@vietbowls.com
+Address: Hlavná 33/36, 927 01 Šaľa, Slovakia
+Email: vietbowlssala666@gmail.com
 
 IMPORTANT NOTES:
 - Please arrive 5-10 minutes before your reservation time
@@ -317,15 +354,6 @@ const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus) => {
     })
   }
   
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'confirmed': return '#28a745'
-      case 'cancelled': return '#dc3545'
-      case 'completed': return '#17a2b8'
-      default: return '#ffc107'
-    }
-  }
-  
   const getStatusText = (status) => {
     switch (status) {
       case 'confirmed': return 'Confirmed'
@@ -346,15 +374,6 @@ const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus) => {
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: #e74c3c; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
         .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .status-badge { 
-          display: inline-block; 
-          padding: 10px 20px; 
-          background: ${getStatusColor(newStatus)}; 
-          color: white; 
-          border-radius: 20px; 
-          font-weight: bold; 
-          text-transform: uppercase; 
-        }
         .reservation-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #e74c3c; }
         .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
         .label { font-weight: bold; color: #555; }
@@ -372,11 +391,7 @@ const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus) => {
         <div class="content">
           <p>Dear <strong>${reservation.customerName}</strong>,</p>
           
-          <p>Your reservation status has been updated.</p>
-          
-          <div style="text-align: center; margin: 20px 0;">
-            <div class="status-badge">${getStatusText(newStatus)}</div>
-          </div>
+          <p>Your reservation has been updated.</p>
           
           <div class="reservation-details">
             <h3>📅 Reservation Details</h3>
@@ -412,8 +427,8 @@ const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus) => {
           ` : ''}
           
           <p>If you have any questions, please contact us:</p>
-          <p><strong>Phone:</strong> +1 (555) 123-4567<br>
-          <strong>Email:</strong> info@vietbowls.com</p>
+          <p><strong>Email:</strong> vietbowlssala666@gmail.com<br>
+          <strong>Address:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
           
           <p>Best regards,<br>
           <strong>The VIET BOWLS Team</strong></p>
@@ -454,7 +469,7 @@ VIET BOWLS - Reservation Status Update
 
 Dear ${reservation.customerName},
 
-Your reservation status has been updated to: ${getStatusText(newStatus)}
+Your reservation has been updated.
 
 RESERVATION DETAILS:
 Date: ${formatDate(reservation.reservationDate)}
@@ -477,8 +492,8 @@ We hope you enjoyed your meal. Please visit us again soon!
 ` : ''}
 
 If you have any questions, please contact us:
-Phone: +1 (555) 123-4567
-Email: info@vietbowls.com
+Email: vietbowlssala666@gmail.com
+Address: Hlavná 33/36, 927 01 Šaľa, Slovakia
 
 Best regards,
 The VIET BOWLS Team
@@ -576,9 +591,8 @@ const generateContactConfirmationEmailHTML = (contactMessage, adminResponse = nu
           
           <div class="contact-info">
             <h3>Contact Information</h3>
-            <p><strong>Phone:</strong> +1 (555) 123-4567<br>
-            <strong>Email:</strong> info@vietbowls.com<br>
-            <strong>Address:</strong> 123 ABC Street, District 1, Ho Chi Minh City, Vietnam</p>
+            <p><strong>Email:</strong> vietbowlssala666@gmail.com<br>
+            <strong>Address:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
           </div>
           
           <p>Best regards,<br>
@@ -644,9 +658,8 @@ Message: ${contactMessage.message}
 Sent: ${formatDate(contactMessage.createdAt)}
 
 CONTACT INFORMATION:
-Phone: +1 (555) 123-4567
-Email: info@vietbowls.com
-Address: 123 ABC Street, District 1, Ho Chi Minh City, Vietnam
+Email: vietbowlssala666@gmail.com
+Address: Hlavná 33/36, 927 01 Šaľa, Slovakia
 
 Best regards,
 The VIET BOWLS Team
@@ -816,6 +829,224 @@ You can manage this message through the admin panel.
 
 ---
 This is an automated notification email.
+© 2024 VIET BOWLS. All rights reserved.
+  `
+}
+
+// Generate HTML email content for order confirmation
+const generateOrderConfirmationEmailHTML = (order) => {
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+  
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount)
+  }
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Order Confirmation - VIET BOWLS</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #e74c3c; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+        .order-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #e74c3c; }
+        .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .label { font-weight: bold; color: #555; }
+        .value { color: #333; }
+        .tracking-code { background: #e74c3c; color: white; padding: 15px; text-align: center; border-radius: 8px; font-size: 24px; font-weight: bold; margin: 20px 0; }
+        .items-list { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .item-name { font-weight: bold; }
+        .item-quantity { color: #666; }
+        .item-price { color: #333; }
+        .total-section { background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 16px; }
+        .total-final { font-size: 20px; font-weight: bold; color: #e74c3c; }
+        .address-section { background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+        .contact-info { background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🍜 VIET BOWLS</h1>
+          <h2>Order Confirmation</h2>
+        </div>
+        
+        <div class="content">
+          <p>Dear <strong>${order.customerInfo.name}</strong>,</p>
+          
+          <p>Thank you for your order! We have received your order and are preparing it for you.</p>
+          
+          <div class="tracking-code">
+            Tracking Code: ${order.trackingCode}
+          </div>
+          
+          <div class="order-details">
+            <h3>📦 Order Details</h3>
+            <div class="detail-row">
+              <span class="label">Order Date:</span>
+              <span class="value">${formatDate(order.createdAt || order.date)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Order Type:</span>
+              <span class="value">${order.orderType === 'registered' ? 'Registered User' : 'Guest Order'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Payment Method:</span>
+              <span class="value">Cash on Delivery (COD)</span>
+            </div>
+          </div>
+          
+          <div class="items-list">
+            <h3>🍽️ Order Items</h3>
+            ${order.items.map(item => `
+              <div class="item-row">
+                <div>
+                  <span class="item-name">${item.name}</span>
+                  <span class="item-quantity"> x ${item.quantity}</span>
+                </div>
+                <span class="item-price">${formatCurrency(item.price * item.quantity)}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="total-section">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span>${formatCurrency(order.amount - 2)}</span>
+            </div>
+            <div class="total-row">
+              <span>Delivery Fee:</span>
+              <span>${formatCurrency(2)}</span>
+            </div>
+            <div class="total-row total-final">
+              <span>Total:</span>
+              <span>${formatCurrency(order.amount)}</span>
+            </div>
+          </div>
+          
+          <div class="address-section">
+            <h3>📍 Delivery Address</h3>
+            <p>
+              <strong>${order.address.street}</strong><br>
+              ${order.address.city}, ${order.address.state}<br>
+              ${order.address.zipcode}, ${order.address.country}
+            </p>
+            <p><strong>Phone:</strong> ${order.customerInfo.phone}</p>
+          </div>
+          
+          <div class="contact-info">
+            <h4>📞 Contact Information</h4>
+            <p><strong>Email:</strong> vietbowlssala666@gmail.com</p>
+            <p><strong>Address:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
+          </div>
+          
+          <p><strong>Important Notes:</strong></p>
+          <ul>
+            <li>You can track your order using the tracking code: <strong>${order.trackingCode}</strong></li>
+            <li>Payment will be collected upon delivery</li>
+            <li>Estimated delivery time: 30-60 minutes</li>
+            <li>If you have any questions, please contact us using the information above</li>
+          </ul>
+          
+          <p>We appreciate your business and look forward to serving you!</p>
+          
+          <p>Best regards,<br>
+          <strong>The VIET BOWLS Team</strong></p>
+        </div>
+        
+        <div class="footer">
+          <p>This is an automated email. Please do not reply directly to this message.</p>
+          <p>© 2024 VIET BOWLS. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Generate plain text email content for order confirmation
+const generateOrderConfirmationEmailText = (order) => {
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+  
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount)
+  }
+  
+  return `
+VIET BOWLS - Order Confirmation
+
+Dear ${order.customerInfo.name},
+
+Thank you for your order! We have received your order and are preparing it for you.
+
+TRACKING CODE: ${order.trackingCode}
+
+ORDER DETAILS:
+Order Date: ${formatDate(order.createdAt || order.date)}
+Order Type: ${order.orderType === 'registered' ? 'Registered User' : 'Guest Order'}
+Payment Method: Cash on Delivery (COD)
+
+ORDER ITEMS:
+${order.items.map(item => `- ${item.name} x ${item.quantity}: ${formatCurrency(item.price * item.quantity)}`).join('\n')}
+
+ORDER SUMMARY:
+Subtotal: ${formatCurrency(order.amount - 2)}
+Delivery Fee: ${formatCurrency(2)}
+Total: ${formatCurrency(order.amount)}
+
+DELIVERY ADDRESS:
+${order.address.street}
+${order.address.city}, ${order.address.state}
+${order.address.zipcode}, ${order.address.country}
+Phone: ${order.customerInfo.phone}
+
+CONTACT INFORMATION:
+Email: vietbowlssala666@gmail.com
+Address: Hlavná 33/36, 927 01 Šaľa, Slovakia
+
+IMPORTANT NOTES:
+- You can track your order using the tracking code: ${order.trackingCode}
+- Payment will be collected upon delivery
+- Estimated delivery time: 30-60 minutes
+- If you have any questions, please contact us using the information above
+
+We appreciate your business and look forward to serving you!
+
+Best regards,
+The VIET BOWLS Team
+
+---
+This is an automated email. Please do not reply directly to this message.
 © 2024 VIET BOWLS. All rights reserved.
   `
 }

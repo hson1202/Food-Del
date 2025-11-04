@@ -9,7 +9,7 @@ import '../../i18n'
 
 const PlaceOrder = () => {
   const { t } = useTranslation();
-  const { getTotalCartAmount, token, food_list, cartItems, url, setCartItems } = useContext(StoreContext);
+  const { getTotalCartAmount, token, food_list, cartItems, url, setCartItems, setToken } = useContext(StoreContext);
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -84,24 +84,25 @@ const PlaceOrder = () => {
       email: data.email || undefined
     };
 
+    // Lấy token từ context hoặc localStorage
+    const currentToken = token || localStorage.getItem("token");
+    
     let orderData = {
       address: data,
       items: orderItems,
       amount: getTotalCartAmount() + 2,
       customerInfo: customerInfo,
-      orderType: orderType
+      orderType: currentToken ? 'registered' : 'guest'
     };
 
-    // Thêm userId nếu user đã đăng nhập
-    if (token) {
-      orderData.userId = token;
-    }
+    // KHÔNG gán userId vào orderData - backend sẽ tự động lấy từ token nếu có
 
     try {
       console.log('Sending order data:', orderData);
+      console.log('Token available:', !!currentToken);
       
       let response = await axios.post(url + "/api/order/place", orderData, {
-        headers: token ? { token } : {}
+        headers: currentToken ? { token: currentToken } : {}
       });
 
       console.log('Response:', response.data);
@@ -141,6 +142,51 @@ const PlaceOrder = () => {
       }
     } catch (error) {
       console.error('Error placing order:', error);
+      
+      // Nếu lỗi 401 (Unauthorized) và có token, có thể token đã hết hạn
+      // Thử lại như guest order
+      if (error.response?.status === 401 && currentToken) {
+        console.log('⚠️ Token invalid or expired, retrying as guest order...');
+        try {
+          // Xóa token khỏi localStorage nếu invalid
+          localStorage.removeItem("token");
+          setToken("");
+          
+          // Thử lại như guest order
+          const guestOrderData = {
+            ...orderData,
+            orderType: 'guest'
+          };
+          
+          const retryResponse = await axios.post(url + "/api/order/place", guestOrderData, {
+            headers: {}
+          });
+          
+          if (retryResponse.data.success) {
+            const { trackingCode, message } = retryResponse.data;
+            
+            if (trackingCode) {
+              localStorage.setItem('lastTrackingCode', trackingCode);
+              localStorage.setItem('lastPhone', data.phone);
+            }
+            
+            const finalAmount = getTotalCartAmount() + 2;
+            
+            setOrderSuccessData({
+              trackingCode: trackingCode,
+              phone: data.phone,
+              orderAmount: finalAmount
+            });
+            
+            setShowSuccessPopup(true);
+            setIsSubmitting(false);
+            return;
+          }
+        } catch (retryError) {
+          console.error('Error retrying as guest:', retryError);
+          // Fall through to show error message
+        }
+      }
       
       let errorMessage = 'An error occurred while placing your order.';
       

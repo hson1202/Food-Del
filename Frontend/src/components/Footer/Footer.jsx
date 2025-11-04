@@ -27,8 +27,8 @@ const Footer = () => {
             <div className="footer-content-right">
                 <h2>GET IN TOUCH</h2>
                 <ul>
-                    <li>+1 212-456-7890</li>
-                    <li>contact@vietbowls.com</li>
+                    <li>vietbowlssala666@gmail.com</li>
+                    <li>Hlavná 33/36, 927 01 Šaľa, Slovakia</li>
                 </ul>
             </div>
         </div>

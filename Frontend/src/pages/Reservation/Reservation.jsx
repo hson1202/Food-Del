@@ -516,9 +516,9 @@ const Reservation = () => {
           <div className="info-card">
             <h3>Contact Information</h3>
             <div className="contact-info">
-              <p>📍 123 Main Street, City, Country</p>
+              <p>📍 Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
               <p>📞 +1 (555) 123-4567</p>
-              <p>✉️ info@vietbowls.com</p>
+              <p>✉️ vietbowlssala666@gmail.com</p>
             </div>
           </div>
 

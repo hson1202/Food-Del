@@ -1,5 +1,6 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js"
+import { sendOrderConfirmation } from "../services/emailService.js"
 
 // placing user order from frontend (hỗ trợ cả đăng nhập và không đăng nhập)
 const placeOrder = async (req,res) => {
@@ -89,6 +90,19 @@ const placeOrder = async (req,res) => {
                 console.log('Error clearing cart:', cartError);
                 // Không fail order nếu chỉ lỗi xóa cart
             }
+        }
+
+        // Gửi email xác nhận đơn hàng (nếu có email)
+        try {
+            const emailResult = await sendOrderConfirmation(newOrder);
+            if (emailResult && emailResult.success) {
+                console.log('✅ Order confirmation email sent successfully');
+            } else {
+                console.log('⚠️ Order confirmation email not sent:', emailResult?.message || 'Unknown error');
+            }
+        } catch (emailError) {
+            console.error('❌ Error sending order confirmation email:', emailError);
+            // Không fail order nếu chỉ lỗi gửi email
         }
 
         res.json({
