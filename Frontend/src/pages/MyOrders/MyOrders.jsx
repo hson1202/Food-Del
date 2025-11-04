@@ -12,6 +12,7 @@ const MyOrders = () => {
         trackingCode: '',
         phone: ''
     });
+    const [lastOrderItems, setLastOrderItems] = useState([]);
     const { url, token, setToken, debugToken } = useContext(StoreContext);
     
     // Refresh token from localStorage if context token is empty
@@ -35,6 +36,20 @@ const MyOrders = () => {
         }
         return null;
     }
+
+    // Load last order snapshot for quick review
+    useEffect(() => {
+        try {
+            const tc = localStorage.getItem('lastTrackingCode') || '';
+            const ph = localStorage.getItem('lastPhone') || '';
+            const itemsRaw = localStorage.getItem('lastOrderItems');
+            const items = itemsRaw ? JSON.parse(itemsRaw) : [];
+            if (tc || ph) {
+                setGuestForm(prev => ({ ...prev, trackingCode: tc, phone: ph }));
+            }
+            if (Array.isArray(items)) setLastOrderItems(items);
+        } catch (_) {}
+    }, []);
 
     // Check if user is logged in
     const isUserLoggedIn = () => {
@@ -228,6 +243,39 @@ const MyOrders = () => {
 
     return (
         <div className='my-orders'>
+            {(guestForm.trackingCode || lastOrderItems.length > 0) && (
+                <div className="last-order-review">
+                    <h3>Đơn gần nhất</h3>
+                    <div className="last-order-meta">
+                        <div>
+                            <strong>Mã theo dõi:</strong> <span className="tracking-code">{guestForm.trackingCode || 'N/A'}</span>
+                        </div>
+                        <div>
+                            <strong>SĐT:</strong> <span>{guestForm.phone || 'N/A'}</span>
+                        </div>
+                        <button onClick={() => window.location.href = '/track-order'} className="track-now-btn">Theo dõi đơn</button>
+                    </div>
+                    {lastOrderItems.length > 0 && (
+                        <div className="last-order-items">
+                            <div className="items-title">Sản phẩm đã đặt</div>
+                            <div className="items-list">
+                                {lastOrderItems.map((it, idx) => (
+                                    <div key={idx} className="item-row">
+                                        <div className="item-main">
+                                            <div className="item-name">{it.name || 'Item'}</div>
+                                            {it.options && <small className="item-options">{JSON.stringify(it.options)}</small>}
+                                        </div>
+                                        <div className="item-meta">
+                                            <span className="item-qty">x{it.quantity || 1}</span>
+                                            <span className="item-price">€{(((it.price || 0) * (it.quantity || 1))).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
             <h2>My Orders</h2>
             
             {/* Debug Button */}

@@ -20,6 +20,7 @@ const Orders = ({url}) => {
   const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds default
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const audioRef = useRef(null);
+  const [soundReady, setSoundReady] = useState(false);
 
   const fetchAllOrders = async (showLoadingToast = false) => {
     try {
@@ -154,6 +155,30 @@ const Orders = ({url}) => {
   useEffect(()=>{
     fetchAllOrders();
   },[])
+
+  // Ensure sound can play after a user gesture (browser autoplay policies)
+  useEffect(() => {
+    const enableSound = () => {
+      if (audioRef.current && !soundReady) {
+        const a = audioRef.current;
+        a.muted = true;
+        a.play().then(() => {
+          a.pause();
+          a.currentTime = 0;
+          a.muted = false;
+          setSoundReady(true);
+        }).catch(() => {
+          // ignore
+        });
+      }
+    };
+    window.addEventListener('click', enableSound, { once: true });
+    window.addEventListener('keydown', enableSound, { once: true });
+    return () => {
+      window.removeEventListener('click', enableSound);
+      window.removeEventListener('keydown', enableSound);
+    };
+  }, [soundReady]);
 
   // Realtime updates via Server-Sent Events (SSE)
   useEffect(() => {
