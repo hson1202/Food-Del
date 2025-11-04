@@ -1,8 +1,8 @@
 // Configuration file for backend URLs
 const config = {
   // Backend URL - change this based on environment
-  BACKEND_URL: process.env.NODE_ENV === 'production' 
-    ? process.env.VITE_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com'
+  BACKEND_URL: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.MODE === 'production')
+    ? (import.meta.env.VITE_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com')
     : 'http://localhost:4000',
   
   // API endpoints
