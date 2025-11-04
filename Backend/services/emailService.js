@@ -2,26 +2,40 @@ import nodemailer from 'nodemailer'
 
 // Create transporter (you'll need to configure this with your email provider)
 export const createTransporter = () => {
-  // Check if email configuration is available
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-    console.log('⚠️ Email configuration not found. Emails will not be sent.');
-    console.log('⚠️ Please configure EMAIL_USER and EMAIL_PASSWORD in your .env file');
-    return null;
+  const user = process.env.EMAIL_USER
+  const pass = process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_PASS
+  const host = process.env.EMAIL_HOST
+  const port = process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : undefined
+  const service = process.env.EMAIL_SERVICE || 'gmail'
+  const secure = process.env.EMAIL_SECURE === 'true' || (port === 465)
+
+  if (!user || !pass) {
+    console.log('⚠️ Email configuration not found. Emails will not be sent.')
+    console.log('⚠️ Required: EMAIL_USER and one of EMAIL_PASSWORD / EMAIL_APP_PASSWORD / EMAIL_PASS')
+    return null
   }
-  
+
   try {
-    const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail', // 'gmail', 'outlook', 'yahoo', etc.
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD
-      }
-    })
-    console.log('✅ Email service configured successfully');
-    return transporter;
+    let transporter
+    if (host) {
+      transporter = nodemailer.createTransport({
+        host,
+        port: port || 587,
+        secure,
+        auth: { user, pass }
+      })
+      console.log('✅ Email transporter configured via host/port')
+    } else {
+      transporter = nodemailer.createTransport({
+        service,
+        auth: { user, pass }
+      })
+      console.log(`✅ Email transporter configured via service: ${service}`)
+    }
+    return transporter
   } catch (error) {
-    console.error('❌ Error creating email transporter:', error.message);
-    return null;
+    console.error('❌ Error creating email transporter:', error.message)
+    return null
   }
 }
 

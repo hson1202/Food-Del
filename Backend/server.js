@@ -280,6 +280,32 @@ app.get("/debug-cloudinary", async (req, res) => {
   }
 })
 
+app.get("/debug-email", async (req, res) => {
+  try {
+    const { createTransporter } = await import("./services/emailService.js")
+    const transporter = createTransporter()
+    const config = {
+      hasUser: !!process.env.EMAIL_USER,
+      hasPass: !!(process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_PASS),
+      service: process.env.EMAIL_SERVICE || null,
+      host: process.env.EMAIL_HOST || null,
+      port: process.env.EMAIL_PORT || null,
+      secure: process.env.EMAIL_SECURE || null
+    }
+    if (!transporter) {
+      return res.status(200).json({ success: false, configured: false, config })
+    }
+    try {
+      const verified = await transporter.verify()
+      res.json({ success: true, configured: true, verified, config })
+    } catch (verifyErr) {
+      res.json({ success: false, configured: true, verified: false, error: verifyErr.message, config })
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
 app.post("/test-upload", async (req, res) => {
   try {
     const { upload } = await import("./middleware/upload.js")
