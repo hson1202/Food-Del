@@ -9,7 +9,7 @@ import '../../i18n'
 
 const PlaceOrder = () => {
   const { t } = useTranslation();
-  const { getTotalCartAmount, token, food_list, cartItems, url, setCartItems, setToken } = useContext(StoreContext);
+  const { getTotalCartAmount, token, food_list, cartItems, cartItemsData, url, setCartItems, setToken } = useContext(StoreContext);
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -63,14 +63,23 @@ const PlaceOrder = () => {
 
     // Phone: chỉ cần có giá trị, chấp nhận ký tự + và các ký tự phổ biến
     
-    let orderItems = [];
-    food_list.map((item) => {
-      if (cartItems[item._id] > 0) {
-        let itemInfo = item;
-        itemInfo["quantity"] = cartItems[item._id];
-        orderItems.push(itemInfo)
+    // Build order items from cart, supporting option-suffixed IDs
+    const orderItems = [];
+    Object.entries(cartItems).forEach(([cartKey, quantity]) => {
+      if (quantity > 0) {
+        const actualProductId = cartKey.split('_')[0];
+        const baseProduct = food_list.find(p => p._id === actualProductId);
+        if (baseProduct) {
+          const itemData = cartItemsData[cartKey] || {};
+          const itemInfo = {
+            ...baseProduct,
+            ...itemData,
+            quantity
+          };
+          orderItems.push(itemInfo);
+        }
       }
-    })
+    });
 
     // Check if cart is empty
     if (orderItems.length === 0) {
