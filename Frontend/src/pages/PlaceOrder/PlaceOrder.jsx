@@ -130,6 +130,10 @@ const PlaceOrder = () => {
           localStorage.setItem('lastTrackingCode', trackingCode);
           localStorage.setItem('lastPhone', data.phone);
         }
+        // Lưu snapshot items để khách xem lại ngay sau khi đặt
+        try {
+          localStorage.setItem('lastOrderItems', JSON.stringify(orderItems));
+        } catch (_) {}
         
         // Tính toán số tiền trước khi xóa cart
         const finalAmount = getTotalCartAmount() + 2;
@@ -138,7 +142,8 @@ const PlaceOrder = () => {
         setOrderSuccessData({
           trackingCode: trackingCode,
           phone: data.phone,
-          orderAmount: finalAmount
+          orderAmount: finalAmount,
+          items: orderItems
         });
         
         console.log('Setting popup data:', {
@@ -188,13 +193,17 @@ const PlaceOrder = () => {
               localStorage.setItem('lastTrackingCode', trackingCode);
               localStorage.setItem('lastPhone', data.phone);
             }
+            try {
+              localStorage.setItem('lastOrderItems', JSON.stringify(orderItems));
+            } catch (_) {}
             
             const finalAmount = getTotalCartAmount() + 2;
             
             setOrderSuccessData({
               trackingCode: trackingCode,
               phone: data.phone,
-              orderAmount: finalAmount
+              orderAmount: finalAmount,
+              items: orderItems
             });
             
             setShowSuccessPopup(true);

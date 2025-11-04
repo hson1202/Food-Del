@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import '../../i18n';
 
-const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCartItems }) => {
+const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCartItems, items }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -17,6 +17,17 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
   console.log('SuccessPopup props:', { trackingCode, phone, orderAmount });
 
   if (!isOpen) return null;
+
+  // Lấy items từ props hoặc từ localStorage (fallback)
+  let lastItems = Array.isArray(items) && items.length > 0 ? items : [];
+  if (lastItems.length === 0) {
+    try {
+      const raw = localStorage.getItem('lastOrderItems');
+      if (raw) {
+        lastItems = JSON.parse(raw) || [];
+      }
+    } catch (_) {}
+  }
 
   const handleClose = () => {
     // Xóa cart khi đóng popup
@@ -76,6 +87,29 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
               <span className="detail-value">€{orderAmount}</span>
             </div>
           </div>
+
+          {/* Items Summary */}
+          {lastItems && lastItems.length > 0 && (
+            <div className="order-items-summary">
+              <h3>{t('successPopup.items', 'Items in your order')}</h3>
+              <div className="items-list">
+                {lastItems.map((it, idx) => (
+                  <div key={idx} className="item-row">
+                    <div className="item-main">
+                      <span className="item-name">{it.name || 'Item'}</span>
+                      {it.options && (
+                        <small className="item-options">{JSON.stringify(it.options)}</small>
+                      )}
+                    </div>
+                    <div className="item-meta">
+                      <span className="item-qty">x{it.quantity || 1}</span>
+                      <span className="item-price">€{((it.price || 0) * (it.quantity || 1)).toFixed(2)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="success-actions">

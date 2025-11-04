@@ -128,14 +128,18 @@ const broadcastEvent = (type, payload, channel = 'orders') => {
 
 // Listen to internal app events
 eventBus.on('order:created', (order) => {
-  broadcastEvent('order_created', { 
+  // Include items and address so admin can render without needing a refresh
+  broadcastEvent('order_created', {
     _id: order._id,
     amount: order.amount,
     status: order.status,
     createdAt: order.createdAt,
     trackingCode: order.trackingCode,
     customerInfo: order.customerInfo,
-    orderType: order.orderType
+    orderType: order.orderType,
+    items: order.items || [],
+    address: order.address || null,
+    userId: order.userId || null
   }, 'orders')
 })
 
