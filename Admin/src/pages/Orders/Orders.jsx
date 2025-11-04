@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './Orders.css'
 import {toast} from "react-toastify"
 import axios from "axios"
@@ -19,6 +19,7 @@ const Orders = ({url}) => {
   const [autoRefresh, setAutoRefresh] = useState(true); // Auto-refresh toggle
   const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds default
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const audioRef = useRef(null);
 
   const fetchAllOrders = async (showLoadingToast = false) => {
     try {
@@ -154,6 +155,57 @@ const Orders = ({url}) => {
     fetchAllOrders();
   },[])
 
+  // Realtime updates via Server-Sent Events (SSE)
+  useEffect(() => {
+    const eventsUrl = `${config.BACKEND_URL}/api/events?channel=orders`;
+    const es = new EventSource(eventsUrl);
+
+    es.addEventListener('connected', () => {
+      toast.info('🔔 Realtime connected');
+    });
+
+    es.addEventListener('ping', () => {
+      // keep-alive
+    });
+
+    es.addEventListener('message', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data?.type === 'order_created') {
+          const newOrder = data.payload;
+          // Optimistically add to list if not present
+          setOrders(prev => {
+            const exists = prev.some(o => o._id === newOrder._id);
+            if (exists) return prev;
+            const next = [newOrder, ...prev];
+            // Maintain sorting: Pending first, then newest
+            return next.sort((a, b) => {
+              if (a.status === 'Pending' && b.status !== 'Pending') return -1;
+              if (a.status !== 'Pending' && b.status === 'Pending') return 1;
+              const dateA = new Date(a.createdAt || a.date || 0);
+              const dateB = new Date(b.createdAt || b.date || 0);
+              return dateB - dateA;
+            });
+          });
+          toast.success(`🆕 New order from ${newOrder?.customerInfo?.name || 'Customer'}`);
+          // Play notification sound if available
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(() => {});
+          }
+        }
+      } catch (_) {}
+    });
+
+    es.onerror = () => {
+      // Auto-reconnect handled by EventSource; optional toast to avoid noise
+    };
+
+    return () => {
+      es.close();
+    };
+  }, []);
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pending':
@@ -201,6 +253,8 @@ const Orders = ({url}) => {
 
   return (
     <div className='orders-page'>
+      {/* Hidden audio element for realtime notification */}
+      <audio ref={audioRef} src={`${config.BACKEND_URL}/sound/thongbao.mp3`} preload="auto" />
       <div className="orders-header">
         <div className="header-content">
           <h1>{t('orders.title')}</h1>
@@ -444,7 +498,12 @@ const Orders = ({url}) => {
                   <div className="detail-item">
                     <span className="detail-label">{t('orders.orderDate', 'Order Date')}:</span>
                     <span className="detail-value">
-                      {selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString() : 'N/A'}
+                      {selectedOrder.createdAt 
+                        ? new Date(selectedOrder.createdAt).toLocaleString(undefined, {
+                            year: 'numeric', month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', second: '2-digit'
+                          })
+                        : 'N/A'}
                     </span>
                   </div>
                   <div className="detail-item">

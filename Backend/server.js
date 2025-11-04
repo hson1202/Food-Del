@@ -16,6 +16,7 @@ import contactMessageRouter from "./routes/contactMessageRoute.js"
 import uploadRouter from "./routes/uploadRoute.js"
 import localUploadRouter from "./routes/localUploadRoute.js"
 import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
+import eventBus from "./services/eventBus.js"
 
 const app = express()
 
@@ -84,9 +85,65 @@ app.use("/api/upload", localUploadRouter)
 app.use("/api/upload-cloud", uploadRouter)  // Keep Cloudinary as backup
 app.use("/api/cloudinary", cloudinarySignRouter)
 
+// --- Server-Sent Events (SSE) for realtime notifications ---
+const sseClients = []
+
+app.get('/api/events', (req, res) => {
+  // Optional channel filter
+  const channel = req.query.channel || 'all'
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+  res.flushHeaders?.()
+
+  const client = { res, channel }
+  sseClients.push(client)
+
+  // Initial hello
+  res.write(`event: connected\n`)
+  res.write(`data: ${JSON.stringify({ success: true, channel })}\n\n`)
+
+  // Heartbeat to keep connection alive (Render/Proxies can drop idle)
+  const heartbeat = setInterval(() => {
+    try { res.write(`event: ping\n` + `data: ${Date.now()}\n\n`) } catch {}
+  }, 25000)
+
+  req.on('close', () => {
+    clearInterval(heartbeat)
+    const idx = sseClients.indexOf(client)
+    if (idx !== -1) sseClients.splice(idx, 1)
+  })
+})
+
+// Broadcast helper
+const broadcastEvent = (type, payload, channel = 'orders') => {
+  const data = `event: message\n` + `data: ${JSON.stringify({ type, payload })}\n\n`
+  sseClients.forEach(c => {
+    if (c.channel === 'all' || c.channel === channel) {
+      try { c.res.write(data) } catch {}
+    }
+  })
+}
+
+// Listen to internal app events
+eventBus.on('order:created', (order) => {
+  broadcastEvent('order_created', { 
+    _id: order._id,
+    amount: order.amount,
+    status: order.status,
+    createdAt: order.createdAt,
+    trackingCode: order.trackingCode,
+    customerInfo: order.customerInfo,
+    orderType: order.orderType
+  }, 'orders')
+})
+
 // Serve local uploads (Render has persistent filesystem, unlike Vercel)
 app.use("/uploads", express.static("uploads"))
 app.use("/images", express.static("uploads"))
+// Serve notification sounds
+app.use("/sound", express.static("sound"))
 
 // Health check endpoints
 app.get("/", (req, res) => {

@@ -33,6 +33,21 @@ const PlaceOrder = () => {
     setData(data => ({ ...data, [name]: value }))
   }
 
+  // Simple retry helper for transient errors (e.g., 502/503/network)
+  const postWithRetry = async (endpoint, data, options, retries = 2, delayMs = 800) => {
+    try {
+      return await axios.post(endpoint, data, options)
+    } catch (err) {
+      const status = err.response?.status
+      const isTransient = !status || (status >= 500 && status < 600)
+      if (retries > 0 && isTransient) {
+        await new Promise(r => setTimeout(r, delayMs))
+        return postWithRetry(endpoint, data, options, retries - 1, delayMs * 1.5)
+      }
+      throw err
+    }
+  }
+
   const placeOrder = async (event) => {
     event.preventDefault();
     
@@ -88,9 +103,13 @@ const PlaceOrder = () => {
       console.log('Sending order data:', orderData);
       console.log('Token available:', !!currentToken);
       
-      let response = await axios.post(url + "/api/order/place", orderData, {
-        headers: currentToken ? { token: currentToken } : {}
-      });
+      let response = await postWithRetry(
+        url + "/api/order/place",
+        orderData,
+        { headers: currentToken ? { token: currentToken } : {} },
+        2,
+        700
+      )
 
       console.log('Response:', response.data);
 
@@ -145,9 +164,13 @@ const PlaceOrder = () => {
             orderType: 'guest'
           };
           
-          const retryResponse = await axios.post(url + "/api/order/place", guestOrderData, {
-            headers: {}
-          });
+          const retryResponse = await postWithRetry(
+            url + "/api/order/place",
+            guestOrderData,
+            { headers: {} },
+            2,
+            700
+          )
           
           if (retryResponse.data.success) {
             const { trackingCode, message } = retryResponse.data;

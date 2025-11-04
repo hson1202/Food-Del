@@ -1,6 +1,7 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js"
 import { sendOrderConfirmation } from "../services/emailService.js"
+import eventBus from "../services/eventBus.js"
 
 // placing user order from frontend (hỗ trợ cả đăng nhập và không đăng nhập)
 const placeOrder = async (req,res) => {
@@ -80,6 +81,12 @@ const placeOrder = async (req,res) => {
         await newOrder.save();
         
         console.log(`✅ Order created successfully with ID: ${newOrder._id}, userId: ${validUserId}`);
+        // Emit internal event for realtime admin updates
+        try {
+            eventBus.emit('order:created', newOrder)
+        } catch (emitErr) {
+            console.log('⚠️ Failed to emit order:created event', emitErr?.message)
+        }
         
         // Nếu có userId hợp lệ (đăng nhập), xóa giỏ hàng
         if (validUserId) {
