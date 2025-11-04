@@ -46,20 +46,7 @@ const PlaceOrder = () => {
       return;
     }
 
-    // Validate phone number - minimum 10 digits, maximum unlimited
-    if (data.phone.length < 10) {
-      alert('Please enter a valid phone number (minimum 10 digits)');
-      setIsSubmitting(false);
-      return;
-    }
-    
-    // Remove any non-digit characters for validation
-    const phoneDigits = data.phone.replace(/\D/g, '');
-    if (phoneDigits.length < 10) {
-      alert('Please enter a valid phone number (minimum 10 digits)');
-      setIsSubmitting(false);
-      return;
-    }
+    // Phone: chỉ cần có giá trị, chấp nhận ký tự + và các ký tự phổ biến
     
     let orderItems = [];
     food_list.map((item) => {
@@ -344,10 +331,9 @@ const PlaceOrder = () => {
             value={data.phone} 
             type="tel" 
             placeholder={t('placeOrder.form.phone')}
-            pattern="[0-9]{10,20}"
-            title="Please enter a valid phone number (at least 10 digits, maximum unlimited)"
+            title="Phone number"
             autoComplete="tel"
-            maxLength="20"
+            maxLength="25"
           />
           
           {/* Thông báo về dò đơn hàng */}

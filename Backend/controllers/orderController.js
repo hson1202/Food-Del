@@ -92,24 +92,26 @@ const placeOrder = async (req,res) => {
             }
         }
 
-        // Gửi email xác nhận đơn hàng (nếu có email)
-        try {
-            const emailResult = await sendOrderConfirmation(newOrder);
-            if (emailResult && emailResult.success) {
-                console.log('✅ Order confirmation email sent successfully');
-            } else {
-                console.log('⚠️ Order confirmation email not sent:', emailResult?.message || 'Unknown error');
-            }
-        } catch (emailError) {
-            console.error('❌ Error sending order confirmation email:', emailError);
-            // Không fail order nếu chỉ lỗi gửi email
-        }
-
+        // Trả về ngay cho client để UX mượt mà
         res.json({
             success: true, 
             trackingCode: newOrder.trackingCode,
             orderId: newOrder._id,
             message: "Order placed successfully! You can track your order using the tracking code."
+        })
+
+        // Gửi email xác nhận đơn hàng ở chế độ nền (không block response)
+        setImmediate(async () => {
+            try {
+                const emailResult = await sendOrderConfirmation(newOrder)
+                if (emailResult && emailResult.success) {
+                    console.log('✅ Order confirmation email sent successfully (background)')
+                } else {
+                    console.log('⚠️ Order confirmation email not sent (background):', emailResult?.message || 'Unknown error')
+                }
+            } catch (emailError) {
+                console.error('❌ Error sending order confirmation email (background):', emailError)
+            }
         })
 
     } catch (error) {
