@@ -97,9 +97,6 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
                   <div key={idx} className="item-row">
                     <div className="item-main">
                       <span className="item-name">{it.name || 'Item'}</span>
-                      {it.options && (
-                        <small className="item-options">{JSON.stringify(it.options)}</small>
-                      )}
                     </div>
                     <div className="item-meta">
                       <span className="item-qty">x{it.quantity || 1}</span>

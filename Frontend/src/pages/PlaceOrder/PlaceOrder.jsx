@@ -427,6 +427,7 @@ const PlaceOrder = () => {
         trackingCode={orderSuccessData.trackingCode}
         phone={orderSuccessData.phone}
         orderAmount={orderSuccessData.orderAmount}
+        items={orderSuccessData.items}
         setCartItems={setCartItems}
       />
     </>

@@ -393,6 +393,14 @@ if (process.env.VERCEL !== "1") {
   app.listen(port, () => {
     console.log(`🚀 Server running on port ${port}`)
     console.log(`Environment: ${process.env.NODE_ENV || "development"}`)
+    // Email configuration audit on startup (non-blocking)
+    const hasEmailUser = !!process.env.EMAIL_USER
+    const hasEmailPass = !!(process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_PASS)
+    if (!hasEmailUser || !hasEmailPass) {
+      console.warn('⚠️ Email not configured: order/reservation/contact emails will NOT be sent.')
+      console.warn('   Set EMAIL_USER and EMAIL_PASSWORD (or EMAIL_APP_PASSWORD/EMAIL_PASS).')
+      console.warn('   Visit /debug-email to check current email configuration.')
+    }
   })
 }
 
