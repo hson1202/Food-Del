@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* Performance Optimized - Focus on User Experience */
+/* - Reduced animation durations for better performance
+   - Removed expensive backdrop-filter effects
+   - Simplified transitions to only animate necessary properties
+   - Optimized for lower-end devices */
+
 * {
   padding: 0;
   margin: 0;
@@ -13,6 +19,11 @@ body {
   overflow-x: hidden;
   color: #1e293b;
   line-height: 1.6;
+  padding-top: 60px; /* Space for fixed navbar */
+}
+
+body.sidebar-locked {
+  overflow: hidden;
 }
 
 a {
@@ -25,24 +36,6 @@ hr {
   height: 1px;
   background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
   margin: 0;
-}
-
-/* Main Layout */
-.app-content {
-  display: flex;
-  min-height: calc(100vh - 60px);
-  width: 100%;
-  overflow-x: hidden;
-}
-
-.app-content > *:nth-child(2) {
-  flex: 1;
-  overflow-x: auto;
-  min-width: 0;
-  width: 100%;
-  margin-left: 280px;
-  padding: 100px;
-  background: white;
 }
 
 /* Utility Classes */
@@ -70,16 +63,14 @@ hr {
 
 /* Card Styles */
 .card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: white;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 .card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
@@ -94,7 +85,7 @@ hr {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: opacity 0.15s ease, box-shadow 0.15s ease;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -106,7 +97,7 @@ hr {
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
+  opacity: 0.9;
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
@@ -117,7 +108,7 @@ hr {
 }
 
 .btn-success:hover {
-  transform: translateY(-1px);
+  opacity: 0.9;
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
@@ -128,7 +119,7 @@ hr {
 }
 
 .btn-warning:hover {
-  transform: translateY(-1px);
+  opacity: 0.9;
   box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
 }
 
@@ -139,7 +130,7 @@ hr {
 }
 
 .btn-danger:hover {
-  transform: translateY(-1px);
+  opacity: 0.9;
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
@@ -147,6 +138,7 @@ hr {
   background: transparent;
   border: 2px solid #e2e8f0;
   color: #64748b;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
 }
 
 .btn-outline:hover {
@@ -174,7 +166,7 @@ hr {
   border-radius: 12px;
   font-size: 14px;
   background: white;
-  transition: all 0.3s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-input:focus {
@@ -190,7 +182,7 @@ hr {
   font-size: 14px;
   background: white;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-select:focus {
@@ -281,23 +273,11 @@ hr {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .app-content > *:nth-child(2) {
-    margin-left: 260px;
-  }
-  
   .grid-cols-4 { grid-template-columns: repeat(3, 1fr); }
   .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .app-content {
-    flex-direction: column;
-  }
-  
-  .app-content > *:nth-child(2) {
-    margin-left: 0;
-  }
-  
   .grid-cols-4,
   .grid-cols-3,
   .grid-cols-2 { 
@@ -331,4 +311,29 @@ hr {
     padding: 8px 12px;
     font-size: 12px;
   }
+}
+
+/* Respect user's motion preferences for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ensure clickable elements remain interactive */
+button, a, [role="button"], input, select, textarea {
+  pointer-events: auto !important;
+}
+
+button, a, [role="button"] {
+  cursor: pointer !important;
+}
+
+input, select, textarea {
+  cursor: text !important;
 }

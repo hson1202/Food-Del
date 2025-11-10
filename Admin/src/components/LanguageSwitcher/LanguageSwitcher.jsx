@@ -27,8 +27,11 @@ const LanguageSwitcher = () => {
     <div className="language-switcher">
       <button 
         className="language-button"
-        onClick={() => setIsOpen(!isOpen)}
-        onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
       >
         <span className={currentLang.flag}></span>
         <span className="language-code">{currentLang.code}</span>
@@ -38,21 +41,33 @@ const LanguageSwitcher = () => {
         <div className="language-dropdown">
           <button
             className={`language-option ${i18n.language === 'vi' ? 'active' : ''}`}
-            onClick={() => changeLanguage('vi')}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              changeLanguage('vi');
+            }}
           >
             <span className="fi fi-vn"></span>
             <span className="language-name">{t('language.vietnamese')}</span>
           </button>
           <button
             className={`language-option ${i18n.language === 'en' ? 'active' : ''}`}
-            onClick={() => changeLanguage('en')}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              changeLanguage('en');
+            }}
           >
             <span className="fi fi-us"></span>
             <span className="language-name">{t('language.english')}</span>
           </button>
           <button
             className={`language-option ${i18n.language === 'sk' ? 'active' : ''}`}
-            onClick={() => changeLanguage('sk')}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              changeLanguage('sk');
+            }}
           >
             <span className="fi fi-sk"></span>
             <span className="language-name">{t('language.slovak')}</span>

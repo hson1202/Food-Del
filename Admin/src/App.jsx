@@ -22,7 +22,7 @@ const App = () => {
   const url = config.BACKEND_URL
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Desktop mặc định mở
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -30,14 +30,78 @@ const App = () => {
       setIsAuthenticated(true);
     }
     setLoading(false);
+    
+    // Load sidebar state from localStorage
+    const savedSidebarState = localStorage.getItem('sidebarOpen');
+    if (savedSidebarState !== null) {
+      setSidebarOpen(savedSidebarState === 'true');
+    }
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleKeyboard = (event) => {
+      // ESC to close sidebar
+      if (event.key === 'Escape' && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+      
+      // Ctrl/Cmd + B to toggle sidebar
+      if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
+        event.preventDefault();
+        setSidebarOpen(prev => !prev);
+      }
+      
+      // Alt + M to toggle sidebar (alternative)
+      if (event.altKey && event.key === 'm') {
+        event.preventDefault();
+        setSidebarOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyboard);
+    return () => {
+      window.removeEventListener('keydown', handleKeyboard);
+    };
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const updateBodyScrollLock = () => {
+      const shouldLock = sidebarOpen && window.matchMedia('(max-width: 768px)').matches;
+      document.body.classList.toggle('sidebar-locked', shouldLock);
+    };
+
+    updateBodyScrollLock();
+    window.addEventListener('resize', updateBodyScrollLock);
+
+    return () => {
+      document.body.classList.remove('sidebar-locked');
+      window.removeEventListener('resize', updateBodyScrollLock);
+    };
+  }, [sidebarOpen]);
+
   const handleMenuToggle = () => {
-    setSidebarOpen(!sidebarOpen);
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    // Save state to localStorage
+    localStorage.setItem('sidebarOpen', newState.toString());
   };
 
   const handleSidebarClose = () => {
     setSidebarOpen(false);
+  };
+
+  const handleContentInteraction = () => {
+    if (sidebarOpen) {
+      setSidebarOpen(false);
+    }
   };
 
   if (loading) {
@@ -67,13 +131,29 @@ const App = () => {
   }
 
   return (
-    <div>
-      <ToastContainer/>
-      <Navbar setIsAuthenticated={setIsAuthenticated} onMenuToggle={handleMenuToggle}/>
-      <hr/>
-      <div className="app-content">
+    <div className={`app-shell ${sidebarOpen ? 'app-shell--sidebar-open' : ''}`}>
+      <ToastContainer 
+        position="top-right"
+        style={{ marginTop: '70px' }}
+        toastStyle={{ 
+          fontSize: '14px',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+        }}
+      />
+      <Navbar
+        setIsAuthenticated={setIsAuthenticated}
+        onMenuToggle={handleMenuToggle}
+        isSidebarOpen={sidebarOpen}
+      />
+      <div className={`app-content ${sidebarOpen ? '' : 'sidebar-collapsed'}`}>
         <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose}/>
-        <Routes>
+        <main
+          className="app-main"
+          role="main"
+          onClick={handleContentInteraction}
+        >
+          <Routes>
           <Route path='/admin' element={<Dashboard url={url}/>}/>
           <Route path='/admin/orders' element={<Orders url={url}/>}/>
           <Route path='/admin/category' element={<Category url={url}/>}/>
@@ -84,9 +164,10 @@ const App = () => {
           <Route path='/admin/reservations' element={<Reservations url={url}/>}/>
           <Route path='/admin/messages' element={<Messages url={url}/>}/>
           <Route path='/admin/add' element={<Add url={url}/>}/>
-          <Route path='/admin/login' element={<Navigate to="/admin" replace />}/>
-          <Route path='*' element={<Navigate to="/admin" replace />}/>
-        </Routes>
+            <Route path='/admin/login' element={<Navigate to="/admin" replace />}/>
+            <Route path='*' element={<Navigate to="/admin" replace />}/>
+          </Routes>
+        </main>
       </div>
     </div>
   )

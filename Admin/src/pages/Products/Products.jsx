@@ -23,7 +23,7 @@ const Products = ({ url }) => {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(20)
+  const [itemsPerPage, setItemsPerPage] = useState(12)
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const INITIAL_EDIT_FORM = {
@@ -1662,8 +1662,10 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
                           : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='
                     }
                     alt={product.name || 'Product'} 
+                    loading="lazy"
+                    decoding="async"
                     onError={(e) => { e.target.onerror = null; e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBFcnJvcjwvdGV4dD48L3N2Zz4='; }}
-                    style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                    style={{ width: '100%', height: '180px', objectFit: 'cover' }}
                   />
                   <div className="product-overlay">
                   <button onClick={() => handleStatusToggle(product._id, product.status)} className="status-toggle">
@@ -1866,6 +1868,7 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
               }}
             >
               <option value={10}>10</option>
+              <option value={12}>12</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
               <option value={100}>100</option>

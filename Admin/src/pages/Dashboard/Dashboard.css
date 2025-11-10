@@ -741,7 +741,273 @@
 @media (max-width: 768px) {
   .dashboard {
     padding: 16px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   }
+  
+  .dashboard-header {
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .header-text h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  
+  .header-text p {
+    font-size: 14px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .refresh-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+    min-height: 44px;
+    width: auto;
+    max-width: 200px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .stat-card {
+    padding: 20px;
+    border-radius: 16px;
+    min-height: auto;
+  }
+  
+  .stat-card h3 {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  
+  .stat-card p {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  
+  .stat-details {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .detail-item {
+    font-size: 13px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .stat-trend {
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  
+  .time-stats-grid {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .time-stat-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  
+  .time-stat-card h4 {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  
+  .time-stat-card p {
+    font-size: 13px;
+  }
+  
+  .quick-actions {
+    padding: 20px;
+    border-radius: 16px;
+  }
+  
+  .quick-actions h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  
+  .actions-grid {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 12px;
+  }
+  
+  .action-btn {
+    padding: 16px;
+    border-radius: 14px;
+    font-size: 15px;
+    min-height: 60px;
+    text-align: left;
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
+    touch-action: manipulation;
+  }
+  
+  .action-btn:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  .action-btn span {
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  
+  .action-btn strong {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  
+  .action-btn small {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 12px;
+  }
+  
+  .dashboard-header {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+  
+  .header-text h1 {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  
+  .header-text p {
+    font-size: 13px;
+  }
+  
+  .refresh-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    min-height: 40px;
+  }
+  
+  .stats-grid {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  
+  .stat-card h3 {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+  
+  .stat-card p {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  
+  .detail-item {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+  
+  .stat-trend {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .time-stats-grid {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .time-stat-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+  
+  .time-stat-card h4 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  
+  .time-stat-card p {
+    font-size: 12px;
+  }
+  
+  .quick-actions {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  
+  .quick-actions h2 {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+  
+  .actions-grid {
+    gap: 10px;
+  }
+  
+  .action-btn {
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    min-height: 56px;
+  }
+  
+  .action-btn span {
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  
+  .action-btn strong {
+    font-size: 14px;
+    margin-bottom: 3px;
+  }
+  
+  .action-btn small {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+}
   
   .dashboard-header {
     padding: 20px;

@@ -324,6 +324,8 @@
 
 .status-tabs {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   background: #f8fafc;
   border-radius: 12px;
@@ -499,7 +501,7 @@
 
 .orders-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 24px;
   max-width: 100%;
 }
@@ -1185,6 +1187,49 @@
     padding: 16px;
   }
   
+  /* Mobile Touch Optimizations */
+  .order-card {
+    -webkit-tap-highlight-color: rgba(255, 107, 53, 0.1);
+    touch-action: manipulation;
+  }
+  
+  .order-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  .view-details-btn,
+  .status-select,
+  .refresh-btn,
+  .clear-search,
+  .manual-refresh-btn {
+    -webkit-tap-highlight-color: rgba(255, 107, 53, 0.2);
+    touch-action: manipulation;
+    min-height: 44px;
+  }
+  
+  .view-details-btn:active,
+  .refresh-btn:active,
+  .clear-search:active,
+  .manual-refresh-btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+  
+  .status-tab {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: rgba(255, 107, 53, 0.2);
+    touch-action: manipulation;
+  }
+  
+  .status-tab:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+  
   .orders-header {
     padding: 20px;
     margin-bottom: 20px;
@@ -1314,6 +1359,10 @@
     gap: 16px;
   }
   
+  .orders-controls > * {
+    width: 100%;
+  }
+  
   .search-section {
     width: 100%;
   }
@@ -1389,6 +1438,15 @@
   
   .stat-card {
     padding: 12px;
+  }
+  
+  .status-tabs {
+    gap: 6px;
+  }
+  
+  .status-tab {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
   }
   
   .stat-content h3 {

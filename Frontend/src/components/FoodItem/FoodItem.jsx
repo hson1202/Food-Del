@@ -205,6 +205,8 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
           src={imgSrc}
           alt={getLocalizedName()}
           className="food-item-image"
+          loading="lazy"
+          decoding="async"
         />
         
         {/* Promotion Badge */}

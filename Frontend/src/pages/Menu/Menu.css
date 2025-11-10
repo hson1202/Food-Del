@@ -3,7 +3,10 @@
   background: 
     linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%),
     url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><pattern id="grain" width="200" height="200" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="2" fill="white" opacity="0.05"/><circle cx="150" cy="150" r="1.5" fill="white" opacity="0.05"/><circle cx="100" cy="20" r="1" fill="white" opacity="0.05"/><circle cx="20" cy="120" r="1" fill="white" opacity="0.05"/><circle cx="180" cy="80" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="200" height="200" fill="url(%23grain)"/></svg>');
-  background-attachment: fixed;
+  /* Thay đổi từ fixed sang scroll để giảm lag */
+  background-attachment: scroll;
+  /* Tối ưu rendering */
+  contain: layout style paint;
 }
 
 /* Hero Section */
@@ -354,58 +357,69 @@
   transition: all 0.3s ease;
 }
 
-/* Food Section */
+/* Food Section - Optimized */
 .food-section {
   padding: 20px 20px;
   max-width: 1200px;
   margin: 0 auto;
+  /* Tối ưu rendering */
+  contain: layout style paint;
 }
 
 
 
-/* Food Grid - Fixed version */
+/* Food Grid - Optimized version for 4 items per row */
 .food-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 25px;
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-  padding: 30px 0;
+  gap: 20px;
+  /* Giảm animation để cải thiện performance */
+  animation: fadeInUp 0.4s ease-out both;
+  padding: 20px 0;
   max-width: 1200px;
   margin: 0 auto;
+  /* Tối ưu rendering */
+  will-change: transform;
+  contain: layout style paint;
 }
 
 .food-item-wrapper {
   opacity: 0;
-  transform: translateY(30px);
-  animation: staggeredFadeIn 0.6s ease-out forwards;
-  transition: all 0.3s ease;
-  height: 100%; /* Đảm bảo wrapper có chiều cao đầy đủ */
+  transform: translateY(20px);
+  /* Giảm thời gian animation để cải thiện performance */
+  animation: staggeredFadeIn 0.3s ease-out forwards;
+  transition: transform 0.2s ease;
+  height: 100%;
+  /* Tối ưu rendering */
+  will-change: transform, opacity;
+  contain: layout style paint;
 }
 
-.food-item-wrapper:nth-child(1) { animation-delay: 0.1s; }
-.food-item-wrapper:nth-child(2) { animation-delay: 0.2s; }
-.food-item-wrapper:nth-child(3) { animation-delay: 0.3s; }
-.food-item-wrapper:nth-child(4) { animation-delay: 0.4s; }
-.food-item-wrapper:nth-child(5) { animation-delay: 0.5s; }
-.food-item-wrapper:nth-child(6) { animation-delay: 0.6s; }
-.food-item-wrapper:nth-child(7) { animation-delay: 0.7s; }
-.food-item-wrapper:nth-child(8) { animation-delay: 0.8s; }
-.food-item-wrapper:nth-child(9) { animation-delay: 0.9s; }
-.food-item-wrapper:nth-child(10) { animation-delay: 1.0s; }
+/* Giảm animation delay để tăng tốc độ hiển thị */
+.food-item-wrapper:nth-child(1) { animation-delay: 0.05s; }
+.food-item-wrapper:nth-child(2) { animation-delay: 0.1s; }
+.food-item-wrapper:nth-child(3) { animation-delay: 0.15s; }
+.food-item-wrapper:nth-child(4) { animation-delay: 0.2s; }
+.food-item-wrapper:nth-child(5) { animation-delay: 0.25s; }
+.food-item-wrapper:nth-child(6) { animation-delay: 0.3s; }
+.food-item-wrapper:nth-child(7) { animation-delay: 0.35s; }
+.food-item-wrapper:nth-child(8) { animation-delay: 0.4s; }
+.food-item-wrapper:nth-child(9) { animation-delay: 0.45s; }
+.food-item-wrapper:nth-child(10) { animation-delay: 0.5s; }
 
 @keyframes staggeredFadeIn {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.95);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
 .food-item-wrapper:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
 }
 
 /* Food Item - Fixed layout - CHỈ ÁP DỤNG TRÊN DESKTOP */
@@ -413,23 +427,25 @@
   .food-item {
     background: white;
     border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    /* Giảm transition time để cải thiện performance */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 1px solid rgba(0,0,0,0.05);
     position: relative;
     overflow: hidden;
-    /* Flexbox layout để tạo cấu trúc đồng đều */
     display: flex;
     flex-direction: column;
-    height: 100%; /* Chiều cao đầy đủ */
-    min-height: 380px; /* Chiều cao tối thiểu cố định */
+    height: 100%;
+    min-height: 360px; /* Giảm chiều cao tối thiểu */
+    /* Tối ưu rendering */
+    will-change: transform;
+    contain: layout style paint;
   }
 
   .food-item:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-    border-color: rgba(102, 126, 234, 0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
   }
 
   .food-item::before {
@@ -449,27 +465,33 @@
     transform: scaleX(1);
   }
 
-  /* Food Image Container */
+  /* Food Image Container - Optimized */
   .food-image-container {
     position: relative;
     width: 100%;
-    height: 180px; /* Chiều cao cố định cho hình ảnh */
+    height: 160px; /* Giảm chiều cao để tối ưu */
     overflow: hidden;
     border-radius: 12px;
-    margin-bottom: 15px;
-    flex-shrink: 0; /* Không co lại */
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    /* Tối ưu rendering cho images */
+    contain: layout style paint;
   }
 
   .food-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Giảm transition time */
+    transition: transform 0.2s ease;
     border-radius: 12px;
+    /* Tối ưu image rendering */
+    will-change: transform;
+    backface-visibility: hidden;
   }
 
   .food-item:hover img {
-    transform: scale(1.1);
+    transform: scale(1.05); /* Giảm scale để mượt hơn */
   }
 
   /* Food Content - Flexible layout */
@@ -681,20 +703,21 @@
   }
 }
 
-/* Desktop to Large Tablet */
+/* Desktop to Large Tablet - Giữ 4 cột để tránh lag */
 @media (max-width: 1024px) {
   .food-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 22px;
-    max-width: 900px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    max-width: 1000px;
   }
   
   .food-item {
-    min-height: 360px;
+    min-height: 340px;
+    padding: 14px;
   }
   
   .food-image-container {
-    height: 160px;
+    height: 140px;
   }
 }
 
@@ -742,9 +765,9 @@
 
   
   .food-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    padding: 25px 0;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    padding: 20px 0;
   }
   
   .food-item {
