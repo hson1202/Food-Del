@@ -1,7 +1,9 @@
 import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
-// Create transporter (you'll need to configure this with your email provider)
+// Create transporter (supports Gmail, Resend, and custom SMTP)
 export const createTransporter = () => {
+  const resendKey = process.env.RESEND_API_KEY
   const user = process.env.EMAIL_USER
   const pass = process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_PASS
   const host = process.env.EMAIL_HOST
@@ -9,10 +11,41 @@ export const createTransporter = () => {
   const service = process.env.EMAIL_SERVICE || 'gmail'
   const secure = process.env.EMAIL_SECURE === 'true' || (port === 465)
 
+  // Priority 1: Resend (recommended for production)
+  if (resendKey) {
+    try {
+      const resend = new Resend(resendKey)
+      console.log('✅ Email configured via Resend')
+      console.log(`   API Key: ${resendKey.substring(0, 10)}...`)
+      console.log(`   From: ${user || 'noreply@yourdomain.com'}`)
+      
+      // Return Resend instance with nodemailer-like interface
+      return {
+        isResend: true,
+        resend,
+        sendMail: async (mailOptions) => {
+          const result = await resend.emails.send({
+            from: mailOptions.from || user || 'noreply@yourdomain.com',
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            html: mailOptions.html,
+            text: mailOptions.text
+          })
+          return { messageId: result.data?.id || result.id }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error creating Resend client:', error.message)
+      return null
+    }
+  }
+
+  // Priority 2: Gmail/SMTP (for development or if Resend not available)
   if (!user || !pass) {
     console.log('⚠️ Email configuration not found. Emails will not be sent.')
-    console.log('⚠️ Required: EMAIL_USER and one of EMAIL_PASSWORD / EMAIL_APP_PASSWORD / EMAIL_PASS')
+    console.log('⚠️ Required: RESEND_API_KEY (recommended) or EMAIL_USER + EMAIL_PASSWORD')
     console.log('📋 Current config:')
+    console.log('   - RESEND_API_KEY:', resendKey ? '✓ Set' : '✗ Missing')
     console.log('   - EMAIL_USER:', user ? '✓ Set' : '✗ Missing')
     console.log('   - EMAIL_PASSWORD:', pass ? '✓ Set' : '✗ Missing')
     console.log('   - ADMIN_EMAIL:', process.env.ADMIN_EMAIL ? '✓ Set' : '✗ Missing')
@@ -28,14 +61,14 @@ export const createTransporter = () => {
         secure,
         auth: { user, pass }
       })
-      console.log('✅ Email transporter configured via host/port')
+      console.log('✅ Email transporter configured via SMTP')
       console.log(`   Host: ${host}:${port || 587}`)
     } else {
       transporter = nodemailer.createTransport({
         service,
         auth: { user, pass }
       })
-      console.log(`✅ Email transporter configured via service: ${service}`)
+      console.log(`✅ Email transporter configured via ${service}`)
       console.log(`   From: ${user}`)
     }
     return transporter
@@ -55,17 +88,31 @@ export const testEmailService = async () => {
       return {
         success: false,
         configured: false,
-        message: 'Email service not configured. Please set EMAIL_USER and EMAIL_PASSWORD in environment variables.'
+        message: 'Email service not configured. Please set RESEND_API_KEY or EMAIL_USER + EMAIL_PASSWORD in environment variables.'
       }
     }
 
-    // Verify connection
+    // Resend doesn't need verify (API key is verified on first send)
+    if (transporter.isResend) {
+      console.log('✅ Resend email service ready!')
+      return {
+        success: true,
+        configured: true,
+        provider: 'Resend',
+        message: 'Resend email service is configured correctly',
+        from: process.env.EMAIL_USER || 'noreply@yourdomain.com',
+        adminEmail: process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@yourdomain.com'
+      }
+    }
+
+    // Verify SMTP connection (for Gmail/custom SMTP)
     await transporter.verify()
     
     console.log('✅ Email service connection verified successfully!')
     return {
       success: true,
       configured: true,
+      provider: process.env.EMAIL_SERVICE || 'SMTP',
       message: 'Email service is working correctly',
       from: process.env.EMAIL_USER,
       adminEmail: process.env.ADMIN_EMAIL || process.env.EMAIL_USER
