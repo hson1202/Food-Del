@@ -11,6 +11,7 @@ import Permissions from './pages/Permissions/Permissions'
 import Blog from './pages/Blog/Blog'
 import Reservations from './pages/Reservations/Reservations'
 import Messages from './pages/Messages/Messages'
+import EmailTest from './pages/EmailTest/EmailTest'
 import Add from './pages/Add/Add'
 import Login from './pages/Login/Login'
 import { ToastContainer } from 'react-toastify';
@@ -163,6 +164,7 @@ const App = () => {
           <Route path='/admin/blog' element={<Blog url={url}/>}/>
           <Route path='/admin/reservations' element={<Reservations url={url}/>}/>
           <Route path='/admin/messages' element={<Messages url={url}/>}/>
+          <Route path='/admin/email-test' element={<EmailTest url={url}/>}/>
           <Route path='/admin/add' element={<Add url={url}/>}/>
             <Route path='/admin/login' element={<Navigate to="/admin" replace />}/>
             <Route path='*' element={<Navigate to="/admin" replace />}/>

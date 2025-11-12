@@ -16,6 +16,7 @@ import contactMessageRouter from "./routes/contactMessageRoute.js"
 import uploadRouter from "./routes/uploadRoute.js"
 import localUploadRouter from "./routes/localUploadRoute.js"
 import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
+import emailTestRouter from "./routes/emailTestRoute.js"
 import eventBus from "./services/eventBus.js"
 
 const app = express()
@@ -81,6 +82,7 @@ app.use("/api/category", categoryRouter)
 app.use("/api/blog", blogRouter)
 app.use("/api/reservation", reservationRouter)
 app.use("/api/contact", contactMessageRouter)
+app.use("/api/email", emailTestRouter)
 app.use("/api/upload", localUploadRouter)
 app.use("/api/upload-cloud", uploadRouter)  // Keep Cloudinary as backup
 app.use("/api/cloudinary", cloudinarySignRouter)
@@ -390,17 +392,40 @@ const port = process.env.PORT || 4000
 
 // Start server for both development and production (Render needs this)
 if (process.env.VERCEL !== "1") {
-  app.listen(port, () => {
+  app.listen(port, async () => {
     console.log(`🚀 Server running on port ${port}`)
     console.log(`Environment: ${process.env.NODE_ENV || "development"}`)
-    // Email configuration audit on startup (non-blocking)
-    const hasEmailUser = !!process.env.EMAIL_USER
-    const hasEmailPass = !!(process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_PASS)
-    if (!hasEmailUser || !hasEmailPass) {
-      console.warn('⚠️ Email not configured: order/reservation/contact emails will NOT be sent.')
-      console.warn('   Set EMAIL_USER and EMAIL_PASSWORD (or EMAIL_APP_PASSWORD/EMAIL_PASS).')
-      console.warn('   Visit /debug-email to check current email configuration.')
+    
+    // Email service health check on startup (non-blocking)
+    console.log('\n📧 Checking email service configuration...')
+    try {
+      const { testEmailService } = await import("./services/emailService.js")
+      const emailStatus = await testEmailService()
+      
+      if (emailStatus.success) {
+        console.log('✅ Email service is configured and working!')
+        console.log(`   From: ${emailStatus.from}`)
+        console.log(`   Admin: ${emailStatus.adminEmail}`)
+        console.log('   Orders and notifications will be sent via email.')
+      } else if (!emailStatus.configured) {
+        console.warn('⚠️ Email service NOT configured!')
+        console.warn('   Order/reservation/contact emails will NOT be sent.')
+        console.warn('   To fix:')
+        console.warn('   1. Set EMAIL_USER in environment variables')
+        console.warn('   2. Set EMAIL_PASSWORD (or EMAIL_APP_PASSWORD) in environment variables')
+        console.warn('   3. Set ADMIN_EMAIL to receive admin notifications')
+        console.warn('   4. Restart server')
+        console.warn('   Visit /api/email/status for detailed configuration status.')
+      } else {
+        console.error('❌ Email service configured but verification FAILED!')
+        console.error(`   Error: ${emailStatus.message}`)
+        console.error('   Please check your email credentials.')
+        console.error('   Visit /api/email/status for detailed configuration status.')
+      }
+    } catch (error) {
+      console.error('❌ Error checking email service:', error.message)
     }
+    console.log('') // Empty line for readability
   })
 }
 

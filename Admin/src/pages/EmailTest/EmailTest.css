@@ -1,0 +1,366 @@
+.email-test-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.email-test-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.email-test-header h2 {
+  font-size: 28px;
+  color: #333;
+  margin: 0;
+}
+
+.refresh-btn {
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.refresh-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.email-test-loading {
+  text-align: center;
+  padding: 50px;
+  font-size: 18px;
+  color: #666;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.status-card.configured {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-left: 5px solid #27ae60;
+}
+
+.status-card.not-configured {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border-left: 5px solid #f39c12;
+}
+
+.status-icon {
+  font-size: 48px;
+  margin-right: 20px;
+}
+
+.status-content h3 {
+  margin: 0 0 10px 0;
+  font-size: 22px;
+  color: #333;
+}
+
+.status-content p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.config-details {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.config-details h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.config-key {
+  font-weight: 600;
+  color: #555;
+}
+
+.config-value {
+  font-family: 'Courier New', monospace;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.config-value.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.config-value.warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.test-section,
+.send-test-section {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.test-section h3,
+.send-test-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.test-section p,
+.send-test-section p {
+  margin: 0 0 20px 0;
+  color: #666;
+}
+
+.test-btn,
+.send-btn {
+  padding: 12px 30px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.test-btn:hover,
+.send-btn:hover {
+  background: #229954;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+
+.test-btn:disabled,
+.send-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.test-email-form {
+  display: flex;
+  gap: 10px;
+}
+
+.test-email-input {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.test-email-input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.test-email-input:disabled {
+  background: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.test-result {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.test-result.success {
+  background: #d4edda;
+  border-left: 4px solid #28a745;
+}
+
+.test-result.error {
+  background: #f8d7da;
+  border-left: 4px solid #dc3545;
+}
+
+.result-icon {
+  font-size: 24px;
+}
+
+.result-message {
+  color: #333;
+  font-size: 15px;
+}
+
+.recommendations {
+  background: #fff3cd;
+  padding: 25px;
+  border-radius: 12px;
+  border-left: 5px solid #ffc107;
+  margin-bottom: 30px;
+}
+
+.recommendations h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.recommendations ol {
+  margin: 0 0 20px 0;
+  padding-left: 20px;
+}
+
+.recommendations li {
+  margin-bottom: 8px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.help-links {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.help-links a {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.help-links a:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.usage-info {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.usage-info h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.usage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.usage-item {
+  display: flex;
+  gap: 15px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.usage-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.usage-content h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.usage-content ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.usage-content li {
+  margin-bottom: 5px;
+  color: #666;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .email-test-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .status-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .status-icon {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+  
+  .config-grid,
+  .usage-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .test-email-form {
+    flex-direction: column;
+  }
+  
+  .help-links {
+    flex-direction: column;
+  }
+  
+  .help-links a {
+    text-align: center;
+  }
+}
+

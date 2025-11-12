@@ -1,6 +1,6 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js"
-import { sendOrderConfirmation } from "../services/emailService.js"
+import { sendOrderConfirmation, sendAdminOrderNotification } from "../services/emailService.js"
 import eventBus from "../services/eventBus.js"
 
 // placing user order from frontend (hỗ trợ cả đăng nhập và không đăng nhập)
@@ -110,14 +110,23 @@ const placeOrder = async (req,res) => {
         // Gửi email xác nhận đơn hàng ở chế độ nền (không block response)
         setImmediate(async () => {
             try {
+                // Gửi email cho khách hàng
                 const emailResult = await sendOrderConfirmation(newOrder)
                 if (emailResult && emailResult.success) {
                     console.log('✅ Order confirmation email sent successfully (background)')
                 } else {
                     console.log('⚠️ Order confirmation email not sent (background):', emailResult?.message || 'Unknown error')
                 }
+                
+                // Gửi email thông báo cho admin
+                const adminEmailResult = await sendAdminOrderNotification(newOrder)
+                if (adminEmailResult && adminEmailResult.success) {
+                    console.log('✅ Admin order notification email sent successfully (background)')
+                } else {
+                    console.log('⚠️ Admin order notification email not sent (background):', adminEmailResult?.message || 'Unknown error')
+                }
             } catch (emailError) {
-                console.error('❌ Error sending order confirmation email (background):', emailError)
+                console.error('❌ Error sending emails (background):', emailError)
             }
         })
 

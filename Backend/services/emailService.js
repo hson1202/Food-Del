@@ -12,6 +12,10 @@ export const createTransporter = () => {
   if (!user || !pass) {
     console.log('⚠️ Email configuration not found. Emails will not be sent.')
     console.log('⚠️ Required: EMAIL_USER and one of EMAIL_PASSWORD / EMAIL_APP_PASSWORD / EMAIL_PASS')
+    console.log('📋 Current config:')
+    console.log('   - EMAIL_USER:', user ? '✓ Set' : '✗ Missing')
+    console.log('   - EMAIL_PASSWORD:', pass ? '✓ Set' : '✗ Missing')
+    console.log('   - ADMIN_EMAIL:', process.env.ADMIN_EMAIL ? '✓ Set' : '✗ Missing')
     return null
   }
 
@@ -25,17 +29,159 @@ export const createTransporter = () => {
         auth: { user, pass }
       })
       console.log('✅ Email transporter configured via host/port')
+      console.log(`   Host: ${host}:${port || 587}`)
     } else {
       transporter = nodemailer.createTransport({
         service,
         auth: { user, pass }
       })
       console.log(`✅ Email transporter configured via service: ${service}`)
+      console.log(`   From: ${user}`)
     }
     return transporter
   } catch (error) {
     console.error('❌ Error creating email transporter:', error.message)
+    console.error('   Full error:', error)
     return null
+  }
+}
+
+// Test email service connection
+export const testEmailService = async () => {
+  try {
+    const transporter = createTransporter()
+    
+    if (!transporter) {
+      return {
+        success: false,
+        configured: false,
+        message: 'Email service not configured. Please set EMAIL_USER and EMAIL_PASSWORD in environment variables.'
+      }
+    }
+
+    // Verify connection
+    await transporter.verify()
+    
+    console.log('✅ Email service connection verified successfully!')
+    return {
+      success: true,
+      configured: true,
+      message: 'Email service is working correctly',
+      from: process.env.EMAIL_USER,
+      adminEmail: process.env.ADMIN_EMAIL || process.env.EMAIL_USER
+    }
+  } catch (error) {
+    console.error('❌ Email service verification failed:', error.message)
+    console.error('   Error details:', error)
+    return {
+      success: false,
+      configured: true,
+      message: `Email service configured but verification failed: ${error.message}`,
+      error: error.message,
+      errorCode: error.code
+    }
+  }
+}
+
+// Send test email
+export const sendTestEmail = async (toEmail) => {
+  try {
+    const transporter = createTransporter()
+    
+    if (!transporter) {
+      return {
+        success: false,
+        message: 'Email service not configured'
+      }
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: toEmail,
+      subject: '✅ VIET BOWLS - Email Service Test',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Email Test</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: #27ae60; color: white; padding: 20px; text-align: center; border-radius: 8px;">
+            <h1>✅ Email Service Working!</h1>
+          </div>
+          
+          <div style="background: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 8px;">
+            <h2>🎉 Success!</h2>
+            <p>This is a test email from <strong>VIET BOWLS Backend</strong>.</p>
+            <p>If you're receiving this email, it means the email service is configured correctly and working.</p>
+            
+            <div style="background: white; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #27ae60;">
+              <h3>Email Configuration:</h3>
+              <p><strong>From:</strong> ${process.env.EMAIL_USER}</p>
+              <p><strong>To:</strong> ${toEmail}</p>
+              <p><strong>Service:</strong> ${process.env.EMAIL_SERVICE || 'gmail'}</p>
+              <p><strong>Admin Email:</strong> ${process.env.ADMIN_EMAIL || process.env.EMAIL_USER}</p>
+            </div>
+            
+            <p><strong>What this means:</strong></p>
+            <ul>
+              <li>✅ Email credentials are valid</li>
+              <li>✅ SMTP connection is working</li>
+              <li>✅ Order confirmation emails will be sent</li>
+              <li>✅ Admin notification emails will be sent</li>
+            </ul>
+            
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">
+              <em>This is an automated test email from VIET BOWLS Backend.<br>
+              Timestamp: ${new Date().toLocaleString()}</em>
+            </p>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+✅ VIET BOWLS - Email Service Test
+
+Success! This is a test email from VIET BOWLS Backend.
+
+If you're receiving this email, it means the email service is configured correctly and working.
+
+Email Configuration:
+- From: ${process.env.EMAIL_USER}
+- To: ${toEmail}
+- Service: ${process.env.EMAIL_SERVICE || 'gmail'}
+- Admin Email: ${process.env.ADMIN_EMAIL || process.env.EMAIL_USER}
+
+What this means:
+✅ Email credentials are valid
+✅ SMTP connection is working
+✅ Order confirmation emails will be sent
+✅ Admin notification emails will be sent
+
+---
+This is an automated test email from VIET BOWLS Backend.
+Timestamp: ${new Date().toLocaleString()}
+      `
+    }
+    
+    const result = await transporter.sendMail(mailOptions)
+    console.log('✅ Test email sent successfully:', result.messageId)
+    
+    return {
+      success: true,
+      message: 'Test email sent successfully',
+      messageId: result.messageId,
+      to: toEmail
+    }
+  } catch (error) {
+    console.error('❌ Error sending test email:', error)
+    return {
+      success: false,
+      message: `Failed to send test email: ${error.message}`,
+      error: error.message,
+      errorCode: error.code
+    }
   }
 }
 
@@ -210,6 +356,39 @@ export const sendOrderConfirmation = async (order) => {
     
   } catch (error) {
     console.error('❌ Error sending order confirmation email:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Send admin notification for new order
+export const sendAdminOrderNotification = async (order) => {
+  try {
+    const transporter = createTransporter()
+    
+    // If no transporter available, return success but log warning
+    if (!transporter) {
+      console.log('⚠️ Admin order notification not sent: Email service not configured');
+      return { 
+        success: true, 
+        messageId: 'email_not_configured',
+        message: 'Admin order notification not sent (email service not configured)'
+      }
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+      subject: `🚨 New Order #${order.trackingCode} - ${order.customerInfo.name} - VIET BOWLS`,
+      html: generateAdminOrderNotificationEmailHTML(order),
+      text: generateAdminOrderNotificationEmailText(order)
+    }
+    
+    const result = await transporter.sendMail(mailOptions)
+    console.log('✅ Admin order notification email sent successfully:', result.messageId)
+    return { success: true, messageId: result.messageId }
+    
+  } catch (error) {
+    console.error('❌ Error sending admin order notification email:', error)
     return { success: false, error: error.message }
   }
 }
@@ -1061,6 +1240,244 @@ The VIET BOWLS Team
 
 ---
 This is an automated email. Please do not reply directly to this message.
+© 2024 VIET BOWLS. All rights reserved.
+  `
+}
+
+// Generate HTML email content for admin order notification
+const generateAdminOrderNotificationEmailHTML = (order) => {
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+  
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount)
+  }
+  
+  const getOrderTypeColor = (orderType) => {
+    return orderType === 'registered' ? '#27ae60' : '#3498db'
+  }
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>New Order Notification - VIET BOWLS</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #e74c3c; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+        .order-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #e74c3c; }
+        .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .label { font-weight: bold; color: #555; }
+        .value { color: #333; }
+        .tracking-code { background: #e74c3c; color: white; padding: 15px; text-align: center; border-radius: 8px; font-size: 24px; font-weight: bold; margin: 20px 0; }
+        .items-list { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .item-name { font-weight: bold; }
+        .item-quantity { color: #666; }
+        .item-price { color: #333; }
+        .total-section { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border: 2px solid #ffc107; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 16px; }
+        .total-final { font-size: 22px; font-weight: bold; color: #e74c3c; }
+        .address-section { background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .customer-section { background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; color: white; font-size: 12px; font-weight: bold; }
+        .urgent-notice { background: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🚨 NEW ORDER ALERT</h1>
+          <h2>VIET BOWLS</h2>
+        </div>
+        
+        <div class="content">
+          <div class="urgent-notice">
+            <h2 style="margin: 0; color: #e74c3c;">⚡ ACTION REQUIRED - NEW ORDER RECEIVED</h2>
+            <p style="margin: 10px 0 0 0;">Please prepare this order immediately!</p>
+          </div>
+          
+          <div class="tracking-code">
+            Order #${order.trackingCode}
+          </div>
+          
+          <div class="customer-section">
+            <h3>👤 Customer Information</h3>
+            <div class="detail-row">
+              <span class="label">Name:</span>
+              <span class="value">${order.customerInfo.name}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Phone:</span>
+              <span class="value">${order.customerInfo.phone}</span>
+            </div>
+            ${order.customerInfo.email ? `
+            <div class="detail-row">
+              <span class="label">Email:</span>
+              <span class="value">${order.customerInfo.email}</span>
+            </div>
+            ` : ''}
+            <div class="detail-row">
+              <span class="label">Customer Type:</span>
+              <span class="value">
+                <span class="badge" style="background-color: ${getOrderTypeColor(order.orderType)};">
+                  ${order.orderType === 'registered' ? '✓ REGISTERED USER' : '👤 GUEST ORDER'}
+                </span>
+              </span>
+            </div>
+          </div>
+          
+          <div class="order-details">
+            <h3>📦 Order Details</h3>
+            <div class="detail-row">
+              <span class="label">Order Date:</span>
+              <span class="value">${formatDate(order.createdAt || order.date)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Payment Method:</span>
+              <span class="value">💵 Cash on Delivery (COD)</span>
+            </div>
+          </div>
+          
+          <div class="items-list">
+            <h3>🍽️ Order Items</h3>
+            ${order.items.map(item => `
+              <div class="item-row">
+                <div>
+                  <span class="item-name">${item.name}</span>
+                  <span class="item-quantity"> x ${item.quantity}</span>
+                </div>
+                <span class="item-price">${formatCurrency(item.price * item.quantity)}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="total-section">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span>${formatCurrency(order.amount - 2)}</span>
+            </div>
+            <div class="total-row">
+              <span>Delivery Fee:</span>
+              <span>${formatCurrency(2)}</span>
+            </div>
+            <div class="total-row total-final">
+              <span>TOTAL AMOUNT:</span>
+              <span>${formatCurrency(order.amount)}</span>
+            </div>
+          </div>
+          
+          <div class="address-section">
+            <h3>📍 Delivery Address</h3>
+            <p>
+              <strong>${order.address.street}</strong><br>
+              ${order.address.city}, ${order.address.state}<br>
+              ${order.address.zipcode}, ${order.address.country}
+            </p>
+            <p><strong>📞 Contact:</strong> ${order.customerInfo.phone}</p>
+          </div>
+          
+          <div class="urgent-notice">
+            <p style="margin: 0; font-size: 16px; font-weight: bold;">
+              ⏰ Estimated Delivery: 30-60 minutes<br>
+              💰 Payment: Cash on Delivery (COD)
+            </p>
+          </div>
+          
+          <p style="text-align: center; font-size: 14px; color: #666; margin-top: 20px;">
+            Please log in to the Admin Panel to manage this order and update its status.
+          </p>
+        </div>
+        
+        <div class="footer">
+          <p>This is an automated admin notification email.</p>
+          <p>© 2024 VIET BOWLS. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Generate plain text email content for admin order notification
+const generateAdminOrderNotificationEmailText = (order) => {
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+  
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount)
+  }
+  
+  return `
+🚨 NEW ORDER ALERT - VIET BOWLS
+
+⚡ ACTION REQUIRED - NEW ORDER RECEIVED
+Please prepare this order immediately!
+
+==================================================
+ORDER #${order.trackingCode}
+==================================================
+
+CUSTOMER INFORMATION:
+Name: ${order.customerInfo.name}
+Phone: ${order.customerInfo.phone}
+${order.customerInfo.email ? `Email: ${order.customerInfo.email}` : ''}
+Customer Type: ${order.orderType === 'registered' ? '✓ REGISTERED USER' : '👤 GUEST ORDER'}
+
+ORDER DETAILS:
+Order Date: ${formatDate(order.createdAt || order.date)}
+Payment Method: 💵 Cash on Delivery (COD)
+
+ORDER ITEMS:
+${order.items.map(item => `- ${item.name} x ${item.quantity}: ${formatCurrency(item.price * item.quantity)}`).join('\n')}
+
+ORDER SUMMARY:
+Subtotal: ${formatCurrency(order.amount - 2)}
+Delivery Fee: ${formatCurrency(2)}
+==================================================
+TOTAL AMOUNT: ${formatCurrency(order.amount)}
+==================================================
+
+DELIVERY ADDRESS:
+${order.address.street}
+${order.address.city}, ${order.address.state}
+${order.address.zipcode}, ${order.address.country}
+📞 Contact: ${order.customerInfo.phone}
+
+IMPORTANT:
+⏰ Estimated Delivery: 30-60 minutes
+💰 Payment: Cash on Delivery (COD)
+
+Please log in to the Admin Panel to manage this order and update its status.
+
+---
+This is an automated admin notification email.
 © 2024 VIET BOWLS. All rights reserved.
   `
 }
