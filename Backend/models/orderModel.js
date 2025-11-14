@@ -24,7 +24,17 @@ const orderSchema = new mongoose.Schema({
     // Thông tin bổ sung
     orderType: { type: String, enum: ['guest', 'registered'], default: 'guest' },
     trackingCode: { type: String, unique: true, sparse: true }, // Mã dò đơn hàng
-    notes: { type: String, default: "" }
+    notes: { type: String, default: "" },
+    note: { type: String, default: "" }, // Customer note for delivery
+    preferredDeliveryTime: { type: String, default: "" }, // Preferred delivery time slot
+    
+    // Delivery information
+    deliveryInfo: {
+        zone: { type: String, required: false },
+        distance: { type: Number, required: false },
+        deliveryFee: { type: Number, required: false },
+        estimatedTime: { type: Number, required: false }
+    }
 }, {
     timestamps: true
 })

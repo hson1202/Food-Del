@@ -323,4 +323,130 @@
         margin-top: 30px;
     }
 }
+
+/* Delivery Address Section */
+.delivery-address-section {
+    margin: 20px 0;
+}
+
+.delivery-label {
+    display: block;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* Delivery Time Section */
+.delivery-time-section {
+    margin: 20px 0;
+}
+
+.time-slot-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #c5c5c5;
+    border-radius: 4px;
+    outline-color: tomato;
+    font-size: 15px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.time-slot-select:focus {
+    border-color: tomato;
+    box-shadow: 0 0 0 2px rgba(255, 99, 71, 0.1);
+}
+
+/* Note Section */
+.note-section {
+    margin: 20px 0;
+}
+
+.note-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #c5c5c5;
+    border-radius: 4px;
+    outline-color: tomato;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.note-textarea:focus {
+    border-color: tomato;
+    box-shadow: 0 0 0 2px rgba(255, 99, 71, 0.1);
+}
+
+.note-textarea::placeholder {
+    color: #999;
+}
+
+/* Delivery Zone Info in Cart */
+.delivery-zone-info {
+    padding: 8px 0;
+    justify-content: center !important;
+}
+
+.zone-badge {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    background: #f0f9ff;
+    border-radius: 20px;
+    border: 1px solid currentColor;
+    opacity: 0.9;
+}
+
+.min-order-warning {
+    padding: 10px;
+    margin-top: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #856404;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Responsive for delivery components */
+@media (max-width: 768px) {
+    .delivery-address-section {
+        margin: 15px 0;
+    }
+    
+    .delivery-time-section {
+        margin: 15px 0;
+    }
+    
+    .note-section {
+        margin: 15px 0;
+    }
+    
+    .delivery-label {
+        font-size: 14px;
+    }
+    
+    .time-slot-select {
+        padding: 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .note-textarea {
+        padding: 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .zone-badge {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+    
+    .min-order-warning {
+        font-size: 12px;
+        padding: 8px;
+    }
 }

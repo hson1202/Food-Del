@@ -469,10 +469,16 @@ const Orders = ({url}) => {
                     <span className="info-label">{t('orders.trackingCode', 'Tracking Code')}:</span>
                     <span className="info-value tracking-code">{order.trackingCode || 'N/A'}</span>
                   </div>
-                  {order.notes && (
+                  {order.preferredDeliveryTime && (
                     <div className="info-row">
-                      <span className="info-label">{t('orders.notes', 'Notes')}:</span>
-                      <span className="info-value notes">{order.notes}</span>
+                      <span className="info-label">🕐 {t('orders.preferredDeliveryTime', 'Time')}:</span>
+                      <span className="info-value">{order.preferredDeliveryTime}</span>
+                    </div>
+                  )}
+                  {(order.notes || order.note) && (
+                    <div className="info-row">
+                      <span className="info-label">📝 {t('orders.notes', 'Notes')}:</span>
+                      <span className="info-value notes">{order.note || order.notes}</span>
                     </div>
                   )}
                 </div>
@@ -561,6 +567,20 @@ const Orders = ({url}) => {
                     <span className="detail-label">{t('orders.trackingCode', 'Tracking Code')}:</span>
                     <span className="detail-value">{selectedOrder.trackingCode || 'N/A'}</span>
                   </div>
+                  {selectedOrder.preferredDeliveryTime && (
+                    <div className="detail-item">
+                      <span className="detail-label">🕐 {t('orders.preferredDeliveryTime', 'Preferred Time')}:</span>
+                      <span className="detail-value">{selectedOrder.preferredDeliveryTime}</span>
+                    </div>
+                  )}
+                  {selectedOrder.deliveryInfo && (
+                    <div className="detail-item">
+                      <span className="detail-label">🚚 {t('orders.deliveryInfo', 'Delivery Info')}:</span>
+                      <span className="detail-value">
+                        {selectedOrder.deliveryInfo.zone} • {selectedOrder.deliveryInfo.distance}km • €{selectedOrder.deliveryInfo.deliveryFee} • ~{selectedOrder.deliveryInfo.estimatedTime}min
+                      </span>
+                    </div>
+                  )}
                   <div className="detail-item">
                     <span className="detail-label">{t('orders.total')}:</span>
                     <span className="detail-value total-amount">€{selectedOrder.amount || 0}</span>
@@ -621,6 +641,12 @@ const Orders = ({url}) => {
                     <div className="detail-item">
                       <span className="detail-label">{t('orders.country', 'Country')}:</span>
                       <span className="detail-value">{selectedOrder.address.country}</span>
+                    </div>
+                  )}
+                  {(selectedOrder.note || selectedOrder.notes) && (
+                    <div className="detail-item full-width">
+                      <span className="detail-label">📝 {t('orders.customerNote', 'Customer Note')}:</span>
+                      <span className="detail-value notes-text">{selectedOrder.note || selectedOrder.notes}</span>
                     </div>
                   )}
                 </div>

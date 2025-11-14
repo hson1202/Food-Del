@@ -81,6 +81,15 @@ const Sidebar = ({ isOpen, onClose }) => {
               <p>Reservations</p>
             </NavLink>
 
+            <NavLink to="/admin/delivery-zones" className="sidebar-option" onClick={onClose}>
+              <div className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.1.9-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1 .89 0 1.69.39 2.24 1H15V6H3z"/>
+                </svg>
+              </div>
+              <p>Delivery Zones</p>
+            </NavLink>
+
             <NavLink to="/admin/messages" className="sidebar-option" onClick={onClose}>
               <div className="sidebar-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

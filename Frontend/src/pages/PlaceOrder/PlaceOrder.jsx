@@ -5,6 +5,8 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import SuccessPopup from '../../components/SuccessPopup/SuccessPopup'
+import DeliveryAddressInput from '../../components/DeliveryAddressInput/DeliveryAddressInput'
+import DeliveryZoneDisplay from '../../components/DeliveryZoneDisplay/DeliveryZoneDisplay'
 import '../../i18n'
 
 const PlaceOrder = () => {
@@ -14,24 +16,52 @@ const PlaceOrder = () => {
     firstName: "",
     lastName: "",
     email: "",
-    street: "",
-    city: "",
-    state: "",
-    zipcode: "",
-    country: "",
-    phone: ""
+    phone: "",
+    note: "",
+    preferredDeliveryTime: ""
   })
   const [orderType, setOrderType] = useState(token ? 'registered' : 'guest'); // Tự động set 'registered' nếu đã login
   const [trackingCode, setTrackingCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [orderSuccessData, setOrderSuccessData] = useState({});
+  
+  // Delivery state
+  const [deliveryInfo, setDeliveryInfo] = useState(null);
+  const [restaurantLocation, setRestaurantLocation] = useState(null);
+  const [deliveryAddress, setDeliveryAddress] = useState(null);
+  const [timeSlots, setTimeSlots] = useState([]);
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
     const value = event.target.value;
     setData(data => ({ ...data, [name]: value }))
   }
+
+  // Generate time slots (30-min intervals starting from now)
+  const generateTimeSlots = () => {
+    const slots = [];
+    const now = new Date();
+    const startTime = new Date(now.getTime() + 30 * 60000); // Start from 30 mins later
+    
+    for (let i = 0; i < 12; i++) { // Generate 12 slots (6 hours)
+      const slotTime = new Date(startTime.getTime() + i * 30 * 60000);
+      const hours = slotTime.getHours().toString().padStart(2, '0');
+      const minutes = slotTime.getMinutes().toString().padStart(2, '0');
+      slots.push(`${hours}:${minutes}`);
+    }
+    
+    return slots;
+  }
+
+  // Initialize time slots on mount
+  useEffect(() => {
+    const slots = generateTimeSlots();
+    setTimeSlots(slots);
+    if (slots.length > 0) {
+      setData(prev => ({ ...prev, preferredDeliveryTime: slots[0] }));
+    }
+  }, []);
 
   // Simple retry helper for transient errors (e.g., 502/503/network)
   const postWithRetry = async (endpoint, data, options, retries = 2, delayMs = 800) => {
@@ -55,10 +85,29 @@ const PlaceOrder = () => {
     setIsSubmitting(true);
     
     // Validate required fields
-    if (!data.firstName || !data.lastName || !data.street || !data.city || !data.state || !data.zipcode || !data.country || !data.phone) {
-      alert('Please fill in all required fields');
+    if (!data.firstName || !data.lastName || !data.phone) {
+      alert('Please fill in all required fields (Name and Phone)');
       setIsSubmitting(false);
       return;
+    }
+
+    // Validate delivery address
+    if (!deliveryAddress || !deliveryAddress.address) {
+      alert('Please enter a valid delivery address');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate minimum order if delivery info is available
+    if (deliveryInfo && deliveryInfo.zone) {
+      const subtotal = getTotalCartAmount();
+      const minOrder = deliveryInfo.zone.minOrder;
+      
+      if (subtotal < minOrder) {
+        alert(`❌ Minimum order for this delivery zone is €${minOrder.toFixed(2)}. Your current order is €${subtotal.toFixed(2)}. Please add €${(minOrder - subtotal).toFixed(2)} more to proceed.`);
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     // Phone: chỉ cần có giá trị, chấp nhận ký tự + và các ký tự phổ biến
@@ -98,12 +147,29 @@ const PlaceOrder = () => {
     // Lấy token từ context hoặc localStorage
     const currentToken = token || localStorage.getItem("token");
     
+    const deliveryFee = getDeliveryFee();
+    
     let orderData = {
-      address: data,
+      address: {
+        street: deliveryAddress.address,
+        city: deliveryAddress.city || '',
+        state: deliveryAddress.state || '',
+        zipcode: deliveryAddress.zipcode || '',
+        country: deliveryAddress.country || '',
+        coordinates: deliveryAddress.coordinates
+      },
       items: orderItems,
-      amount: getTotalCartAmount() + 2,
+      amount: getTotalCartAmount() + deliveryFee,
       customerInfo: customerInfo,
-      orderType: currentToken ? 'registered' : 'guest'
+      orderType: currentToken ? 'registered' : 'guest',
+      note: data.note || '',
+      preferredDeliveryTime: data.preferredDeliveryTime || '',
+      deliveryInfo: deliveryInfo ? {
+        zone: deliveryInfo.zone.name,
+        distance: deliveryInfo.distance,
+        deliveryFee: deliveryInfo.zone.deliveryFee,
+        estimatedTime: deliveryInfo.zone.estimatedTime
+      } : null
     };
 
     // KHÔNG gán userId vào orderData - backend sẽ tự động lấy từ token nếu có
@@ -136,7 +202,7 @@ const PlaceOrder = () => {
         } catch (_) {}
         
         // Tính toán số tiền trước khi xóa cart
-        const finalAmount = getTotalCartAmount() + 2;
+        const finalAmount = getTotalCartAmount() + getDeliveryFee();
         
         // Hiển thị popup thành công
         setOrderSuccessData({
@@ -197,7 +263,7 @@ const PlaceOrder = () => {
               localStorage.setItem('lastOrderItems', JSON.stringify(orderItems));
             } catch (_) {}
             
-            const finalAmount = getTotalCartAmount() + 2;
+            const finalAmount = getTotalCartAmount() + getDeliveryFee();
             
             setOrderSuccessData({
               trackingCode: trackingCode,
@@ -237,6 +303,40 @@ const PlaceOrder = () => {
   }
 
   const navigate = useNavigate();
+
+  // Fetch restaurant location
+  useEffect(() => {
+    const fetchRestaurantLocation = async () => {
+      try {
+        const response = await axios.get(`${url}/api/delivery/restaurant-location`);
+        if (response.data.success && response.data.data) {
+          setRestaurantLocation(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching restaurant location:', error);
+      }
+    };
+    fetchRestaurantLocation();
+  }, [url]);
+
+  // Calculate delivery fee
+  const getDeliveryFee = () => {
+    if (getTotalCartAmount() === 0) return 0;
+    if (deliveryInfo && deliveryInfo.zone) {
+      return deliveryInfo.zone.deliveryFee;
+    }
+    return 2; // Default fallback
+  };
+
+  // Handle delivery calculation
+  const handleDeliveryCalculated = (info) => {
+    setDeliveryInfo(info);
+  };
+
+  // Handle delivery address change
+  const handleDeliveryAddressChange = (addressData) => {
+    setDeliveryAddress(addressData);
+  };
 
   useEffect(() => {
     if (getTotalCartAmount() === 0 && !showSuccessPopup) {
@@ -318,55 +418,6 @@ const PlaceOrder = () => {
           />
           <input 
             required 
-            name='street' 
-            onChange={onChangeHandler} 
-            value={data.street} 
-            type="text" 
-            placeholder={t('placeOrder.form.street')}
-            autoComplete="street-address"
-          />
-          <div className="multi-fields">
-            <input 
-              required 
-              name='city' 
-              onChange={onChangeHandler} 
-              value={data.city} 
-              type="text" 
-              placeholder={t('placeOrder.form.city')}
-              autoComplete="address-level2"
-            />
-            <input 
-              required 
-              name='state' 
-              onChange={onChangeHandler} 
-              value={data.state} 
-              type="text" 
-              placeholder={t('placeOrder.form.state')}
-              autoComplete="address-level1"
-            />
-          </div>
-          <div className="multi-fields">
-            <input 
-              required 
-              name='zipcode' 
-              onChange={onChangeHandler} 
-              value={data.zipcode} 
-              type="text" 
-              placeholder={t('placeOrder.form.zipcode')}
-              autoComplete="postal-code"
-            />
-            <input 
-              required 
-              name='country' 
-              onChange={onChangeHandler} 
-              value={data.country} 
-              type="text" 
-              placeholder={t('placeOrder.form.country')}
-              autoComplete="country-name"
-            />
-          </div>
-          <input 
-            required 
             name='phone' 
             onChange={onChangeHandler} 
             value={data.phone} 
@@ -376,6 +427,51 @@ const PlaceOrder = () => {
             autoComplete="tel"
             maxLength="25"
           />
+          
+          {/* Delivery Address with Mapbox */}
+          <div className="delivery-address-section">
+            <label className="delivery-label">📍 Delivery Address (Auto-calculate fee)</label>
+            <DeliveryAddressInput
+              value={deliveryAddress?.address || ''}
+              onChange={handleDeliveryAddressChange}
+              onDeliveryCalculated={handleDeliveryCalculated}
+              url={url}
+              restaurantLocation={restaurantLocation}
+            />
+          </div>
+
+          {/* Delivery Time Slot */}
+          <div className="delivery-time-section">
+            <label className="delivery-label">🕐 Preferred Delivery Time</label>
+            <select
+              name='preferredDeliveryTime'
+              onChange={onChangeHandler}
+              value={data.preferredDeliveryTime}
+              className="time-slot-select"
+            >
+              {timeSlots.map((slot, index) => (
+                <option key={index} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Customer Note */}
+          <div className="note-section">
+            <label className="delivery-label">📝 Note for delivery (Optional)</label>
+            <textarea
+              name='note'
+              onChange={onChangeHandler}
+              value={data.note}
+              placeholder="E.g., Ring the bell, leave at door, etc."
+              className="note-textarea"
+              rows="3"
+            />
+          </div>
+
+          {/* Delivery Zones Info */}
+          <DeliveryZoneDisplay url={url} />
           
           {/* Thông báo về dò đơn hàng */}
           <div className="tracking-notice">
@@ -405,12 +501,26 @@ const PlaceOrder = () => {
               <hr />
               <div className='cart-total-details'>
                 <p>{t('placeOrder.cart.deliveryFee')}</p>
-                <p>€{getTotalCartAmount() === 0 ? 0 : 2}</p>
+                <p>€{getTotalCartAmount() === 0 ? 0 : getDeliveryFee()}</p>
               </div>
+              {deliveryInfo && deliveryInfo.zone && (
+                <>
+                  <div className='cart-total-details delivery-zone-info'>
+                    <span className="zone-badge" style={{ color: deliveryInfo.zone.color }}>
+                      {deliveryInfo.zone.name} • {deliveryInfo.distance}km • {deliveryInfo.zone.estimatedTime}min
+                    </span>
+                  </div>
+                  {getTotalCartAmount() < deliveryInfo.zone.minOrder && (
+                    <div className="min-order-warning">
+                      ⚠️ Min. order: €{deliveryInfo.zone.minOrder} (Add €{(deliveryInfo.zone.minOrder - getTotalCartAmount()).toFixed(2)} more)
+                    </div>
+                  )}
+                </>
+              )}
               <hr />
               <div className='cart-total-details'>
                 <b>{t('placeOrder.cart.total')}</b>
-                <b>€{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + 2}</b>
+                <b>€{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + getDeliveryFee()}</b>
               </div>
             </div>
             <button type='submit' disabled={isSubmitting}>

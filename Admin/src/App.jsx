@@ -14,6 +14,7 @@ import Messages from './pages/Messages/Messages'
 import EmailTest from './pages/EmailTest/EmailTest'
 import Add from './pages/Add/Add'
 import Login from './pages/Login/Login'
+import DeliveryZones from './pages/DeliveryZones/DeliveryZones'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './i18n';
@@ -163,6 +164,7 @@ const App = () => {
           <Route path='/admin/permissions' element={<Permissions url={url}/>}/>
           <Route path='/admin/blog' element={<Blog url={url}/>}/>
           <Route path='/admin/reservations' element={<Reservations url={url}/>}/>
+          <Route path='/admin/delivery-zones' element={<DeliveryZones url={url}/>}/>
           <Route path='/admin/messages' element={<Messages url={url}/>}/>
           <Route path='/admin/email-test' element={<EmailTest url={url}/>}/>
           <Route path='/admin/add' element={<Add url={url}/>}/>

@@ -17,6 +17,7 @@ import uploadRouter from "./routes/uploadRoute.js"
 import localUploadRouter from "./routes/localUploadRoute.js"
 import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 import emailTestRouter from "./routes/emailTestRoute.js"
+import deliveryRouter from "./routes/deliveryRoute.js"
 import eventBus from "./services/eventBus.js"
 
 const app = express()
@@ -86,6 +87,7 @@ app.use("/api/email", emailTestRouter)
 app.use("/api/upload", localUploadRouter)
 app.use("/api/upload-cloud", uploadRouter)  // Keep Cloudinary as backup
 app.use("/api/cloudinary", cloudinarySignRouter)
+app.use("/api/delivery", deliveryRouter)
 
 // --- Server-Sent Events (SSE) for realtime notifications ---
 const sseClients = []
@@ -174,7 +176,8 @@ app.get("/api", (req, res) => {
       "/api/category",
       "/api/blog",
       "/api/reservation",
-      "/api/contact"
+      "/api/contact",
+      "/api/delivery"
     ]
   })
 })
