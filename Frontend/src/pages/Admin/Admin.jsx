@@ -17,8 +17,20 @@ const Admin = () => {
     sku: ''
   })
 
+  // Restaurant location state
+  const [locationForm, setLocationForm] = useState({
+    name: '',
+    address: '',
+    latitude: '',
+    longitude: ''
+  })
+  const [locationLoading, setLocationLoading] = useState(true)
+  const [locationSaving, setLocationSaving] = useState(false)
+  const [locationStatus, setLocationStatus] = useState({ type: '', message: '' })
+
   useEffect(() => {
     fetchFoods()
+    fetchRestaurantLocation()
   }, [])
 
   const fetchFoods = async () => {
@@ -36,6 +48,125 @@ const Admin = () => {
       setError('Error fetching foods: ' + error.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchRestaurantLocation = async () => {
+    try {
+      setLocationLoading(true)
+      setLocationStatus({ type: '', message: '' })
+
+      const response = await fetch(`${config.BACKEND_URL}/api/delivery/restaurant-location`)
+      const data = await response.json()
+
+      if (data.success && data.data) {
+        setLocationForm({
+          name: data.data.name || '',
+          address: data.data.address || '',
+          latitude: data.data.latitude !== undefined ? data.data.latitude : '',
+          longitude: data.data.longitude !== undefined ? data.data.longitude : ''
+        })
+      } else {
+        setLocationStatus({
+          type: 'info',
+          message: 'Chưa có địa chỉ nhà hàng. Hãy nhập thông tin bên dưới và lưu lại.'
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching restaurant location:', err)
+      setLocationStatus({
+        type: 'error',
+        message: 'Không lấy được địa chỉ nhà hàng. Vui lòng thử lại.'
+      })
+    } finally {
+      setLocationLoading(false)
+    }
+  }
+
+  const handleLocationChange = (e) => {
+    const { name, value } = e.target
+    setLocationForm((prev) => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleLocationSubmit = async (e) => {
+    e.preventDefault()
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setLocationStatus({
+        type: 'error',
+        message: 'Bạn cần đăng nhập (token) để cập nhật địa chỉ nhà hàng.'
+      })
+      return
+    }
+
+    // Basic validation
+    if (!locationForm.name || !locationForm.address || !locationForm.latitude || !locationForm.longitude) {
+      setLocationStatus({
+        type: 'error',
+        message: 'Vui lòng điền đủ Tên quán, Địa chỉ, Latitude và Longitude.'
+      })
+      return
+    }
+
+    const payload = {
+      name: locationForm.name.trim(),
+      address: locationForm.address.trim(),
+      latitude: Number(locationForm.latitude),
+      longitude: Number(locationForm.longitude)
+    }
+
+    if (Number.isNaN(payload.latitude) || Number.isNaN(payload.longitude)) {
+      setLocationStatus({
+        type: 'error',
+        message: 'Latitude/Longitude phải là số hợp lệ.'
+      })
+      return
+    }
+
+    try {
+      setLocationSaving(true)
+      setLocationStatus({ type: '', message: '' })
+
+      const response = await fetch(`${config.BACKEND_URL}/api/delivery/restaurant-location`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          token
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setLocationStatus({
+          type: 'success',
+          message: '✅ Đã lưu địa chỉ nhà hàng thành công.'
+        })
+        setLocationForm({
+          name: data.data?.name || payload.name,
+          address: data.data?.address || payload.address,
+          latitude: data.data?.latitude ?? payload.latitude,
+          longitude: data.data?.longitude ?? payload.longitude
+        })
+      } else {
+        setLocationStatus({
+          type: 'error',
+          message: data.message || 'Không thể lưu địa chỉ. Vui lòng thử lại.'
+        })
+      }
+    } catch (err) {
+      console.error('Error updating restaurant location:', err)
+      setLocationStatus({
+        type: 'error',
+        message: 'Có lỗi khi lưu địa chỉ. Kiểm tra kết nối và thử lại.'
+      })
+    } finally {
+      setLocationSaving(false)
     }
   }
 
@@ -136,6 +267,87 @@ const Admin = () => {
   return (
     <div className="admin-container">
       <h1>Admin Dashboard</h1>
+
+      {/* Restaurant Location Section */}
+      <section className="location-card">
+        <div className="location-header">
+          <div>
+            <h2>📍 Địa chỉ nhà hàng</h2>
+            <p>Nhập địa chỉ + tọa độ (lat/lng) để hệ thống tính phí ship chính xác.</p>
+          </div>
+          <button
+            type="button"
+            className="refresh-btn"
+            onClick={fetchRestaurantLocation}
+            disabled={locationLoading}
+          >
+            {locationLoading ? 'Đang tải...' : 'Tải lại'}
+          </button>
+        </div>
+
+        {locationStatus.message && (
+          <div className={`location-status ${locationStatus.type}`}>
+            {locationStatus.message}
+          </div>
+        )}
+
+        <form className="location-form" onSubmit={handleLocationSubmit}>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Tên quán</label>
+              <input
+                type="text"
+                name="name"
+                value={locationForm.name}
+                onChange={handleLocationChange}
+                placeholder="Ví dụ: VietBowls Bratislava"
+              />
+            </div>
+            <div className="form-group">
+              <label>Địa chỉ hiển thị</label>
+              <input
+                type="text"
+                name="address"
+                value={locationForm.address}
+                onChange={handleLocationChange}
+                placeholder="Số nhà, đường, thành phố..."
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Latitude</label>
+              <input
+                type="number"
+                name="latitude"
+                value={locationForm.latitude}
+                onChange={handleLocationChange}
+                step="0.000001"
+                placeholder="48.148600"
+              />
+            </div>
+            <div className="form-group">
+              <label>Longitude</label>
+              <input
+                type="number"
+                name="longitude"
+                value={locationForm.longitude}
+                onChange={handleLocationChange}
+                step="0.000001"
+                placeholder="17.107700"
+              />
+            </div>
+          </div>
+
+          <div className="location-actions">
+            <button type="submit" className="save-btn" disabled={locationSaving}>
+              {locationSaving ? 'Đang lưu...' : 'Lưu địa chỉ'}
+            </button>
+          </div>
+        </form>
+      </section>
+
       <h2>Manage Products</h2>
       
       <div className="foods-list">

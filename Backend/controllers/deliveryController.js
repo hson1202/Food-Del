@@ -144,6 +144,14 @@ const calculateDeliveryFee = async (req, res) => {
         break;
       }
     }
+
+    // Nếu khách gần hơn cả zone nhỏ nhất (ví dụ < 1km) thì áp dụng zone đầu tiên
+    if (!matchedZone && zones.length > 0) {
+      const nearestZone = zones[0];
+      if (distance < nearestZone.minDistance) {
+        matchedZone = nearestZone;
+      }
+    }
     
     if (!matchedZone) {
       return res.json({

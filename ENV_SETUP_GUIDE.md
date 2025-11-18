@@ -262,3 +262,8 @@ ADMIN_EMAIL=admin@gmail.com
 - Test API: `/api/email/status` hoặc `/api/email/test`
 - Admin Panel: `/admin/email-test`
 
+
+
+
+
+

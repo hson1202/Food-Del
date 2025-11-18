@@ -152,6 +152,7 @@ const PlaceOrder = () => {
     let orderData = {
       address: {
         street: deliveryAddress.address,
+        houseNumber: deliveryAddress.houseNumber || '',
         city: deliveryAddress.city || '',
         state: deliveryAddress.state || '',
         zipcode: deliveryAddress.zipcode || '',
@@ -325,7 +326,7 @@ const PlaceOrder = () => {
     if (deliveryInfo && deliveryInfo.zone) {
       return deliveryInfo.zone.deliveryFee;
     }
-    return 2; // Default fallback
+    return 0;
   };
 
   // Handle delivery calculation
@@ -335,7 +336,18 @@ const PlaceOrder = () => {
 
   // Handle delivery address change
   const handleDeliveryAddressChange = (addressData) => {
-    setDeliveryAddress(addressData);
+    setDeliveryAddress((prev) => ({
+      ...(prev || {}),
+      ...addressData
+    }));
+  };
+
+  const handleHouseNumberChange = (e) => {
+    const value = e.target.value;
+    setDeliveryAddress((prev) => ({
+      ...(prev || {}),
+      houseNumber: value
+    }));
   };
 
   useEffect(() => {
@@ -430,7 +442,7 @@ const PlaceOrder = () => {
           
           {/* Delivery Address with Mapbox */}
           <div className="delivery-address-section">
-            <label className="delivery-label">📍 Delivery Address (Auto-calculate fee)</label>
+              <label className="delivery-label">{t('placeOrder.form.addressLabel')}</label>
             <DeliveryAddressInput
               value={deliveryAddress?.address || ''}
               onChange={handleDeliveryAddressChange}
@@ -438,6 +450,21 @@ const PlaceOrder = () => {
               url={url}
               restaurantLocation={restaurantLocation}
             />
+            <div className="house-number-field">
+              <label>{t('placeOrder.form.houseNumberLabel')}</label>
+              <input
+                type="text"
+                placeholder={t('placeOrder.form.houseNumberPlaceholder')}
+                value={deliveryAddress?.houseNumber || ''}
+                onChange={handleHouseNumberChange}
+              />
+              <p className="house-helper">{t('placeOrder.form.houseNumberHint')}</p>
+              {!deliveryAddress?.houseNumber && deliveryAddress?.address && !/\d/.test(deliveryAddress.address) && (
+                <div className="house-warning">
+                  ⚠️ {t('placeOrder.form.houseNumberMapboxMissing')}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Delivery Time Slot */}
@@ -501,8 +528,17 @@ const PlaceOrder = () => {
               <hr />
               <div className='cart-total-details'>
                 <p>{t('placeOrder.cart.deliveryFee')}</p>
-                <p>€{getTotalCartAmount() === 0 ? 0 : getDeliveryFee()}</p>
+                <p>
+                  {deliveryInfo && deliveryInfo.zone
+                    ? `€${getDeliveryFee().toFixed(2)}`
+                    : '--'}
+                </p>
               </div>
+              {!deliveryInfo && (
+                <div className="min-order-warning">
+                  🔔 {t('placeOrder.cart.deliveryFeePrompt')}
+                </div>
+              )}
               {deliveryInfo && deliveryInfo.zone && (
                 <>
                   <div className='cart-total-details delivery-zone-info'>

@@ -337,6 +337,41 @@
     color: #333;
 }
 
+.house-number-field {
+    margin-top: 12px;
+}
+
+.house-number-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #444;
+}
+
+.house-helper {
+    margin: 6px 0 0 0;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.house-number-field input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #c5c5c5;
+    border-radius: 4px;
+    outline-color: tomato;
+}
+
+.house-warning {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
 /* Delivery Time Section */
 .delivery-time-section {
     margin: 20px 0;
