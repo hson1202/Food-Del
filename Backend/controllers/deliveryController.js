@@ -3,6 +3,82 @@ import restaurantLocationModel from "../models/restaurantLocationModel.js";
 
 // ========== MAPBOX CONFIG ==========
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
+const DEFAULT_MAP_CENTER = { latitude: 50.08804, longitude: 14.42076 };
+
+const extractAddressComponents = (feature = {}) => {
+  const components = {
+    street: "",
+    streetLine: "",
+    houseNumber: "",
+    city: "",
+    state: "",
+    zipcode: "",
+    country: "",
+  };
+
+  const placeType = feature.place_type || [];
+
+  if (placeType.includes("address")) {
+    components.street = feature.text || "";
+    components.houseNumber =
+      feature.address || feature.properties?.address || "";
+  } else if (placeType.includes("place")) {
+    components.city = feature.text || "";
+  } else if (placeType.includes("region")) {
+    components.state = feature.text || "";
+  }
+
+  (feature.context || []).forEach((ctx) => {
+    if (!ctx?.id) return;
+    if (ctx.id.startsWith("place")) {
+      components.city = components.city || ctx.text || "";
+    } else if (ctx.id.startsWith("region")) {
+      components.state = components.state || ctx.text || "";
+    } else if (ctx.id.startsWith("postcode")) {
+      components.zipcode = components.zipcode || ctx.text || "";
+    } else if (ctx.id.startsWith("country")) {
+      components.country = components.country || ctx.text || "";
+    }
+  });
+
+  if (!components.street) {
+    components.street = feature.text || "";
+  }
+
+  components.streetLine = [components.houseNumber, components.street]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  if (!components.streetLine && feature.place_name) {
+    components.streetLine = feature.place_name;
+  }
+
+  if (!components.city && feature?.properties?.context?.place) {
+    components.city = feature.properties.context.place;
+  }
+
+  return components;
+};
+
+const mapboxFeatureToAddress = (feature = {}) => {
+  if (!feature.center || feature.center.length < 2) {
+    return {
+      latitude: DEFAULT_MAP_CENTER.latitude,
+      longitude: DEFAULT_MAP_CENTER.longitude,
+      formattedAddress: feature.place_name || "",
+      components: extractAddressComponents(feature),
+    };
+  }
+
+  const [longitude, latitude] = feature.center;
+  return {
+    latitude,
+    longitude,
+    formattedAddress: feature.place_name,
+    components: extractAddressComponents(feature),
+  };
+};
 
 // ========== HAVERSINE FORMULA ==========
 // Tính khoảng cách thẳng giữa 2 điểm trên trái đất (km)
@@ -52,19 +128,50 @@ async function geocodeAddress(address) {
       throw new Error("Address not found");
     }
     
-    const [longitude, latitude] = data.features[0].center;
-    const placeName = data.features[0].place_name;
+    const parsedFeature = mapboxFeatureToAddress(data.features[0]);
     
-    console.log("✅ Geocoding successful:", { latitude, longitude, placeName });
+    console.log("✅ Geocoding successful:", { latitude: parsedFeature.latitude, longitude: parsedFeature.longitude, placeName: parsedFeature.formattedAddress });
     
-    return {
-      latitude,
-      longitude,
-      formattedAddress: placeName
-    };
+    return parsedFeature;
   } catch (error) {
     console.error("❌ Geocoding error:", error);
     throw new Error(`Failed to geocode address: ${error.message}`);
+  }
+}
+
+async function reverseGeocodeCoordinates(latitude, longitude) {
+  if (!MAPBOX_ACCESS_TOKEN) {
+    throw new Error("Mapbox access token not configured. Please add MAPBOX_ACCESS_TOKEN to .env file");
+  }
+
+  try {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=1`;
+    console.log("🔄 Reverse geocoding coordinates:", latitude, longitude);
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.message) {
+      console.error("❌ Mapbox API Error (reverse):", data.message);
+      throw new Error(`Mapbox API Error: ${data.message}`);
+    }
+
+    if (!data.features || data.features.length === 0) {
+      throw new Error("Reverse geocoding failed");
+    }
+
+    const parsedFeature = mapboxFeatureToAddress(data.features[0]);
+
+    console.log("✅ Reverse geocoding successful:", {
+      latitude: parsedFeature.latitude,
+      longitude: parsedFeature.longitude,
+      placeName: parsedFeature.formattedAddress,
+    });
+
+    return parsedFeature;
+  } catch (error) {
+    console.error("❌ Reverse geocoding error:", error);
+    throw new Error(`Failed to reverse geocode coordinates: ${error.message}`);
   }
 }
 
@@ -92,19 +199,50 @@ const calculateDeliveryFee = async (req, res) => {
     const { address, latitude, longitude } = req.body;
     
     let customerLat, customerLng, formattedAddress;
+    let addressComponents = null;
     
-    // Nếu có latitude/longitude thì dùng luôn
-    if (latitude && longitude) {
+    // Nếu có latitude/longitude trực tiếp (không có address), dùng luôn và reverse geocode
+    if (latitude && longitude && !address) {
       customerLat = parseFloat(latitude);
       customerLng = parseFloat(longitude);
-      formattedAddress = address || `${latitude}, ${longitude}`;
+
+      try {
+        const reverse = await reverseGeocodeCoordinates(customerLat, customerLng);
+        formattedAddress = reverse.formattedAddress;
+        addressComponents = reverse.components;
+      } catch (geoErr) {
+        console.warn("⚠️ Reverse geocode failed, falling back to raw coordinates:", geoErr?.message);
+        formattedAddress = `${latitude}, ${longitude}`;
+      }
     } 
-    // Nếu không, geocode từ address
+    // Nếu có address (dù có lat/lng hay không), geocode address để lấy lat/lng chính xác
+    // Sau đó reverse geocode để lấy địa chỉ chính xác hơn
     else if (address) {
-      const geocoded = await geocodeAddress(address);
-      customerLat = geocoded.latitude;
-      customerLng = geocoded.longitude;
-      formattedAddress = geocoded.formattedAddress;
+      try {
+        // Bước 1: Geocode address để lấy lat/lng
+        console.log("🔍 Step 1: Geocoding address to get coordinates:", address);
+        const geocoded = await geocodeAddress(address);
+        customerLat = geocoded.latitude;
+        customerLng = geocoded.longitude;
+        
+        // Bước 2: Reverse geocode lat/lng để lấy địa chỉ chính xác hơn
+        console.log("🔄 Step 2: Reverse geocoding coordinates to get accurate address:", customerLat, customerLng);
+        const reverse = await reverseGeocodeCoordinates(customerLat, customerLng);
+        formattedAddress = reverse.formattedAddress;
+        addressComponents = reverse.components;
+        
+        console.log("✅ Final address (from reverse geocode):", formattedAddress);
+      } catch (geoErr) {
+        console.error("❌ Geocoding error:", geoErr);
+        // Fallback: nếu có lat/lng từ request, dùng nó
+        if (latitude && longitude) {
+          customerLat = parseFloat(latitude);
+          customerLng = parseFloat(longitude);
+          formattedAddress = address; // Dùng address gốc nếu reverse geocode fail
+        } else {
+          throw new Error(`Failed to geocode address: ${geoErr.message}`);
+        }
+      }
     } 
     else {
       return res.status(400).json({
@@ -175,6 +313,7 @@ const calculateDeliveryFee = async (req, res) => {
         },
         distance: parseFloat(distance.toFixed(2)),
         address: formattedAddress,
+        addressComponents,
         coordinates: {
           latitude: customerLat,
           longitude: customerLng
@@ -225,14 +364,18 @@ const autocompleteAddress = async (req, res) => {
     const response = await fetch(url);
     const data = await response.json();
     
-    const suggestions = data.features.map(feature => ({
-      id: feature.id,
-      address: feature.place_name,
-      shortAddress: feature.text,
-      latitude: feature.center[1],
-      longitude: feature.center[0],
-      context: feature.context
-    }));
+    const suggestions = data.features.map(feature => {
+      const parsed = mapboxFeatureToAddress(feature);
+      return {
+        id: feature.id,
+        address: parsed.formattedAddress,
+        shortAddress: parsed.components.streetLine || feature.text,
+        latitude: parsed.latitude,
+        longitude: parsed.longitude,
+        context: feature.context,
+        components: parsed.components
+      };
+    });
     
     res.json({
       success: true,

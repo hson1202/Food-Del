@@ -281,6 +281,7 @@ const resources = {
       'placeOrder.cart.deliveryFeePrompt': 'Nhập địa chỉ giao hàng để tính phí ship chính xác.',
       'placeOrder.cart.total': 'Tổng cộng',
       'placeOrder.cart.proceedButton': 'ĐẶT HÀNG',
+      'placeOrder.cart.submitting': '🔄 Đang xử lý...',
       'placeOrder.errors.general': 'Có lỗi xảy ra khi đặt hàng',
 
       // Success Popup
@@ -575,6 +576,7 @@ const resources = {
       'placeOrder.cart.deliveryFeePrompt': 'Enter your delivery address to calculate the delivery fee.',
       'placeOrder.cart.total': 'Total',
       'placeOrder.cart.proceedButton': 'PLACE ORDER',
+      'placeOrder.cart.submitting': '🔄 Placing Order...',
       'placeOrder.errors.general': 'Error placing order',
 
       // Success Popup
@@ -866,6 +868,7 @@ const resources = {
       'placeOrder.cart.deliveryFeePrompt': 'Zadajte dodaciu adresu, aby sme vypočítali poplatok za doručenie.',
       'placeOrder.cart.total': 'Celkom',
       'placeOrder.cart.proceedButton': 'OBJEDNAŤ',
+      'placeOrder.cart.submitting': '🔄 Spracovávam objednávku...',
       'placeOrder.errors.general': 'Chyba pri objednávaní',
 
       // Success Popup

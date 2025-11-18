@@ -512,7 +512,7 @@ const PlaceOrder = () => {
               className="mobile-submit-btn"
               disabled={isSubmitting}
             >
-              {isSubmitting ? '🔄 Đang xử lý...' : '✅ Đặt hàng ngay'}
+              {isSubmitting ? t('placeOrder.cart.submitting') : t('placeOrder.cart.proceedButton')}
             </button>
           </div>
         </div>
@@ -560,7 +560,7 @@ const PlaceOrder = () => {
               </div>
             </div>
             <button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Placing Order...' : t('placeOrder.cart.proceedButton')}
+              {isSubmitting ? t('placeOrder.cart.submitting') : t('placeOrder.cart.proceedButton')}
             </button>
           </div>
         </div>

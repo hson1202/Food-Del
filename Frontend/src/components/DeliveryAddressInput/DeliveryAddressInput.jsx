@@ -1,6 +1,29 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './DeliveryAddressInput.css';
 import axios from 'axios';
+import ManualLocationPicker from '../ManualLocationPicker/ManualLocationPicker';
+
+const DEFAULT_COORDS = { latitude: 50.08804, longitude: 14.42076 };
+
+const buildAddressPayload = ({ address = '', components = {}, latitude, longitude }) => {
+  const hasCoords =
+    typeof latitude === 'number' &&
+    typeof longitude === 'number';
+  const coords = hasCoords ? { latitude, longitude } : undefined;
+
+  return {
+    address,
+    street: components.streetLine || components.street || address,
+    houseNumber: components.houseNumber || '',
+    city: components.city || '',
+    state: components.state || '',
+    zipcode: components.zipcode || '',
+    country: components.country || '',
+    coordinates: coords,
+    latitude: coords?.latitude,
+    longitude: coords?.longitude
+  };
+};
 
 const DeliveryAddressInput = ({ 
   value, 
@@ -16,8 +39,11 @@ const DeliveryAddressInput = ({
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [deliveryInfo, setDeliveryInfo] = useState(null);
   const [error, setError] = useState('');
+  const [isManualPickerOpen, setIsManualPickerOpen] = useState(false);
   const debounceTimer = useRef(null);
   const inputRef = useRef(null);
+  const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN || '';
+  const manualPinAvailable = Boolean(mapboxToken);
 
   // Fetch autocomplete suggestions
   const fetchSuggestions = useCallback(async (searchQuery) => {
@@ -72,7 +98,7 @@ const DeliveryAddressInput = ({
   }, [query, fetchSuggestions, selectedAddress]);
 
   // Calculate delivery fee
-  const calculateDelivery = useCallback(async (address, latitude, longitude) => {
+  const calculateDelivery = useCallback(async ({ address, latitude, longitude, components, suppressQueryUpdate } = {}) => {
     setIsLoading(true);
     setError('');
 
@@ -84,12 +110,58 @@ const DeliveryAddressInput = ({
       });
 
       if (response.data.success) {
-        setDeliveryInfo(response.data.data);
+        const deliveryData = response.data.data;
+        setDeliveryInfo(deliveryData);
         if (onDeliveryCalculated) {
-          onDeliveryCalculated(response.data.data);
+          onDeliveryCalculated(deliveryData);
+        }
+
+        const mergedComponents = components || deliveryData.addressComponents || {};
+        const normalized = buildAddressPayload({
+          address: deliveryData.address || address || '',
+          components: mergedComponents,
+          latitude: deliveryData.coordinates?.latitude ?? latitude,
+          longitude: deliveryData.coordinates?.longitude ?? longitude
+        });
+
+        setSelectedAddress({
+          address: normalized.address,
+          latitude: normalized.coordinates?.latitude,
+          longitude: normalized.coordinates?.longitude
+        });
+
+        if (onChange) {
+          onChange(normalized);
+        }
+
+        if (!suppressQueryUpdate && normalized.address) {
+          setQuery(normalized.address);
         }
       } else {
-        // Out of delivery range
+        // Out of delivery range - but still update address if available
+        const deliveryData = response.data;
+        if (deliveryData.address) {
+          // Use coordinates from selectedAddress if available, otherwise from request
+          const currentCoords = selectedAddress?.latitude && selectedAddress?.longitude
+            ? { latitude: selectedAddress.latitude, longitude: selectedAddress.longitude }
+            : { latitude, longitude };
+          
+          setQuery(deliveryData.address);
+          setSelectedAddress({
+            address: deliveryData.address,
+            latitude: currentCoords.latitude,
+            longitude: currentCoords.longitude
+          });
+          
+          if (onChange) {
+            onChange(buildAddressPayload({
+              address: deliveryData.address,
+              latitude: currentCoords.latitude,
+              longitude: currentCoords.longitude
+            }));
+          }
+        }
+        
         setError(response.data.message || 'Delivery not available to this location');
         setDeliveryInfo(null);
         if (onDeliveryCalculated) {
@@ -106,30 +178,36 @@ const DeliveryAddressInput = ({
     } finally {
       setIsLoading(false);
     }
-  }, [url, onDeliveryCalculated]);
+  }, [url, onDeliveryCalculated, onChange]);
 
   // Handle suggestion selection
   const handleSelectSuggestion = (suggestion) => {
     setQuery(suggestion.address);
-    setSelectedAddress(suggestion);
+    setSelectedAddress({
+      address: suggestion.address,
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude
+    });
     setShowSuggestions(false);
     setSuggestions([]);
 
     // Update parent component
     if (onChange) {
-      onChange({
+      onChange(buildAddressPayload({
         address: suggestion.address,
+        components: suggestion.components || {},
         latitude: suggestion.latitude,
         longitude: suggestion.longitude
-      });
+      }));
     }
 
     // Calculate delivery
-    calculateDelivery(
-      suggestion.address,
-      suggestion.latitude,
-      suggestion.longitude
-    );
+    calculateDelivery({
+      address: suggestion.address,
+      latitude: suggestion.latitude,
+      longitude: suggestion.longitude,
+      components: suggestion.components
+    });
   };
 
   // Handle input change
@@ -141,8 +219,29 @@ const DeliveryAddressInput = ({
     setError('');
 
     if (onChange) {
-      onChange({ address: newValue });
+      onChange(buildAddressPayload({ address: newValue }));
     }
+  };
+
+  const handleManualLocationConfirm = async (coords) => {
+    if (!coords) return;
+    setIsManualPickerOpen(false);
+    
+    // Set temporary query (will be updated by calculateDelivery after reverse geocoding)
+    setQuery('Đang tìm địa chỉ...');
+    setSelectedAddress({
+      address: '',
+      latitude: coords.latitude,
+      longitude: coords.longitude
+    });
+    
+    // Calculate delivery - backend will reverse geocode and return the address
+    // calculateDelivery will automatically update the query with the address from response
+    await calculateDelivery({
+      latitude: coords.latitude,
+      longitude: coords.longitude
+      // Don't pass address - let backend reverse geocode it
+    });
   };
 
   // Close suggestions when clicking outside
@@ -226,6 +325,32 @@ const DeliveryAddressInput = ({
           <span className="error-icon">⚠️</span>
           <span>{error}</span>
         </div>
+      )}
+
+      {manualPinAvailable && (
+        <>
+          <button
+            type="button"
+            className="manual-pin-trigger"
+            onClick={() => setIsManualPickerOpen(true)}
+          >
+            📍 Can't find your address? Drop a pin manually
+          </button>
+          <ManualLocationPicker
+            isOpen={isManualPickerOpen}
+            onClose={() => setIsManualPickerOpen(false)}
+            onConfirm={handleManualLocationConfirm}
+            initialCoords={
+              selectedAddress?.latitude && selectedAddress?.longitude
+                ? { latitude: selectedAddress.latitude, longitude: selectedAddress.longitude }
+                : restaurantLocation?.latitude && restaurantLocation?.longitude
+                  ? { latitude: restaurantLocation.latitude, longitude: restaurantLocation.longitude }
+                  : DEFAULT_COORDS
+            }
+            restaurantLocation={restaurantLocation}
+            mapboxToken={mapboxToken}
+          />
+        </>
       )}
     </div>
   );

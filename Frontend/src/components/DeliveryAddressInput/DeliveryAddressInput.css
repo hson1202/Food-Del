@@ -93,7 +93,7 @@
 .delivery-info-card {
   margin-top: 15px;
   padding: 15px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: darkseagreen;
   border-radius: 12px;
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
@@ -131,7 +131,7 @@
 }
 
 .info-label {
-  opacity: 0.9;
+  color: #000000;
 }
 
 .info-value {
@@ -159,6 +159,34 @@
 
 .error-icon {
   font-size: 18px;
+}
+
+.manual-pin-trigger {
+  margin-top: 14px;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ff7f50, #ffb347);
+  color: #fff;
+  box-shadow: 0 15px 30px rgba(255, 127, 80, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.manual-pin-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 35px rgba(255, 127, 80, 0.32);
+}
+
+.manual-pin-trigger:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 /* Responsive */

@@ -110,6 +110,8 @@ const placeOrder = async (req,res) => {
         // Gửi email xác nhận đơn hàng ở chế độ nền (không block response)
         setImmediate(async () => {
             try {
+                console.log('📧 Starting email sending process for order:', newOrder.trackingCode);
+                
                 // Gửi email cho khách hàng
                 const emailResult = await sendOrderConfirmation(newOrder)
                 if (emailResult && emailResult.success) {
@@ -118,15 +120,21 @@ const placeOrder = async (req,res) => {
                     console.log('⚠️ Order confirmation email not sent (background):', emailResult?.message || 'Unknown error')
                 }
                 
-                // Gửi email thông báo cho admin
+                // Gửi email thông báo cho admin (QUAN TRỌNG!)
+                console.log('📧 Sending admin notification email...');
                 const adminEmailResult = await sendAdminOrderNotification(newOrder)
                 if (adminEmailResult && adminEmailResult.success) {
                     console.log('✅ Admin order notification email sent successfully (background)')
+                    console.log(`   Admin was notified about new order #${newOrder.trackingCode}`)
                 } else {
-                    console.log('⚠️ Admin order notification email not sent (background):', adminEmailResult?.message || 'Unknown error')
+                    console.error('❌ Admin order notification email FAILED (background)')
+                    console.error('   Error:', adminEmailResult?.message || 'Unknown error')
+                    console.error('   This is important - admin may not know about the new order!')
+                    console.error('   Please check ADMIN_EMAIL and email service configuration')
                 }
             } catch (emailError) {
                 console.error('❌ Error sending emails (background):', emailError)
+                console.error('   Stack:', emailError.stack)
             }
         })
 

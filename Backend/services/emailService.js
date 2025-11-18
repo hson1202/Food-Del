@@ -410,13 +410,30 @@ export const sendOrderConfirmation = async (order) => {
 // Send admin notification for new order
 export const sendAdminOrderNotification = async (order) => {
   try {
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER
+    
+    // Kiểm tra xem có email admin không
+    if (!adminEmail) {
+      console.error('❌ Admin order notification not sent: ADMIN_EMAIL not configured');
+      console.error('   Please set ADMIN_EMAIL in .env file');
+      return { 
+        success: false, 
+        messageId: 'no_admin_email',
+        message: 'Admin order notification not sent (ADMIN_EMAIL not configured)'
+      }
+    }
+    
+    console.log(`📧 Preparing to send admin order notification to: ${adminEmail}`);
+    console.log(`   Order ID: ${order._id}, Tracking Code: ${order.trackingCode}`);
+    
     const transporter = createTransporter()
     
     // If no transporter available, return success but log warning
     if (!transporter) {
-      console.log('⚠️ Admin order notification not sent: Email service not configured');
+      console.error('❌ Admin order notification not sent: Email service not configured');
+      console.error('   Please set RESEND_API_KEY or EMAIL_USER + EMAIL_PASSWORD in .env file');
       return { 
-        success: true, 
+        success: false, 
         messageId: 'email_not_configured',
         message: 'Admin order notification not sent (email service not configured)'
       }
@@ -424,18 +441,26 @@ export const sendAdminOrderNotification = async (order) => {
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+      to: adminEmail,
       subject: `🚨 New Order #${order.trackingCode} - ${order.customerInfo.name} - VIET BOWLS`,
       html: generateAdminOrderNotificationEmailHTML(order),
       text: generateAdminOrderNotificationEmailText(order)
     }
     
+    console.log(`📤 Sending admin order notification email to: ${adminEmail}`);
     const result = await transporter.sendMail(mailOptions)
-    console.log('✅ Admin order notification email sent successfully:', result.messageId)
+    console.log('✅ Admin order notification email sent successfully!');
+    console.log(`   Message ID: ${result.messageId}`);
+    console.log(`   To: ${adminEmail}`);
+    console.log(`   Order: #${order.trackingCode}`);
     return { success: true, messageId: result.messageId }
     
   } catch (error) {
     console.error('❌ Error sending admin order notification email:', error)
+    console.error('   Error details:', error.message)
+    if (error.response) {
+      console.error('   Error response:', error.response)
+    }
     return { success: false, error: error.message }
   }
 }

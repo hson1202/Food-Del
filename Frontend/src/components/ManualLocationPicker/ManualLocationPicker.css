@@ -1,0 +1,227 @@
+.manual-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.manual-picker {
+  width: min(700px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+  max-height: 90vh;
+}
+
+.manual-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.manual-picker-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.manual-picker-header button {
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.manual-picker-search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.manual-picker-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.manual-picker-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  padding-right: 2.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.manual-picker-search-input:focus {
+  border-color: #ff7f50;
+  box-shadow: 0 0 0 3px rgba(255, 127, 80, 0.1);
+}
+
+.manual-picker-search-loading {
+  position: absolute;
+  right: 0.75rem;
+  font-size: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.manual-picker-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1001;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: -2px;
+}
+
+.manual-picker-suggestion-item {
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.manual-picker-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.manual-picker-suggestion-item:hover {
+  background-color: #f8f8f8;
+}
+
+.manual-picker-suggestion-item:active {
+  background-color: #f0f0f0;
+}
+
+.manual-picker-suggestion-address {
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.4;
+}
+
+.manual-picker-map {
+  width: 100%;
+  height: 380px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.manual-picker-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.manual-picker-coords {
+  font-weight: 500;
+  display: flex;
+  gap: 1.25rem;
+}
+
+.manual-picker-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.manual-picker-actions button {
+  border-radius: 10px;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.manual-picker-actions button.primary {
+  background: linear-gradient(135deg, #ff7f50, #ffb347);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(255, 126, 80, 0.3);
+}
+
+.manual-picker-actions button.secondary {
+  background: #f2f2f6;
+  color: #333;
+}
+
+.manual-picker-actions button:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.manual-picker-error {
+  background: #fff3f3;
+  color: #c62828;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .manual-picker {
+    padding: 1rem;
+  }
+
+  .manual-picker-search-input {
+    font-size: 0.9rem;
+    padding: 0.65rem 0.85rem;
+    padding-right: 2.25rem;
+  }
+
+  .manual-picker-suggestions {
+    max-height: 200px;
+  }
+
+  .manual-picker-suggestion-item {
+    padding: 0.7rem 0.85rem;
+  }
+
+  .manual-picker-suggestion-address {
+    font-size: 0.85rem;
+  }
+
+  .manual-picker-map {
+    height: 300px;
+  }
+
+  .manual-picker-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manual-picker-actions {
+    width: 100%;
+  }
+
+  .manual-picker-actions button {
+    flex: 1;
+  }
+}
+
