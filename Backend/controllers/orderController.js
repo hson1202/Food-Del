@@ -38,6 +38,9 @@ const placeOrder = async (req,res) => {
                 message: "Customer information is required"
             });
         }
+        
+        // Extract deliveryInfo from request body if provided
+        const { deliveryInfo } = req.body;
 
         // Validate address fields
         const requiredAddressFields = ['street', 'city', 'state', 'zipcode', 'country'];
@@ -75,7 +78,10 @@ const placeOrder = async (req,res) => {
             customerInfo: customerInfo,
             orderType: validUserId ? 'registered' : 'guest', // Tự động set dựa trên userId
             payment: true, // COD - thanh toán khi nhận hàng
-            status: "Pending"
+            status: "Pending",
+            deliveryInfo: deliveryInfo || null, // Lưu thông tin delivery (zone, distance, deliveryFee, estimatedTime)
+            note: req.body.note || "",
+            preferredDeliveryTime: req.body.preferredDeliveryTime || ""
         })
         
         await newOrder.save();

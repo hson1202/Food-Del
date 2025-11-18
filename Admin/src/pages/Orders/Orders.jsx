@@ -581,10 +581,6 @@ const Orders = ({url}) => {
                       </span>
                     </div>
                   )}
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.total')}:</span>
-                    <span className="detail-value total-amount">€{selectedOrder.amount || 0}</span>
-                  </div>
                 </div>
               </div>
 
@@ -671,6 +667,30 @@ const Orders = ({url}) => {
                   ) : (
                     <p>No items found</p>
                   )}
+                </div>
+                
+                {/* Order Summary Breakdown */}
+                <div className="order-summary-breakdown" style={{ marginTop: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '8px' }}>
+                  <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #ddd' }}>
+                    <span className="detail-label">Subtotal:</span>
+                    <span className="detail-value">
+                      €{(() => {
+                        const deliveryFee = selectedOrder.deliveryInfo?.deliveryFee ?? 0;
+                        const subtotal = (selectedOrder.amount || 0) - deliveryFee;
+                        return subtotal.toFixed(2);
+                      })()}
+                    </span>
+                  </div>
+                  <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #ddd' }}>
+                    <span className="detail-label">Delivery Fee:</span>
+                    <span className="detail-value">
+                      €{((selectedOrder.deliveryInfo?.deliveryFee ?? 0).toFixed(2))}
+                    </span>
+                  </div>
+                  <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', marginTop: '8px', borderTop: '2px solid #333' }}>
+                    <span className="detail-label" style={{ fontWeight: 'bold', fontSize: '16px' }}>{t('orders.total', 'Total')}:</span>
+                    <span className="detail-value total-amount" style={{ fontWeight: 'bold', fontSize: '18px', color: '#e74c3c' }}>€{(selectedOrder.amount || 0).toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             </div>

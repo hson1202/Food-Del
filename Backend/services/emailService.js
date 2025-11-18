@@ -1118,6 +1118,10 @@ const generateOrderConfirmationEmailHTML = (order) => {
     }).format(amount)
   }
   
+  // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
+  const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
+  const subtotal = order.amount - deliveryFee;
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -1195,11 +1199,11 @@ const generateOrderConfirmationEmailHTML = (order) => {
           <div class="total-section">
             <div class="total-row">
               <span>Subtotal:</span>
-              <span>${formatCurrency(order.amount - 2)}</span>
+              <span>${formatCurrency(subtotal)}</span>
             </div>
             <div class="total-row">
               <span>Delivery Fee:</span>
-              <span>${formatCurrency(2)}</span>
+              <span>${formatCurrency(deliveryFee)}</span>
             </div>
             <div class="total-row total-final">
               <span>Total:</span>
@@ -1267,6 +1271,10 @@ const generateOrderConfirmationEmailText = (order) => {
     }).format(amount)
   }
   
+  // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
+  const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
+  const subtotal = order.amount - deliveryFee;
+  
   return `
 VIET BOWLS - Order Confirmation
 
@@ -1285,8 +1293,8 @@ ORDER ITEMS:
 ${order.items.map(item => `- ${item.name} x ${item.quantity}: ${formatCurrency(item.price * item.quantity)}`).join('\n')}
 
 ORDER SUMMARY:
-Subtotal: ${formatCurrency(order.amount - 2)}
-Delivery Fee: ${formatCurrency(2)}
+Subtotal: ${formatCurrency(subtotal)}
+Delivery Fee: ${formatCurrency(deliveryFee)}
 Total: ${formatCurrency(order.amount)}
 
 DELIVERY ADDRESS:
@@ -1335,6 +1343,10 @@ const generateAdminOrderNotificationEmailHTML = (order) => {
       currency: 'EUR'
     }).format(amount)
   }
+  
+  // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
+  const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
+  const subtotal = order.amount - deliveryFee;
   
   const getOrderTypeColor = (orderType) => {
     return orderType === 'registered' ? '#27ae60' : '#3498db'
@@ -1442,11 +1454,11 @@ const generateAdminOrderNotificationEmailHTML = (order) => {
           <div class="total-section">
             <div class="total-row">
               <span>Subtotal:</span>
-              <span>${formatCurrency(order.amount - 2)}</span>
+              <span>${formatCurrency(subtotal)}</span>
             </div>
             <div class="total-row">
               <span>Delivery Fee:</span>
-              <span>${formatCurrency(2)}</span>
+              <span>${formatCurrency(deliveryFee)}</span>
             </div>
             <div class="total-row total-final">
               <span>TOTAL AMOUNT:</span>
@@ -1506,6 +1518,10 @@ const generateAdminOrderNotificationEmailText = (order) => {
     }).format(amount)
   }
   
+  // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
+  const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
+  const subtotal = order.amount - deliveryFee;
+  
   return `
 🚨 NEW ORDER ALERT - VIET BOWLS
 
@@ -1530,8 +1546,8 @@ ORDER ITEMS:
 ${order.items.map(item => `- ${item.name} x ${item.quantity}: ${formatCurrency(item.price * item.quantity)}`).join('\n')}
 
 ORDER SUMMARY:
-Subtotal: ${formatCurrency(order.amount - 2)}
-Delivery Fee: ${formatCurrency(2)}
+Subtotal: ${formatCurrency(subtotal)}
+Delivery Fee: ${formatCurrency(deliveryFee)}
 ==================================================
 TOTAL AMOUNT: ${formatCurrency(order.amount)}
 ==================================================
