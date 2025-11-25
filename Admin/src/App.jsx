@@ -5,6 +5,7 @@ import { Route, Routes, Navigate } from 'react-router-dom'
 import Dashboard from './pages/Dashboard/Dashboard'
 import Orders from './pages/Orders/Orders'
 import Category from './pages/Category/Category'
+import ParentCategory from './pages/ParentCategory/ParentCategory'
 import Products from './pages/Products/Products'
 import Users from './pages/Users/Users'
 import Permissions from './pages/Permissions/Permissions'
@@ -159,6 +160,7 @@ const App = () => {
           <Route path='/admin' element={<Dashboard url={url}/>}/>
           <Route path='/admin/orders' element={<Orders url={url}/>}/>
           <Route path='/admin/category' element={<Category url={url}/>}/>
+          <Route path='/admin/parent-category' element={<ParentCategory url={url}/>}/>
           <Route path='/admin/products' element={<Products url={url}/>}/>
           <Route path='/admin/users' element={<Users url={url}/>}/>
           <Route path='/admin/permissions' element={<Permissions url={url}/>}/>

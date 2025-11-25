@@ -1,8 +1,8 @@
-import React from 'react'
 import './Sidebar.css'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
+// eslint-disable-next-line react/prop-types
 const Sidebar = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
 
@@ -61,6 +61,15 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </svg>
               </div>
               <p>{t('nav.categories')}</p>
+            </NavLink>
+
+            <NavLink to="/admin/parent-category" className="sidebar-option" onClick={onClose}>
+              <div className="sidebar-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+              <p>Parent Categories</p>
             </NavLink>
 
             <NavLink to="/admin/products" className="sidebar-option" onClick={onClose}>
