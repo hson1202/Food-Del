@@ -228,148 +228,152 @@ const CartPopup = ({ onClose }) => {
           </button>
         </div>
 
-        <div className="cart-popup-content">
-          {cartItemsList.length === 0 ? (
-            <div className="empty-cart">
-              <div className="empty-icon">🛒</div>
-              <h3>{t('cart.empty')}</h3>
-              <p>{t('cart.continueShopping')}</p>
-              <button className="continue-btn" onClick={onClose}>
-                {t('menu.explore')}
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Cart Items */}
-              <div className="cart-items-section">
-                <h3>{t('cart.items')} ({cartItemsList.length})</h3>
-                <div className="cart-items-list">
-                  {cartItemsList.map((item) => (
-                    <div key={item.cartItemId} className="cart-item">
-                      <div className="cart-item-image">
-                        {(() => {
-                          const fallback = pickImageFromSelections(item, item.selectedOptions) || item.image;
-                          const imgSrc = item.currentImage
-                            ? (item.currentImage.startsWith('http') ? item.currentImage : `${url}/images/${item.currentImage}`)
-                            : (fallback && fallback.startsWith('http') ? fallback : `${url}/images/${fallback}`);
-                          return (
-                            <img 
-                              src={imgSrc}
-                              alt={getLocalizedName(item)} 
-                            />
-                          );
-                        })()}
-                      </div>
-                      <div className="cart-item-info">
-                        <h4>{getLocalizedName(item)}</h4>
-                        {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
-                          <div className="cart-item-options">
-                            <span className="options-text">{formatSelectedOptions(item)}</span>
-                          </div>
-                        )}
-                        <div className="cart-item-price">
+        <div className="cart-popup-body">
+          <div className="cart-popup-content">
+            {cartItemsList.length === 0 ? (
+              <div className="empty-cart">
+                <div className="empty-icon">🛒</div>
+                <h3>{t('cart.empty')}</h3>
+                <p>{t('cart.continueShopping')}</p>
+                <button className="continue-btn" onClick={onClose}>
+                  {t('menu.explore')}
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Cart Items */}
+                <div className="cart-items-section">
+                  <h3>{t('cart.items')} ({cartItemsList.length})</h3>
+                  <div className="cart-items-list">
+                    {cartItemsList.map((item) => (
+                      <div key={item.cartItemId} className="cart-item">
+                        <div className="cart-item-image">
                           {(() => {
-                            const unitPrice = (item.currentPrice != null)
-                              ? Number(item.currentPrice)
-                              : computeVariantPrice(item, item.selectedOptions);
+                            const fallback = pickImageFromSelections(item, item.selectedOptions) || item.image;
+                            const imgSrc = item.currentImage
+                              ? (item.currentImage.startsWith('http') ? item.currentImage : `${url}/images/${item.currentImage}`)
+                              : (fallback && fallback.startsWith('http') ? fallback : `${url}/images/${fallback}`);
                             return (
-                              <span className="regular-price">{formatPrice(unitPrice)}</span>
+                              <img 
+                                src={imgSrc}
+                                alt={getLocalizedName(item)} 
+                              />
                             );
                           })()}
                         </div>
-                      </div>
-                      <div className="cart-item-controls">
-                        <button onClick={() => removeFromCart(item.cartItemId)}>
-                          <img src={assets.remove_icon_red} alt="" />
-                        </button>
-                        <span className="quantity">{item.quantity}</span>
-                        <button onClick={() => addToCart(item.cartItemId, item)}>
-                          <img src={assets.add_icon_green} alt="" />
-                        </button>
-                      </div>
-                      <div className="cart-item-total">
-                        {(() => {
-                          const unitPrice = (item.currentPrice != null)
-                            ? Number(item.currentPrice)
-                            : computeVariantPrice(item, item.selectedOptions);
-                          return formatPrice(unitPrice * item.quantity);
-                        })()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Recommended Items */}
-              {recommendedItems.length > 0 && (
-                <div className="recommendations-section">
-                  <h3>💡 {t('cartPopup.recommendedForYou')}</h3>
-                  <p className="recommendations-subtitle">{t('cartPopup.perfectWith')}</p>
-                  <div className="recommended-items">
-                    {recommendedItems.map((item) => (
-                      <div key={item._id} className="recommended-item">
-                        <div className="recommended-image">
-                          <img src={(item.image && item.image.startsWith('http')) ? item.image : (url + "/images/" + item.image)} alt={getLocalizedName(item)} />
-                          {item.isPromotion && !hasOverrideOpt(item) && (
-                            <div className="promo-badge">-{Math.round(((item.originalPrice - item.promotionPrice) / item.originalPrice) * 100)}%</div>
+                        <div className="cart-item-info">
+                          <h4>{getLocalizedName(item)}</h4>
+                          {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
+                            <div className="cart-item-options">
+                              <span className="options-text">{formatSelectedOptions(item)}</span>
+                            </div>
                           )}
-                        </div>
-                        <div className="recommended-info">
-                          <h5>{getLocalizedName(item)}</h5>
-                          <div className="recommended-price">
+                          <div className="cart-item-price">
                             {(() => {
-                              const r = variantPriceRange(item);
-                              return r.min === r.max ? (
-                                <span className="price">{formatPrice(r.min)}</span>
-                              ) : (
-                                <>
-                                  <span className="price">{formatPrice(r.min)}</span>
-                                  <span className="price"> – {formatPrice(r.max)}</span>
-                                </>
+                              const unitPrice = (item.currentPrice != null)
+                                ? Number(item.currentPrice)
+                                : computeVariantPrice(item, item.selectedOptions);
+                              return (
+                                <span className="regular-price">{formatPrice(unitPrice)}</span>
                               );
                             })()}
                           </div>
                         </div>
-                        <button 
-                          className="add-recommended-btn"
-                          onClick={() => {
-                            const selected = buildDefaultSelections(item);
-                            const price = computeVariantPrice(item, selected);
-                            const img = pickImageFromSelections(item, selected);
-                            const cartKey = item.options?.length
-                              ? `${item._id}_${JSON.stringify(selected)}`
-                              : item._id;
-                            addToCart(cartKey, {
-                              ...item,
-                              selectedOptions: selected,
-                              currentPrice: price,
-                              currentImage: img
-                            });
-                          }}
-                        >
-                          <img src={assets.add_icon_green} alt="" />
-                        </button>
+                        <div className="cart-item-controls">
+                          <button onClick={() => removeFromCart(item.cartItemId)}>
+                            <img src={assets.remove_icon_red} alt="" />
+                          </button>
+                          <span className="quantity">{item.quantity}</span>
+                          <button onClick={() => addToCart(item.cartItemId, item)}>
+                            <img src={assets.add_icon_green} alt="" />
+                          </button>
+                        </div>
+                        <div className="cart-item-total">
+                          {(() => {
+                            const unitPrice = (item.currentPrice != null)
+                              ? Number(item.currentPrice)
+                              : computeVariantPrice(item, item.selectedOptions);
+                            return formatPrice(unitPrice * item.quantity);
+                          })()}
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {/* Cart Summary */}
-              <div className="cart-summary">
-                <div className="summary-row">
-                  <span>{t('cart.subtotal')}</span>
-                  <span>{formatPrice(getTotalCartAmount())}</span>
-                </div>
-                <div className="summary-row total">
-                  <span>{t('cart.total')}</span>
-                  <span>{formatPrice(getTotalCartAmount())}</span>
-                </div>
-                <button className="checkout-btn" onClick={handleCheckout}>
-                  {t('cart.checkout')} ({getTotalItems()} {t('cart.items')})
-                </button>
+                {/* Recommended Items */}
+                {recommendedItems.length > 0 && (
+                  <div className="recommendations-section">
+                    <h3>💡 {t('cartPopup.recommendedForYou')}</h3>
+                    <p className="recommendations-subtitle">{t('cartPopup.perfectWith')}</p>
+                    <div className="recommended-items">
+                      {recommendedItems.map((item) => (
+                        <div key={item._id} className="recommended-item">
+                          <div className="recommended-image">
+                            <img src={(item.image && item.image.startsWith('http')) ? item.image : (url + "/images/" + item.image)} alt={getLocalizedName(item)} />
+                            {item.isPromotion && !hasOverrideOpt(item) && (
+                              <div className="promo-badge">-{Math.round(((item.originalPrice - item.promotionPrice) / item.originalPrice) * 100)}%</div>
+                            )}
+                          </div>
+                          <div className="recommended-info">
+                            <h5>{getLocalizedName(item)}</h5>
+                            <div className="recommended-price">
+                              {(() => {
+                                const r = variantPriceRange(item);
+                                return r.min === r.max ? (
+                                  <span className="price">{formatPrice(r.min)}</span>
+                                ) : (
+                                  <>
+                                    <span className="price">{formatPrice(r.min)}</span>
+                                    <span className="price"> – {formatPrice(r.max)}</span>
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                          <button 
+                            className="add-recommended-btn"
+                            onClick={() => {
+                              const selected = buildDefaultSelections(item);
+                              const price = computeVariantPrice(item, selected);
+                              const img = pickImageFromSelections(item, selected);
+                              const cartKey = item.options?.length
+                                ? `${item._id}_${JSON.stringify(selected)}`
+                                : item._id;
+                              addToCart(cartKey, {
+                                ...item,
+                                selectedOptions: selected,
+                                currentPrice: price,
+                                currentImage: img
+                              });
+                            }}
+                          >
+                            <img src={assets.add_icon_green} alt="" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Cart Summary - Always visible at bottom */}
+          {cartItemsList.length > 0 && (
+            <div className="cart-summary">
+              <div className="summary-row">
+                <span>{t('cart.subtotal')}</span>
+                <span>{formatPrice(getTotalCartAmount())}</span>
               </div>
-            </>
+              <div className="summary-row total">
+                <span>{t('cart.total')}</span>
+                <span>{formatPrice(getTotalCartAmount())}</span>
+              </div>
+              <button className="checkout-btn" onClick={handleCheckout}>
+                {t('cart.checkout')} ({getTotalItems()} {t('cart.items')})
+              </button>
+            </div>
           )}
         </div>
       </div>

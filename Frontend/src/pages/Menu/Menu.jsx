@@ -4,33 +4,28 @@ import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../../components/FoodItem/FoodItem'
 import ProductDetail from '../../components/ProductDetail/ProductDetail'
 import CartPopup from '../../components/CartPopup/CartPopup'
-import ExploreMenu from '../../components/ExploreMenu/ExploreMenu'
+import CategoryFilter from '../../components/CategoryFilter/CategoryFilter'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import config from '../../config/config'
 
 // Load all hero images at once using Vite glob import
-// You can place hero images in `src/assets/` and select by file name
 const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eager: true, as: 'url' })
 
 const Menu = () => {
   const { food_list, cartItems, getTotalCartAmount, isLoadingFood } = useContext(StoreContext)
   const { i18n } = useTranslation()
-  const [categories, setCategories] = useState([])
-  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [parentCategories, setParentCategories] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState('') // Category con được chọn từ filter
   const [searchTerm, setSearchTerm] = useState('')
-  const [isSticky, setIsSticky] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showCartPopup, setShowCartPopup] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    fetchCategories()
-    handleScroll()
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    fetchMenuStructure()
   }, [])
 
   useEffect(() => {
@@ -40,65 +35,57 @@ const Menu = () => {
     return () => window.removeEventListener('resize', update)
   }, [])
 
-  const fetchCategories = async () => {
+
+  const fetchMenuStructure = async () => {
     try {
-      const response = await axios.get(`${config.BACKEND_URL}/api/category`)
-      setCategories(response.data.data || response.data)
+      const response = await axios.get(`${config.BACKEND_URL}/api/category/menu-structure`)
+      const menuData = response.data.data || []
+      setParentCategories(menuData)
+      
+      
       setLoading(false)
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      console.error('Error fetching menu structure:', error)
+      toast.error('Failed to load menu')
       setLoading(false)
     }
   }
 
 
-
-  const handleScroll = () => {
-    const scrollTop = window.pageYOffset
-    setIsSticky(scrollTop > 200)
-  }
-
   // Function to get localized name based on current language
-  const getLocalizedName = (food) => {
-    const currentLang = i18n.language;
-    switch (currentLang) {
-      case 'vi':
-        return food.nameVI || food.name;
-      case 'en':
-        return food.nameEN || food.name;
-      case 'sk':
-        return food.nameSK || food.name;
-      default:
-        return food.name;
+  const getLocalizedName = (item, field = 'name') => {
+    const currentLang = i18n.language
+    const localizedField = `${field}${currentLang.toUpperCase()}`
+    return item[localizedField] || item[field] || ''
+  }
+
+
+  // Filter foods based on selected parent category, selected category, and search
+  const getFilteredFoods = () => {
+    let filtered = food_list
+
+    // Filter by selected category (category con)
+    if (selectedCategory) {
+      filtered = filtered.filter(food => food.category === selectedCategory)
     }
-  };
 
-  const filteredFoods = food_list.filter(food => {
-    const matchesCategory = selectedCategory === 'All' || food.category === selectedCategory
-    const localizedName = getLocalizedName(food);
-    const matchesSearch = localizedName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         food.description.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
+    // Filter by search term
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      filtered = filtered.filter(food => {
+        const localizedName = getLocalizedName(food)
+        return (
+          localizedName.toLowerCase().includes(searchLower) ||
+          food.name.toLowerCase().includes(searchLower) ||
+          food.description.toLowerCase().includes(searchLower)
+        )
+      })
+    }
 
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category)
-    // Smooth scroll to food section with offset for sticky category bar
-    setTimeout(() => {
-      const foodSection = document.getElementById('food-section')
-      if (foodSection) {
-        const categoryBarHeight = 80; // Height of category bar
-        const yOffset = -categoryBarHeight;
-        const y = foodSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    }, 100) // Small delay to ensure category state is updated
+    return filtered
   }
 
-  const clearSearch = () => {
-    setSearchTerm('')
-  }
+  const filteredFoods = getFilteredFoods()
 
   const handleViewDetails = (product) => {
     setSelectedProduct(product)
@@ -112,10 +99,13 @@ const Menu = () => {
     setShowCartPopup(false)
   }
 
+  const clearSearch = () => {
+    setSearchTerm('')
+  }
+
   const formatPrice = (price) => {
-    // Kiểm tra price có hợp lệ không
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      return '€0';
+      return '€0'
     }
     
     const formatted = new Intl.NumberFormat('en-US', {
@@ -123,133 +113,136 @@ const Menu = () => {
       currency: 'EUR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
-    }).format(Number(price));
+    }).format(Number(price))
     
-    // Remove .00 if it's a whole number
-    return formatted.replace(/\.00$/, '');
-  };
+    return formatted.replace(/\.00$/, '')
+  }
 
   return (
     <div className="menu-page">
-    {/* Hero Section */}
-    <div className="menu-hero">
-      {/* Background Image (behind content) */}
-      <div className="hero-background">
-        <img 
-          src={
-            HERO_IMAGES['../../assets/back10.jpg'] 
-            ?? HERO_IMAGES['../../assets/header_img.png'] 
-            ?? Object.values(HERO_IMAGES)[0]
-          }
-          alt="Menu background"
-          className="hero-bg-image"
-        />
-        {/* overlay intentionally removed */}
-      </div>
-      
-      <div className="hero-content">
-        <div className="hero-text-section">
-          <h1>Our Delicious Menu</h1>
-          <p>Discover our amazing collection of dishes, carefully crafted to satisfy your cravings</p>
-          
-          {/* Search Bar */}
-          <div className="search-container">
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Search for your favorite dishes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              {searchTerm && (
-                <button onClick={clearSearch} className="clear-search">
-                  ✕
-                </button>
-              )}
-              <div className="search-icon">🔍</div>
-            </div>
-            {searchTerm && (
-              <div className="search-results-info">
-                Found {filteredFoods.length} result{filteredFoods.length !== 1 ? 's' : ''} for "{searchTerm}"
-              </div>
-            )}
-          </div>
-        </div>
-        </div>  
-        </div>
-
-      {/* Explore Menu Section - Replaces Category Bar */}
-      <div className={`category-bar ${isSticky ? 'sticky' : ''}`}>
-        <div className="category-container">
-          <ExploreMenu 
-            category={selectedCategory} 
-            setCategory={setSelectedCategory} 
-            categories={categories} 
-            loading={loading}
-            hideHeader={true}
+      {/* Hero Section */}
+      <div className="menu-hero">
+        <div className="hero-background">
+          <img 
+            src={
+              HERO_IMAGES['../../assets/back10.jpg'] 
+              ?? HERO_IMAGES['../../assets/header_img.png'] 
+              ?? Object.values(HERO_IMAGES)[0]
+            }
+            alt="Menu background"
+            className="hero-bg-image"
           />
         </div>
+        
+        <div className="hero-content">
+          <div className="hero-text-section">
+            <h1>Our Delicious Menu</h1>
+            <p>Discover our amazing collection of dishes, carefully crafted to satisfy your cravings</p>
+            
+            {/* Search Bar */}
+            <div className="search-container">
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Search for your favorite dishes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+                {searchTerm && (
+                  <button onClick={clearSearch} className="clear-search">
+                    ✕
+                  </button>
+                )}
+                <div className="search-icon">🔍</div>
+              </div>
+              {searchTerm && (
+                <div className="search-results-info">
+                  Found {filteredFoods.length} result{filteredFoods.length !== 1 ? 's' : ''} for "{searchTerm}"
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Food Section */}
-      <div id="food-section" className="food-section">
 
-        {(loading || isLoadingFood) ? (
+      {/* Category Filter Sidebar */}
+      <div className="menu-filter-container">
+        <div className="filter-sidebar">
+          <CategoryFilter 
+            onCategorySelect={setSelectedCategory}
+            selectedCategory={selectedCategory}
+          />
+        </div>
+
+        {/* Food Sections - Grouped by Parent Category */}
+        <div className="menu-sections-container">
+        {loading || isLoadingFood ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
             <p>Loading delicious dishes...</p>
           </div>
-        ) : filteredFoods.length === 0 ? (
+        ) : parentCategories.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🍽️</div>
-            <h3>No dishes found</h3>
-            <p>
-              {searchTerm 
-                ? `No dishes match "${searchTerm}". Try a different search term or category.`
-                : `No dishes available in ${selectedCategory}. Try another category.`
-              }
-            </p>
-            <button 
-              onClick={() => {
-                setSearchTerm('')
-                setSelectedCategory('All')
-              }}
-              className="reset-btn"
-            >
-              Show All Dishes
-            </button>
+            <h3>No menu available</h3>
+            <p>Please check back later.</p>
           </div>
         ) : (
-          <div className="food-grid">
-            {filteredFoods.map((food, index) => (
-              <div key={food._id} className="food-item-wrapper">
-                {/* Debug: Log food data */}
-                {console.log('🔍 Menu - Food data:', food)}
-                {console.log('🔍 Menu - Food options:', food.options)}
-                <FoodItem 
-                  id={food._id} 
-                  name={food.name}
-                  nameVI={food.nameVI}
-                  nameEN={food.nameEN}
-                  nameSK={food.nameSK}
-                  description={food.description} 
-                  price={food.price} 
-                  image={food.image}
-                  sku={food.sku}
-                  isPromotion={food.isPromotion}
-                  originalPrice={food.originalPrice}
-                  promotionPrice={food.promotionPrice}
-                  soldCount={food.soldCount}
-                  likes={food.likes}
-                  options={food.options}
-                  onViewDetails={handleViewDetails}
-                  compact={isMobile}
-                />
+          <>
+            {/* Show all foods - simplified display */}
+            {filteredFoods.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">🔍</div>
+                <h3>No dishes found</h3>
+                <p>
+                  {searchTerm || selectedCategory
+                    ? `No dishes match your filter. Try a different search term or category.`
+                    : 'No dishes available at the moment.'}
+                </p>
+                {(searchTerm || selectedCategory) && (
+                  <button 
+                    onClick={() => {
+                      setSearchTerm('')
+                      setSelectedCategory('')
+                    }}
+                    className="reset-btn"
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="food-grid">
+                {filteredFoods.map((food) => (
+                  <div key={food._id} className="food-item-wrapper">
+                    <FoodItem 
+                      id={food._id} 
+                      name={food.name}
+                      nameVI={food.nameVI}
+                      nameEN={food.nameEN}
+                      nameSK={food.nameSK}
+                      description={food.description} 
+                      price={food.price} 
+                      image={food.image}
+                      sku={food.sku}
+                      isPromotion={food.isPromotion}
+                      originalPrice={food.originalPrice}
+                      promotionPrice={food.promotionPrice}
+                      soldCount={food.soldCount}
+                      likes={food.likes}
+                      options={food.options}
+                      onViewDetails={handleViewDetails}
+                      compact={isMobile}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
+        </div>
       </div>
 
       {/* Product Detail Popup */}
@@ -266,10 +259,8 @@ const Menu = () => {
           onClose={closeCartPopup}
         />
       )}
-
-      {/* Floating Cart Button is now handled globally in App.jsx */}
     </div>
   )
 }
 
-export default Menu 
+export default Menu

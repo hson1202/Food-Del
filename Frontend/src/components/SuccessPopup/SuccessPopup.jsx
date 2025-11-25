@@ -8,15 +8,20 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
-  // Debug current language
-  console.log('Current language:', i18n.language);
-  console.log('Translation test:', t('successPopup.title'));
-  
-  // Debug popup state
-  console.log('SuccessPopup isOpen:', isOpen);
-  console.log('SuccessPopup props:', { trackingCode, phone, orderAmount });
-
   if (!isOpen) return null;
+
+  // Format price to avoid floating point precision issues
+  const formatPrice = (price) => {
+    const n = Number(price);
+    if (isNaN(n) || n < 0) return '€0';
+    const formatted = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(n);
+    return formatted.replace(/\.00$/, '');
+  };
 
   // Lấy items từ props hoặc từ localStorage (fallback)
   let lastItems = Array.isArray(items) && items.length > 0 ? items : [];
@@ -84,14 +89,14 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
             </div>
             <div className="detail-item">
               <span className="detail-label">💰 {t('successPopup.amount')}:</span>
-              <span className="detail-value">€{orderAmount}</span>
+              <span className="detail-value">{formatPrice(orderAmount)}</span>
             </div>
           </div>
 
           {/* Items Summary */}
           {lastItems && lastItems.length > 0 && (
             <div className="order-items-summary">
-              <h3>{t('successPopup.items', 'Items in your order')}</h3>
+              <h3>{t('successPopup.items')}</h3>
               <div className="items-list">
                 {lastItems.map((it, idx) => (
                   <div key={idx} className="item-row">
@@ -100,7 +105,7 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
                     </div>
                     <div className="item-meta">
                       <span className="item-qty">x{it.quantity || 1}</span>
-                      <span className="item-price">€{((it.price || 0) * (it.quantity || 1)).toFixed(2)}</span>
+                      <span className="item-price">{formatPrice((it.price || 0) * (it.quantity || 1))}</span>
                     </div>
                   </div>
                 ))}

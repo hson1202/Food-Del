@@ -55,6 +55,21 @@ const resources = {
       'menu.allCategories': 'Tất cả danh mục',
       'menu.searchPlaceholder': 'Tìm kiếm món ăn...',
 
+      // Category Filter
+      'filter.title': 'Tìm theo danh mục',
+      'filter.loading': 'Đang tải...',
+      'filter.hide': 'Ẩn',
+      'filter.show': 'Mở',
+      'filter.clear': 'Xóa',
+      'filter.selectParentCategory': 'Chọn danh mục cha (tùy chọn):',
+      'filter.allCategories': '-- Tất cả danh mục --',
+      'filter.showingSubcategories': 'Đang hiển thị danh mục con của danh mục cha đã chọn',
+      'filter.selectParentOrDirect': 'Chọn danh mục cha để lọc, hoặc chọn trực tiếp danh mục bên dưới',
+      'filter.selectSubcategory': 'Chọn danh mục con:',
+      'filter.selectCategory': 'Chọn danh mục:',
+      'filter.noSubcategories': 'Danh mục cha này chưa có danh mục con nào.',
+      'filter.selected': 'Đã chọn:',
+
       // Food Items
       'food.addToCart': 'Thêm vào giỏ',
       'food.removeFromCart': 'Xóa khỏi giỏ',
@@ -292,6 +307,7 @@ const resources = {
       'successPopup.trackingCode': 'Mã đơn hàng',
       'successPopup.phone': 'Số điện thoại',
       'successPopup.amount': 'Tổng tiền',
+      'successPopup.items': 'Sản phẩm trong đơn hàng',
       'successPopup.trackOrder': 'Dò đơn hàng',
       'successPopup.goHome': 'Về trang chủ'
     }
@@ -347,6 +363,21 @@ const resources = {
       'menu.subtitle': 'Choose from a diverse menu featuring a delectable array of dishes. Our mission is to satisfy your cravings and elevate your dining experience, one delicious meal at a time.',
       'menu.allCategories': 'All Categories',
       'menu.searchPlaceholder': 'Search for food...',
+
+      // Category Filter
+      'filter.title': 'Search by category',
+      'filter.loading': 'Loading...',
+      'filter.hide': 'Hide',
+      'filter.show': 'Show',
+      'filter.clear': 'Clear',
+      'filter.selectParentCategory': 'Select parent category (optional):',
+      'filter.allCategories': '-- All categories --',
+      'filter.showingSubcategories': 'Showing subcategories of selected parent category',
+      'filter.selectParentOrDirect': 'Select parent category to filter, or select category directly below',
+      'filter.selectSubcategory': 'Select subcategory:',
+      'filter.selectCategory': 'Select category:',
+      'filter.noSubcategories': 'This parent category has no subcategories.',
+      'filter.selected': 'Selected:',
 
       // Food Items
       'food.addToCart': 'Add to Cart',
@@ -587,6 +618,7 @@ const resources = {
       'successPopup.trackingCode': 'Tracking Code',
       'successPopup.phone': 'Phone Number',
       'successPopup.amount': 'Total Amount',
+      'successPopup.items': 'Items in your order',
       'successPopup.trackOrder': 'Track Order',
       'successPopup.goHome': 'Go Home'
     }
@@ -641,6 +673,21 @@ const resources = {
       'menu.subtitle': 'Vyberte si z rozmanitého menu s lahodnými jedlami. Našou misiou je uspokojiť vaše chute a povzniesť váš jedálny zážitok.',
       'menu.allCategories': 'Všetky kategórie',
       'menu.searchPlaceholder': 'Hľadať jedlo...',
+
+      // Category Filter
+      'filter.title': 'Vyhľadávanie podľa kategórie',
+      'filter.loading': 'Načítava sa...',
+      'filter.hide': 'Skryť',
+      'filter.show': 'Zobraziť',
+      'filter.clear': 'Vymazať',
+      'filter.selectParentCategory': 'Vyberte nadradenú kategóriu (voliteľné):',
+      'filter.allCategories': '-- Všetky kategórie --',
+      'filter.showingSubcategories': 'Zobrazujú sa podkategórie vybranej nadradenej kategórie',
+      'filter.selectParentOrDirect': 'Vyberte nadradenú kategóriu na filtrovanie alebo vyberte kategóriu priamo nižšie',
+      'filter.selectSubcategory': 'Vyberte podkategóriu:',
+      'filter.selectCategory': 'Vyberte kategóriu:',
+      'filter.noSubcategories': 'Táto nadradená kategória nemá žiadne podkategórie.',
+      'filter.selected': 'Vybrané:',
 
       // Food Items
       'food.addToCart': 'Pridať do košíka',
@@ -879,6 +926,7 @@ const resources = {
       'successPopup.trackingCode': 'Kód sledovania',
       'successPopup.phone': 'Telefónne číslo',
       'successPopup.amount': 'Celková suma',
+      'successPopup.items': 'Položky vo vašej objednávke',
       'successPopup.trackOrder': 'Sledovať objednávku',
       'successPopup.goHome': 'Ísť domov'
     }
@@ -890,8 +938,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en', // Set default language to English
-    fallbackLng: 'en',
+    lng: 'sk', // Set default language to Slovak
+    fallbackLng: 'sk',
     debug: false, // Disable debug for production
     interpolation: {
       escapeValue: false,
@@ -902,9 +950,9 @@ i18n
     },
   });
 
-// Function to reset language to English
-export const resetToEnglish = () => {
-  i18n.changeLanguage('en');
+// Function to reset language to Slovak
+export const resetToSlovak = () => {
+  i18n.changeLanguage('sk');
   localStorage.removeItem('i18nextLng');
 };
 

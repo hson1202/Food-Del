@@ -213,14 +213,7 @@ const PlaceOrder = () => {
           items: orderItems
         });
         
-        console.log('Setting popup data:', {
-          trackingCode: trackingCode,
-          phone: data.phone,
-          orderAmount: finalAmount
-        });
-        
         setShowSuccessPopup(true);
-        console.log('Setting showSuccessPopup to true');
         
         // Không xóa cart ngay lập tức, để popup hiển thị trước
         // Cart sẽ được xóa khi user đóng popup
@@ -367,11 +360,6 @@ const PlaceOrder = () => {
     }
   }, []);
 
-  // Debug popup state changes
-  useEffect(() => {
-    console.log('showSuccessPopup changed to:', showSuccessPopup);
-    console.log('orderSuccessData changed to:', orderSuccessData);
-  }, [showSuccessPopup, orderSuccessData]);
 
 
   

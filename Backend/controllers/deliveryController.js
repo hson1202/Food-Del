@@ -201,48 +201,31 @@ const calculateDeliveryFee = async (req, res) => {
     let customerLat, customerLng, formattedAddress;
     let addressComponents = null;
     
-    // Nếu có latitude/longitude trực tiếp (không có address), dùng luôn và reverse geocode
-    if (latitude && longitude && !address) {
+    // Nếu có latitude/longitude thì dùng luôn
+    if (latitude && longitude) {
       customerLat = parseFloat(latitude);
       customerLng = parseFloat(longitude);
 
-      try {
-        const reverse = await reverseGeocodeCoordinates(customerLat, customerLng);
-        formattedAddress = reverse.formattedAddress;
-        addressComponents = reverse.components;
-      } catch (geoErr) {
-        console.warn("⚠️ Reverse geocode failed, falling back to raw coordinates:", geoErr?.message);
-        formattedAddress = `${latitude}, ${longitude}`;
-      }
-    } 
-    // Nếu có address (dù có lat/lng hay không), geocode address để lấy lat/lng chính xác
-    // Sau đó reverse geocode để lấy địa chỉ chính xác hơn
-    else if (address) {
-      try {
-        // Bước 1: Geocode address để lấy lat/lng
-        console.log("🔍 Step 1: Geocoding address to get coordinates:", address);
-        const geocoded = await geocodeAddress(address);
-        customerLat = geocoded.latitude;
-        customerLng = geocoded.longitude;
-        
-        // Bước 2: Reverse geocode lat/lng để lấy địa chỉ chính xác hơn
-        console.log("🔄 Step 2: Reverse geocoding coordinates to get accurate address:", customerLat, customerLng);
-        const reverse = await reverseGeocodeCoordinates(customerLat, customerLng);
-        formattedAddress = reverse.formattedAddress;
-        addressComponents = reverse.components;
-        
-        console.log("✅ Final address (from reverse geocode):", formattedAddress);
-      } catch (geoErr) {
-        console.error("❌ Geocoding error:", geoErr);
-        // Fallback: nếu có lat/lng từ request, dùng nó
-        if (latitude && longitude) {
-          customerLat = parseFloat(latitude);
-          customerLng = parseFloat(longitude);
-          formattedAddress = address; // Dùng address gốc nếu reverse geocode fail
-        } else {
-          throw new Error(`Failed to geocode address: ${geoErr.message}`);
+      if (address) {
+        formattedAddress = address;
+      } else {
+        try {
+          const reverse = await reverseGeocodeCoordinates(customerLat, customerLng);
+          formattedAddress = reverse.formattedAddress;
+          addressComponents = reverse.components;
+        } catch (geoErr) {
+          console.warn("⚠️ Reverse geocode failed, falling back to raw coordinates:", geoErr?.message);
+          formattedAddress = `${latitude}, ${longitude}`;
         }
       }
+    } 
+    // Nếu không, geocode từ address
+    else if (address) {
+      const geocoded = await geocodeAddress(address);
+      customerLat = geocoded.latitude;
+      customerLng = geocoded.longitude;
+      formattedAddress = geocoded.formattedAddress;
+      addressComponents = geocoded.components;
     } 
     else {
       return res.status(400).json({

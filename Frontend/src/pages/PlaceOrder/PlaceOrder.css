@@ -222,10 +222,18 @@
         box-shadow: none;
     }
     
-    /* Mobile submit button */
+    /* Mobile submit button - Sticky at bottom */
     .mobile-submit-section {
         display: block !important;
-        margin-top: 30px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 15px 20px;
+        background: white;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        border-top: 1px solid #e5e7eb;
     }
     
     .mobile-submit-btn {
@@ -258,12 +266,22 @@
     .place-order .cart-total button {
         display: none;
     }
+    
+    /* Add padding bottom to form to prevent content from being hidden behind button */
+    .place-order {
+        padding-bottom: 100px;
+    }
 }
 
 @media (max-width: 480px) {
     .place-order {
         padding: 0 15px;
+        padding-bottom: 100px;
         margin-top: 70px;
+    }
+    
+    .mobile-submit-section {
+        padding: 12px 15px;
     }
     
     .place-order-left .title {

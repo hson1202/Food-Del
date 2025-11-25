@@ -12,6 +12,9 @@
   z-index: 1000;
   padding: 20px;
   backdrop-filter: blur(5px);
+  /* Đảm bảo overlay luôn căn giữa */
+  margin: 0;
+  overflow: auto;
 }
 
 /* Modal */
@@ -21,10 +24,17 @@
   max-width: 800px;
   width: 100%;
   max-height: 90vh;
+  height: auto;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   position: relative;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
   animation: slideInUp 0.4s ease-out;
+  /* Đảm bảo modal luôn ở giữa */
+  margin: auto;
+  /* Căn giữa hoàn hảo với flexbox */
+  align-self: center;
 }
 
 @keyframes slideInUp {
@@ -38,6 +48,22 @@
   }
 }
 
+/* Đảm bảo modal luôn ở giữa màn hình trên desktop */
+@media (min-width: 769px) {
+  .cart-popup-overlay {
+    /* Đảm bảo overlay luôn căn giữa */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .cart-popup-modal {
+    /* Modal sẽ tự động căn giữa nhờ flexbox của overlay */
+    margin: 0;
+    position: relative;
+  }
+}
+
 /* Header */
 .cart-popup-header {
   background: linear-gradient(135deg, #28a745, #20c997);
@@ -46,8 +72,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: sticky; /* keep header (and close button) visible */
-  top: 0;
+  flex-shrink: 0;
+  position: relative;
   z-index: 2;
 }
 
@@ -94,20 +120,30 @@
   filter: none; /* black X */
 }
 
-/* Content */
+/* Body wrapper */
+.cart-popup-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Content - Scrollable area */
 .cart-popup-content {
+  flex: 1;
   padding: 25px;
-  max-height: calc(90vh - 80px);
   overflow-y: auto;
+  overflow-x: hidden;
   /* Đảm bảo scrollbar hoạt động tốt */
   scrollbar-width: thin;
   scrollbar-color: #c1c1c1 #f1f1f1;
-  /* Đảm bảo content có thể scroll */
-  overflow-x: hidden;
   /* Cải thiện performance */
   will-change: scroll-position;
   /* Đảm bảo scrollbar luôn hiển thị khi cần */
   scrollbar-gutter: stable;
+  /* Padding bottom để không bị che bởi summary */
+  padding-bottom: 20px;
 }
 
 /* Empty Cart */
@@ -428,12 +464,20 @@
   box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
 }
 
-/* Cart Summary */
+/* Cart Summary - Always visible at bottom */
 .cart-summary {
   background: #f8f9fa;
-  padding: 20px;
-  border-radius: 15px;
-  border: 2px solid #dee2e6;
+  padding: 20px 25px;
+  border-radius: 0;
+  border-top: 2px solid #dee2e6;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: auto;
 }
 
 .summary-row {
@@ -475,13 +519,35 @@
 
 /* Tablet Design */
 @media (max-width: 1024px) and (min-width: 768px) {
+  .cart-popup-overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
   .cart-popup-modal {
     max-width: 700px;
-    margin: 20px;
+    margin: 0;
+    position: relative;
+  }
+
+  .cart-popup-modal {
+    max-height: 88vh;
+  }
+
+  .cart-popup-body {
+    flex: 1;
+    min-height: 0;
   }
 
   .cart-popup-content {
     padding: 22px;
+    padding-bottom: 15px;
+  }
+
+  .cart-summary {
+    padding: 18px 22px;
+    flex-shrink: 0;
   }
 
   .recommended-items {
@@ -523,12 +589,26 @@
     font-size: 1.3rem;
   }
 
+  .cart-popup-modal {
+    max-height: 88vh;
+  }
+
+  .cart-popup-body {
+    flex: 1;
+    min-height: 0;
+  }
+
   .cart-popup-content {
     padding: 20px;
-    max-height: calc(88vh - 70px);
+    padding-bottom: 15px;
     /* Đảm bảo scrollbar hoạt động tốt trên mobile */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .cart-summary {
+    padding: 18px 20px;
+    flex-shrink: 0;
   }
 
   .cart-items-list {
@@ -673,9 +753,10 @@
 
   /* Mobile cart summary */
   .cart-summary {
-    padding: 25px 20px;
-    border-radius: 20px;
-    margin-top: 20px;
+    padding: 18px 20px;
+    border-radius: 0;
+    margin-top: 0;
+    border-top: 2px solid #dee2e6;
   }
 
   .summary-row {
@@ -719,12 +800,25 @@
     padding: 3px 6px;
   }
 
+  .cart-popup-modal {
+    max-height: 85vh;
+  }
+
+  .cart-popup-body {
+    flex: 1;
+    min-height: 0;
+  }
+
   .cart-popup-content {
     padding: 15px;
-    max-height: calc(85vh - 60px);
+    padding-bottom: 12px;
     /* Đảm bảo scrollbar hoạt động tốt trên mobile nhỏ */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .cart-summary {
+    flex-shrink: 0;
   }
 
   .cart-items-list {
@@ -821,7 +915,9 @@
   }
 
   .cart-summary {
-    padding: 20px 15px;
+    padding: 15px;
+    border-radius: 0;
+    border-top: 2px solid #dee2e6;
   }
 
   .summary-row {
