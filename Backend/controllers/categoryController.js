@@ -2,6 +2,19 @@ import categoryModel from "../models/categoryModel.js";
 import parentCategoryModel from "../models/parentCategoryModel.js";
 import fs from 'fs';
 
+const normalizeParentCategoryValue = (value) => {
+    if (value === undefined) return undefined;
+    if (value === null) return null;
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed || trimmed.toLowerCase() === 'null' || trimmed.toLowerCase() === 'undefined') {
+            return null;
+        }
+        return trimmed;
+    }
+    return value;
+};
+
 // Get all categories
 const getAllCategories = async (req, res) => {
     try {
@@ -29,7 +42,7 @@ const getAllCategoriesAdmin = async (req, res) => {
 // Add new category
 const addCategory = async (req, res) => {
     try {
-        const { name, description, sortOrder, language } = req.body;
+        const { name, description, sortOrder, language, parentCategory } = req.body;
         // Use Cloudinary URL or local filename
         let image_url = '';
         
@@ -47,10 +60,21 @@ const addCategory = async (req, res) => {
             name,
             description: description || '',
             image: image_url,
-            sortOrder: sortOrder || 0,
+            sortOrder: Number(sortOrder) || 0,
             // allow explicit language, fallback to model default
             ...(language ? { language } : {})
         };
+
+        const normalizedParent = normalizeParentCategoryValue(parentCategory);
+        if (normalizedParent !== undefined) {
+            if (normalizedParent) {
+                const parentExists = await parentCategoryModel.exists({ _id: normalizedParent });
+                if (!parentExists) {
+                    return res.status(400).json({ success: false, message: "Parent category not found" });
+                }
+            }
+            categoryData.parentCategory = normalizedParent;
+        }
 
         const category = new categoryModel(categoryData);
         await category.save();
@@ -70,7 +94,7 @@ const addCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, sortOrder, isActive } = req.body;
+        const { name, description, sortOrder, isActive, parentCategory } = req.body;
         let image_url = '';
         
         if (req.file) {
@@ -81,16 +105,31 @@ const updateCategory = async (req, res) => {
         const updateData = {
             name,
             description: description || '',
-            sortOrder: sortOrder || 0,
+            sortOrder: Number(sortOrder) || 0,
             isActive: isActive !== undefined ? isActive : true
         };
+
+        const normalizedParent = normalizeParentCategoryValue(parentCategory);
+        if (normalizedParent !== undefined) {
+            if (normalizedParent) {
+                const parentExists = await parentCategoryModel.exists({ _id: normalizedParent });
+                if (!parentExists) {
+                    return res.status(400).json({ success: false, message: "Parent category not found" });
+                }
+            }
+            updateData.parentCategory = normalizedParent;
+        }
 
         if (image_url) {
             updateData.image = image_url;
         }
 
-        await categoryModel.findByIdAndUpdate(id, updateData);
-        res.json({ success: true, message: "Category updated successfully" });
+        const updatedCategory = await categoryModel.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        );
+        res.json({ success: true, message: "Category updated successfully", data: updatedCategory });
     } catch (error) {
         console.error('Error updating category:', error);
         if (error.code === 11000) {

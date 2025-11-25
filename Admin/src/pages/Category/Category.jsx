@@ -9,7 +9,9 @@ import config from '../../config/config'
 const Category = ({ url }) => {
   const { t } = useTranslation();
   const [categories, setCategories] = useState([])
-  const [newCategory, setNewCategory] = useState({ name: '', description: '', image: null })
+  const [parentCategories, setParentCategories] = useState([])
+  const [isLoadingParents, setIsLoadingParents] = useState(false)
+  const [newCategory, setNewCategory] = useState({ name: '', description: '', image: null, parentCategory: '' })
   const [editingCategory, setEditingCategory] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -30,6 +32,7 @@ const Category = ({ url }) => {
       console.log('Category component mounted:', envInfo)
     }
     fetchCategories()
+    fetchParentCategories()
   }, [])
   
   // Error boundary - MOVED AFTER ALL HOOKS
@@ -67,6 +70,20 @@ const Category = ({ url }) => {
     }
   }
 
+  const fetchParentCategories = async () => {
+    try {
+      setIsLoadingParents(true)
+      const apiUrl = `${config.BACKEND_URL}/api/parent-category/admin/all`
+      const response = await axios.get(apiUrl)
+      setParentCategories(response.data?.data || response.data || [])
+    } catch (error) {
+      console.error('Error fetching parent categories:', error)
+      toast.error('Không thể tải danh sách parent category')
+    } finally {
+      setIsLoadingParents(false)
+    }
+  }
+
   const handleAddCategory = async (e) => {
     e.preventDefault()
     if (!newCategory.name.trim()) {
@@ -79,6 +96,7 @@ const Category = ({ url }) => {
       const formData = new FormData()
       formData.append('name', newCategory.name)
       formData.append('description', newCategory.description)
+      formData.append('parentCategory', newCategory.parentCategory || '')
       if (newCategory.image) {
         formData.append('image', newCategory.image)
       }
@@ -96,7 +114,7 @@ const Category = ({ url }) => {
         timeout: 30000 // 30 seconds timeout
       })
       toast.success(t('categories.addSuccess', 'Category added successfully'))
-      setNewCategory({ name: '', description: '', image: null })
+      setNewCategory({ name: '', description: '', image: null, parentCategory: '' })
       fetchCategories()
     } catch (error) {
       console.error('Error adding category:', error)
@@ -140,6 +158,7 @@ const Category = ({ url }) => {
       const formData = new FormData()
       formData.append('name', editingCategory.name)
       formData.append('description', editingCategory.description)
+      formData.append('parentCategory', editingCategory.parentCategory || '')
       if (editingCategory.newImage) {
         formData.append('image', editingCategory.newImage)
       }
@@ -177,7 +196,10 @@ const Category = ({ url }) => {
 
   const startEditing = (category) => {
     try {
-      setEditingCategory({ ...category, newImage: null })
+      const parentCategoryId = typeof category.parentCategory === 'object'
+        ? category.parentCategory?._id
+        : category.parentCategory || ''
+      setEditingCategory({ ...category, parentCategory: parentCategoryId || '', newImage: null })
     } catch (error) {
       console.error('Error starting edit:', error)
       setError(error)
@@ -236,6 +258,23 @@ const Category = ({ url }) => {
           </div>
 
           <div className="form-group">
+            <label htmlFor="parentCategory">{t('categories.parentCategory', 'Parent Category')}</label>
+            <select
+              id="parentCategory"
+              value={newCategory.parentCategory}
+              onChange={(e) => setNewCategory({ ...newCategory, parentCategory: e.target.value })}
+              disabled={isLoadingParents}
+            >
+              <option value="">{t('categories.parentCategoryNone', 'Không có parent')}</option>
+              {parentCategories.map((parent) => (
+                <option key={parent._id} value={parent._id}>
+                  {parent.icon ? `${parent.icon} ` : ''}{parent.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
             <label htmlFor="image">{t('categories.image')}</label>
             <input
               type="file"
@@ -249,7 +288,11 @@ const Category = ({ url }) => {
             <button type="submit" className="btn-primary" disabled={isLoading}>
               {isLoading ? t('common.loading') : t('categories.addNew')}
             </button>
-            <button type="button" className="btn-secondary" onClick={() => setNewCategory({ name: '', description: '', image: null })}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setNewCategory({ name: '', description: '', image: null, parentCategory: '' })}
+            >
               {t('common.clear')}
             </button>
           </div>
@@ -267,7 +310,14 @@ const Category = ({ url }) => {
         ) : (
                     <div className="categories-container">
             <div className="categories-grid" id="categoriesGrid">
-              {categories.map((category) => (
+              {categories.map((category) => {
+                const parentInfo = category.parentCategory
+                  ? (typeof category.parentCategory === 'object'
+                    ? category.parentCategory
+                    : parentCategories.find((parent) => parent._id === category.parentCategory))
+                  : null
+                
+                return (
                   <div key={category._id} className="category-card">
                 {editingCategory && editingCategory._id === category._id ? (
                   <form onSubmit={handleEditCategory} className="edit-form">
@@ -287,6 +337,32 @@ const Category = ({ url }) => {
                         onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
                         rows="2"
                       />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('categories.parentCategory', 'Parent Category')}</label>
+                      <div className="parent-select-row">
+                        <select
+                          value={editingCategory.parentCategory || ''}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, parentCategory: e.target.value })}
+                        >
+                          <option value="">{t('categories.parentCategoryNone', 'Không có parent')}</option>
+                          {parentCategories.map((parent) => (
+                            <option key={parent._id} value={parent._id}>
+                              {parent.icon ? `${parent.icon} ` : ''}{parent.name}
+                            </option>
+                          ))}
+                        </select>
+                        {editingCategory.parentCategory && (
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ marginLeft: '8px' }}
+                            onClick={() => setEditingCategory({ ...editingCategory, parentCategory: '' })}
+                          >
+                            {t('categories.removeParent', 'Xóa parent')}
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="form-group">
                       <label>{t('categories.newImage', 'New Image')}</label>
@@ -401,6 +477,11 @@ const Category = ({ url }) => {
                       <p className="category-description">{category.description || t('categories.noDescription', 'No description')}</p>
                       <div className="category-meta">
                         <span className="category-date">{new Date(category.createdAt).toLocaleDateString()}</span>
+                        <span className="category-parent">
+                          {parentInfo
+                            ? `${t('categories.parentCategory', 'Parent Category')}: ${parentInfo.icon ? `${parentInfo.icon} ` : ''}${parentInfo.name}`
+                            : t('categories.parentCategoryNone', 'Không có parent')}
+                        </span>
                       </div>
                     </div>
                     <div className="category-actions">
@@ -414,7 +495,8 @@ const Category = ({ url }) => {
                   </>
                 )}
               </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
