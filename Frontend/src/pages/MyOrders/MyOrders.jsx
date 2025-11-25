@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { StoreContext } from '../../Context/StoreContext.jsx';
 import axios from 'axios';
 import { assets } from '../../assets/assets';
@@ -13,7 +13,7 @@ const MyOrders = () => {
         phone: ''
     });
     const [lastOrderItems, setLastOrderItems] = useState([]);
-    const { url, token, setToken, debugToken } = useContext(StoreContext);
+    const { url, token, setToken } = useContext(StoreContext);
     
     // Refresh token from localStorage if context token is empty
     const refreshToken = () => {
@@ -24,17 +24,6 @@ const MyOrders = () => {
             return localToken;
         }
         return token;
-    }
-
-    // Force refresh token from localStorage
-    const forceRefreshToken = () => {
-        const localToken = localStorage.getItem("token");
-        console.log('🔄 Force refreshing token from localStorage:', localToken);
-        if (localToken) {
-            setToken(localToken);
-            return localToken;
-        }
-        return null;
     }
 
     // Load last order snapshot for quick review
@@ -48,59 +37,10 @@ const MyOrders = () => {
                 setGuestForm(prev => ({ ...prev, trackingCode: tc, phone: ph }));
             }
             if (Array.isArray(items)) setLastOrderItems(items);
-        } catch (_) {}
+        } catch (error) {
+            console.error('Error loading last order:', error);
+        }
     }, []);
-
-    // Check if user is logged in
-    const isUserLoggedIn = () => {
-        const localToken = localStorage.getItem("token");
-        const contextToken = token;
-        console.log('🔍 Checking user login status:');
-        console.log('🔍 - Token in localStorage:', !!localToken);
-        console.log('🔍 - Token in context:', !!contextToken);
-        console.log('🔍 - Tokens match:', localToken === contextToken);
-        return !!(localToken || contextToken);
-    }
-
-    // Check token validity by making a test request
-    const checkTokenValidity = async () => {
-        const currentToken = token || localStorage.getItem("token");
-        if (!currentToken) {
-            console.log('❌ No token available to check');
-            return false;
-        }
-
-        try {
-            console.log('🔍 Checking token validity...');
-            const response = await axios.post(url + "/api/order/userorders", {}, { 
-                headers: { token: currentToken } 
-            });
-            
-            if (response.data.success) {
-                console.log('✅ Token is valid');
-                return true;
-            } else {
-                console.log('❌ Token is invalid:', response.data.message);
-                return false;
-            }
-        } catch (error) {
-            console.log('❌ Error checking token validity:', error.response?.data);
-            return false;
-        }
-    }
-
-    // Check if there are any orders in the system
-    const checkSystemOrders = async () => {
-        try {
-            console.log('🔍 Checking system orders...');
-            // This would require an admin endpoint, but for now let's just log
-            console.log('🔍 Note: This would require admin access to check all orders');
-            console.log('🔍 Current user orders:', data);
-            console.log('🔍 Data length:', data.length);
-        } catch (error) {
-            console.log('❌ Error checking system orders:', error);
-        }
-    }
 
     // Fetch orders for registered users
     const fetchUserOrders = async () => {
@@ -211,6 +151,7 @@ const MyOrders = () => {
             console.log('👥 Guest user detected, showing search form...');
             setShowGuestForm(true);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token])
 
     // Additional useEffect to monitor localStorage changes

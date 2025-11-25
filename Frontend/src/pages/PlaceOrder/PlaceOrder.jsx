@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import './PlaceOrder.css'
 import { StoreContext } from '../../Context/StoreContext'
 import axios from 'axios'
@@ -21,7 +21,6 @@ const PlaceOrder = () => {
     preferredDeliveryTime: ""
   })
   const [orderType, setOrderType] = useState(token ? 'registered' : 'guest'); // Tự động set 'registered' nếu đã login
-  const [trackingCode, setTrackingCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [orderSuccessData, setOrderSuccessData] = useState({});
@@ -190,7 +189,7 @@ const PlaceOrder = () => {
       console.log('Response:', response.data);
 
       if (response.data.success) {
-        const { trackingCode, message } = response.data;
+        const { trackingCode } = response.data;
         
         // Lưu mã tracking vào localStorage để hiển thị sau khi đặt hàng
         if (trackingCode) {
@@ -200,7 +199,9 @@ const PlaceOrder = () => {
         // Lưu snapshot items để khách xem lại ngay sau khi đặt
         try {
           localStorage.setItem('lastOrderItems', JSON.stringify(orderItems));
-        } catch (_) {}
+        } catch (error) {
+          console.error('Error saving last order items:', error);
+        }
         
         // Tính toán số tiền trước khi xóa cart
         const finalAmount = getTotalCartAmount() + getDeliveryFee();
@@ -247,7 +248,7 @@ const PlaceOrder = () => {
           )
           
           if (retryResponse.data.success) {
-            const { trackingCode, message } = retryResponse.data;
+            const { trackingCode } = retryResponse.data;
             
             if (trackingCode) {
               localStorage.setItem('lastTrackingCode', trackingCode);
@@ -255,7 +256,9 @@ const PlaceOrder = () => {
             }
             try {
               localStorage.setItem('lastOrderItems', JSON.stringify(orderItems));
-            } catch (_) {}
+            } catch (error) {
+              console.error('Error saving last order items:', error);
+            }
             
             const finalAmount = getTotalCartAmount() + getDeliveryFee();
             

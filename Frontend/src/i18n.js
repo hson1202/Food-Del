@@ -56,18 +56,18 @@ const resources = {
       'menu.searchPlaceholder': 'Tìm kiếm món ăn...',
 
       // Category Filter
-      'filter.title': 'Tìm theo danh mục',
+      'filter.title': 'Danh mục',
       'filter.loading': 'Đang tải...',
       'filter.hide': 'Ẩn',
       'filter.show': 'Mở',
       'filter.clear': 'Xóa',
-      'filter.selectParentCategory': 'Chọn danh mục cha (tùy chọn):',
-      'filter.allCategories': '-- Tất cả danh mục --',
+      'filter.selectParentCategory': 'Danh mục cha:',
+      'filter.allCategories': '-- Tất cả --',
       'filter.showingSubcategories': 'Đang hiển thị danh mục con của danh mục cha đã chọn',
       'filter.selectParentOrDirect': 'Chọn danh mục cha để lọc, hoặc chọn trực tiếp danh mục bên dưới',
-      'filter.selectSubcategory': 'Chọn danh mục con:',
-      'filter.selectCategory': 'Chọn danh mục:',
-      'filter.noSubcategories': 'Danh mục cha này chưa có danh mục con nào.',
+      'filter.selectSubcategory': 'Danh mục:',
+      'filter.selectCategory': 'Danh mục:',
+      'filter.noSubcategories': 'Chưa có danh mục con.',
       'filter.selected': 'Đã chọn:',
 
       // Food Items
@@ -365,18 +365,18 @@ const resources = {
       'menu.searchPlaceholder': 'Search for food...',
 
       // Category Filter
-      'filter.title': 'Search by category',
+      'filter.title': 'Category',
       'filter.loading': 'Loading...',
       'filter.hide': 'Hide',
       'filter.show': 'Show',
       'filter.clear': 'Clear',
-      'filter.selectParentCategory': 'Select parent category (optional):',
-      'filter.allCategories': '-- All categories --',
+      'filter.selectParentCategory': 'Parent:',
+      'filter.allCategories': '-- All --',
       'filter.showingSubcategories': 'Showing subcategories of selected parent category',
       'filter.selectParentOrDirect': 'Select parent category to filter, or select category directly below',
-      'filter.selectSubcategory': 'Select subcategory:',
-      'filter.selectCategory': 'Select category:',
-      'filter.noSubcategories': 'This parent category has no subcategories.',
+      'filter.selectSubcategory': 'Category:',
+      'filter.selectCategory': 'Category:',
+      'filter.noSubcategories': 'No subcategories.',
       'filter.selected': 'Selected:',
 
       // Food Items
@@ -667,6 +667,7 @@ const resources = {
       'nav.myOrders': 'Moje objednávky',
       'nav.account': 'Účet',
       'nav.trackOrder': 'Sledovať objednávku',
+      'nav.booking': 'Rezervácia',
 
       // Menu
       'menu.explore': 'Preskúmajte naše menu',
@@ -675,18 +676,18 @@ const resources = {
       'menu.searchPlaceholder': 'Hľadať jedlo...',
 
       // Category Filter
-      'filter.title': 'Vyhľadávanie podľa kategórie',
+      'filter.title': 'Kategória',
       'filter.loading': 'Načítava sa...',
       'filter.hide': 'Skryť',
       'filter.show': 'Zobraziť',
       'filter.clear': 'Vymazať',
-      'filter.selectParentCategory': 'Vyberte nadradenú kategóriu (voliteľné):',
-      'filter.allCategories': '-- Všetky kategórie --',
+      'filter.selectParentCategory': 'Nadradená:',
+      'filter.allCategories': '-- Všetky --',
       'filter.showingSubcategories': 'Zobrazujú sa podkategórie vybranej nadradenej kategórie',
       'filter.selectParentOrDirect': 'Vyberte nadradenú kategóriu na filtrovanie alebo vyberte kategóriu priamo nižšie',
-      'filter.selectSubcategory': 'Vyberte podkategóriu:',
-      'filter.selectCategory': 'Vyberte kategóriu:',
-      'filter.noSubcategories': 'Táto nadradená kategória nemá žiadne podkategórie.',
+      'filter.selectSubcategory': 'Kategória:',
+      'filter.selectCategory': 'Kategória:',
+      'filter.noSubcategories': 'Žiadne podkategórie.',
       'filter.selected': 'Vybrané:',
 
       // Food Items
@@ -773,6 +774,9 @@ const resources = {
       'contact.form.success.title': 'Správa odoslaná úspešne!',
       'contact.form.success.message': 'Ďakujeme za kontaktovanie. Odpovieme čo najskôr.',
       'contact.map.title': 'Naša poloha',
+      'contact.map.subtitle': 'Interaktívna mapa',
+      'contact.map.description': 'Naša reštaurácia sa nachádza v srdci mesta, ľahko dostupná verejnou dopravou.',
+      'contact.map.getDirections': 'Získať navigáciu',
       'contact.tabs.contactUs': 'Kontakt',
       'contact.tabs.makeReservation': 'Urobiť rezerváciu',
       

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import './Menu.css'
 import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../../components/FoodItem/FoodItem'
@@ -14,7 +14,7 @@ import config from '../../config/config'
 const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eager: true, as: 'url' })
 
 const Menu = () => {
-  const { food_list, cartItems, getTotalCartAmount, isLoadingFood } = useContext(StoreContext)
+  const { food_list, isLoadingFood } = useContext(StoreContext)
   const { i18n } = useTranslation()
   const [parentCategories, setParentCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('') // Category con được chọn từ filter
@@ -103,21 +103,6 @@ const Menu = () => {
     setSearchTerm('')
   }
 
-  const formatPrice = (price) => {
-    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      return '€0'
-    }
-    
-    const formatted = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(Number(price))
-    
-    return formatted.replace(/\.00$/, '')
-  }
-
   return (
     <div className="menu-page">
       {/* Hero Section */}
@@ -158,7 +143,7 @@ const Menu = () => {
               </div>
               {searchTerm && (
                 <div className="search-results-info">
-                  Found {filteredFoods.length} result{filteredFoods.length !== 1 ? 's' : ''} for "{searchTerm}"
+                  Found {filteredFoods.length} result{filteredFoods.length !== 1 ? 's' : ''} for &quot;{searchTerm}&quot;
                 </div>
               )}
             </div>

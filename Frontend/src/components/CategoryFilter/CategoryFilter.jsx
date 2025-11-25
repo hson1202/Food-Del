@@ -148,7 +148,7 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
     <div className={`category-filter ${isMobile ? 'mobile' : ''} ${isTablet ? 'tablet' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <div className="filter-header">
         <div className="filter-header-left">
-          <h3>🔍 {t('filter.title')}</h3>
+          <h3>{t('filter.title')}</h3>
           {selectedCategory && (
             <span className="filter-badge">{selectedCategory}</span>
           )}
@@ -159,15 +159,14 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
               className="toggle-filter-btn"
               onClick={() => setIsExpanded(!isExpanded)}
               aria-label={isExpanded ? t('filter.hide') : t('filter.show')}
+              title={isExpanded ? t('filter.hide') : t('filter.show')}
             >
-              <span className="toggle-icon">{isExpanded ? '👁️' : '☰'}</span>
-              <span className="toggle-text">{isExpanded ? t('filter.hide') : t('filter.show')}</span>
+              <span className="toggle-icon">{isExpanded ? '▼' : '☰'}</span>
             </button>
           )}
           {(selectedParentCategory || selectedCategory) && (
-            <button className="clear-filter-btn" onClick={clearFilter}>
-              <span className="clear-icon">🗑️</span>
-              <span className="clear-text">{t('filter.clear')}</span>
+            <button className="clear-filter-btn" onClick={clearFilter} title={t('filter.clear')}>
+              <span className="clear-icon">✕</span>
             </button>
           )}
         </div>
@@ -180,7 +179,6 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
         {/* Step 1: Chọn danh mục cha (optional) */}
         <div className="filter-step">
           <label className="filter-label">
-            <span className="step-number">1️⃣</span>
             {t('filter.selectParentCategory')}
           </label>
           <select
@@ -199,16 +197,12 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
               )
             })}
           </select>
-          <small style={{ display: 'block', marginTop: '5px', color: '#666', fontSize: '0.85rem' }}>
-            {selectedParentCategory ? t('filter.showingSubcategories') : t('filter.selectParentOrDirect')}
-          </small>
         </div>
 
         {/* Step 2: Hiển thị danh sách category con */}
         {categories.length > 0 && (
           <div className="filter-step">
             <label className="filter-label">
-              <span className="step-number">{selectedParentCategory ? '2️⃣' : '1️⃣'}</span>
               {selectedParentCategory ? t('filter.selectSubcategory') : t('filter.selectCategory')}
             </label>
             <div className="category-list">
@@ -234,16 +228,7 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
         {/* Hiển thị khi chưa có category con */}
         {selectedParentCategory && categories.length === 0 && (
           <div className="filter-message">
-            <p>📭 {t('filter.noSubcategories')}</p>
-          </div>
-        )}
-
-        {/* Hiển thị khi đã chọn category - chỉ hiện trên desktop hoặc khi expanded */}
-        {selectedCategory && !isMobile && !isTablet && (
-          <div className="filter-result">
-            <p>
-              <strong>{t('filter.selected')}</strong> {selectedCategory}
-            </p>
+            <p>{t('filter.noSubcategories')}</p>
           </div>
         )}
       </div>
