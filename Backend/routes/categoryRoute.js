@@ -7,7 +7,8 @@ import {
     deleteCategory,
     toggleCategoryStatus,
     resetCategories,
-    clearAllCategories
+    clearAllCategories,
+    getMenuStructure
 } from "../controllers/categoryController.js";
 import { upload } from "../middleware/upload.js";
 
@@ -17,6 +18,7 @@ const categoryRouter = express.Router();
 
 // Public routes (for frontend)
 categoryRouter.get("/", getAllCategories);
+categoryRouter.get("/menu-structure", getMenuStructure);
 
 // Admin routes
 categoryRouter.get("/admin", getAllCategoriesAdmin);

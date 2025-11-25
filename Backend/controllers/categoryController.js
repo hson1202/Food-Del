@@ -1,4 +1,5 @@
 import categoryModel from "../models/categoryModel.js";
+import parentCategoryModel from "../models/parentCategoryModel.js";
 import fs from 'fs';
 
 // Get all categories
@@ -188,6 +189,25 @@ const clearAllCategories = async (_req, res) => {
     }
 };
 
+// Get menu structure (parent categories with their child categories)
+const getMenuStructure = async (req, res) => {
+    try {
+        const parentCategories = await parentCategoryModel.find({ isActive: true })
+            .sort({ sortOrder: 1, name: 1 })
+            .populate({
+                path: 'categories',
+                match: { isActive: true },
+                select: 'name description image sortOrder',
+                options: { sort: { sortOrder: 1, name: 1 } }
+            });
+        
+        res.json({ success: true, data: parentCategories });
+    } catch (error) {
+        console.error('Error fetching menu structure:', error);
+        res.status(500).json({ success: false, message: "Error fetching menu structure" });
+    }
+};
+
 export {
     getAllCategories,
     getAllCategoriesAdmin,
@@ -196,5 +216,6 @@ export {
     deleteCategory,
     toggleCategoryStatus,
     resetCategories,
-    clearAllCategories
+    clearAllCategories,
+    getMenuStructure
 }; 

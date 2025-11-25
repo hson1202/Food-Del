@@ -1,9 +1,26 @@
 // Configuration file for backend URLs and image paths
+const getBackendUrl = () => {
+	// Always prioritize VITE_BACKEND_URL from environment variables
+	if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) {
+		return import.meta.env.VITE_BACKEND_URL;
+	}
+	
+	// If no env variable, use defaults based on mode
+	const isProduction = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.MODE === 'production';
+	
+	if (isProduction) {
+		// In production, VITE_BACKEND_URL should be set in environment variables
+		console.warn('⚠️ VITE_BACKEND_URL not set in production! Using localhost fallback. Please set VITE_BACKEND_URL in your environment variables.');
+		return 'http://localhost:4000'; // Fallback, but should not happen in production
+	}
+	
+	// Development mode: default to localhost
+	return 'http://localhost:4000';
+};
+
 const config = {
-	// Backend URL - change this based on environment
-	BACKEND_URL: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.MODE === 'production') 
-		? (import.meta.env.VITE_BACKEND_URL || 'https://food-del-backend-4jjf.onrender.com')
-		: 'http://localhost:4000',
+	// Backend URL - read from VITE_BACKEND_URL env variable, fallback to localhost in dev
+	BACKEND_URL: getBackendUrl(),
 	
 	// API endpoints
 	API_ENDPOINTS: {

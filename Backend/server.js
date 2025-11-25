@@ -10,6 +10,7 @@ import cartRouter from "./routes/cartRoute.js"
 import orderRouter from "./routes/orderRoute.js"
 import adminRouter from "./routes/adminRoute.js"
 import categoryRouter from "./routes/categoryRoute.js"
+import parentCategoryRouter from "./routes/parentCategoryRoute.js"
 import blogRouter from "./routes/blogRoute.js"
 import reservationRouter from "./routes/reservationRoute.js"
 import contactMessageRouter from "./routes/contactMessageRoute.js"
@@ -80,6 +81,7 @@ app.use("/api/cart", cartRouter)
 app.use("/api/order", orderRouter)
 app.use("/api/admin", adminRouter)
 app.use("/api/category", categoryRouter)
+app.use("/api/parent-category", parentCategoryRouter)
 app.use("/api/blog", blogRouter)
 app.use("/api/reservation", reservationRouter)
 app.use("/api/contact", contactMessageRouter)
@@ -174,6 +176,7 @@ app.get("/api", (req, res) => {
       "/api/order",
       "/api/admin",
       "/api/category",
+      "/api/parent-category",
       "/api/blog",
       "/api/reservation",
       "/api/contact",
@@ -375,7 +378,8 @@ app.use("*", (req, res) => {
       "/api/cart", 
       "/api/order",
       "/api/admin",
-      "/api/category"
+      "/api/category",
+      "/api/parent-category"
     ]
   })
 })
