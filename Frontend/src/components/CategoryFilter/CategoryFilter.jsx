@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './CategoryFilter.css'
 import axios from 'axios'
 import config from '../../config/config'
 import { useTranslation } from 'react-i18next'
+import PropTypes from 'prop-types'
 
 const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
   const { i18n, t } = useTranslation()
@@ -14,39 +15,7 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
   const [isMobile, setIsMobile] = useState(false)
   const [isTablet, setIsTablet] = useState(false)
 
-  // Detect mobile and tablet
-  useEffect(() => {
-    const checkDevice = () => {
-      const width = window.innerWidth
-      setIsMobile(width <= 768)
-      setIsTablet(width > 768 && width <= 1024)
-      // Auto expand only on desktop (>1024px)
-      if (width > 1024) {
-        setIsExpanded(true)
-      } else {
-        // Tablet and mobile: start collapsed
-        setIsExpanded(false)
-      }
-    }
-    checkDevice()
-    window.addEventListener('resize', checkDevice)
-    return () => window.removeEventListener('resize', checkDevice)
-  }, [])
-
-  useEffect(() => {
-    fetchParentCategories()
-  }, [])
-
-  useEffect(() => {
-    if (selectedParentCategory && parentCategories.length > 0) {
-      fetchCategoriesByParent(selectedParentCategory)
-    } else {
-      // Khi chưa chọn danh mục cha, hiển thị tất cả categories
-      fetchAllCategories()
-    }
-  }, [selectedParentCategory, parentCategories])
-
-  const fetchAllCategories = async () => {
+  const fetchAllCategories = useCallback(async () => {
     try {
       const response = await axios.get(`${config.BACKEND_URL}/api/category`)
       const allCategories = response.data.data || []
@@ -55,9 +24,9 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
       console.error('Error fetching all categories:', error)
       setCategories([])
     }
-  }
+  }, [])
 
-  const fetchParentCategories = async () => {
+  const fetchParentCategories = useCallback(async () => {
     try {
       const response = await axios.get(`${config.BACKEND_URL}/api/parent-category`)
       const data = response.data.data || []
@@ -67,9 +36,9 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
       console.error('Error fetching parent categories:', error)
       setLoading(false)
     }
-  }
+  }, [])
 
-  const fetchCategoriesByParent = async (parentId) => {
+  const fetchCategoriesByParent = useCallback(async (parentId) => {
     try {
       // Find parent category from already loaded data
       const parentCategory = parentCategories.find(pc => 
@@ -99,7 +68,39 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
       console.error('Error fetching categories:', error)
       setCategories([])
     }
-  }
+  }, [parentCategories])
+
+  // Detect mobile and tablet
+  useEffect(() => {
+    const checkDevice = () => {
+      const width = window.innerWidth
+      setIsMobile(width <= 768)
+      setIsTablet(width > 768 && width <= 1024)
+      // Auto expand only on desktop (>1024px)
+      if (width > 1024) {
+        setIsExpanded(true)
+      } else {
+        // Tablet and mobile: start collapsed
+        setIsExpanded(false)
+      }
+    }
+    checkDevice()
+    window.addEventListener('resize', checkDevice)
+    return () => window.removeEventListener('resize', checkDevice)
+  }, [])
+
+  useEffect(() => {
+    fetchParentCategories()
+  }, [fetchParentCategories])
+
+  useEffect(() => {
+    if (selectedParentCategory && parentCategories.length > 0) {
+      fetchCategoriesByParent(selectedParentCategory)
+    } else {
+      // Khi chưa chọn danh mục cha, hiển thị tất cả categories
+      fetchAllCategories()
+    }
+  }, [selectedParentCategory, parentCategories, fetchCategoriesByParent, fetchAllCategories])
 
   const getLocalizedName = (item, field = 'name') => {
     const currentLang = i18n.language
@@ -112,14 +113,33 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
     setSelectedParentCategory(parentId)
     // Reset selected category when parent changes
     if (onCategorySelect) {
-      onCategorySelect('')
+      onCategorySelect(null)
     }
   }
 
-  const handleCategoryClick = (categoryName) => {
-    if (onCategorySelect) {
-      onCategorySelect(categoryName)
+  const getCategoryId = (category) => {
+    if (typeof category === 'string') return category
+    return category._id?.toString() || getLocalizedName(category)
+  }
+
+  const getCategoryLabel = (category) => {
+    if (typeof category === 'string') return category
+    return getLocalizedName(category)
+  }
+
+  const handleCategoryClick = (category) => {
+    if (!onCategorySelect) return
+
+    const categoryId = getCategoryId(category)
+    const label = getCategoryLabel(category)
+
+    // Toggle off when clicking the same category
+    if (selectedCategory?.id === categoryId) {
+      onCategorySelect(null)
+    } else {
+      onCategorySelect({ id: categoryId, label })
     }
+
     // Tự động ẩn filter sau khi chọn (chỉ trên mobile/tablet)
     if (isMobile || isTablet) {
       setTimeout(() => {
@@ -132,7 +152,7 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
     setSelectedParentCategory('')
     setCategories([])
     if (onCategorySelect) {
-      onCategorySelect('')
+      onCategorySelect(null)
     }
   }
 
@@ -149,8 +169,8 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
       <div className="filter-header">
         <div className="filter-header-left">
           <h3>{t('filter.title')}</h3>
-          {selectedCategory && (
-            <span className="filter-badge">{selectedCategory}</span>
+          {selectedCategory?.label && (
+            <span className="filter-badge">{selectedCategory.label}</span>
           )}
         </div>
         <div className="filter-header-right">
@@ -164,7 +184,7 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
               <span className="toggle-icon">{isExpanded ? '▼' : '☰'}</span>
             </button>
           )}
-          {(selectedParentCategory || selectedCategory) && (
+          {(selectedParentCategory || selectedCategory?.id) && (
             <button className="clear-filter-btn" onClick={clearFilter} title={t('filter.clear')}>
               <span className="clear-icon">✕</span>
             </button>
@@ -176,10 +196,10 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
       {/* Filter content - hidden when collapsed on mobile/tablet */}
       <div className={`filter-content ${(isMobile || isTablet) && !isExpanded ? 'hidden' : ''}`}>
 
-        {/* Step 1: Chọn danh mục cha (optional) */}
+        {/* Step 1: Chọn danh mục món ăn */}
         <div className="filter-step">
           <label className="filter-label">
-            {t('filter.selectParentCategory')}
+            {t('filter.menuCategories') || 'Danh mục món ăn'}
           </label>
           <select
             className="filter-select"
@@ -207,14 +227,15 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
             </label>
             <div className="category-list">
               {categories.map((category) => {
-                const categoryName = category.name || category
-                const isSelected = selectedCategory === categoryName
+                const categoryId = getCategoryId(category)
+                const categoryName = getCategoryLabel(category)
+                const isSelected = selectedCategory?.id === categoryId
                 
                 return (
                   <button
-                    key={category._id || categoryName}
+                    key={categoryId}
                     className={`category-item ${isSelected ? 'active' : ''}`}
-                    onClick={() => handleCategoryClick(categoryName)}
+                    onClick={() => handleCategoryClick(category)}
                   >
                     {categoryName}
                     {isSelected && <span className="check-mark">✓</span>}
@@ -237,4 +258,12 @@ const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
 }
 
 export default CategoryFilter
+
+CategoryFilter.propTypes = {
+  onCategorySelect: PropTypes.func,
+  selectedCategory: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    label: PropTypes.string,
+  }),
+}
 

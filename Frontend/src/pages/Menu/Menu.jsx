@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef } from 'react'
+import { useState, useEffect, useContext, useMemo, useRef } from 'react'
 import './Menu.css'
 import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../../components/FoodItem/FoodItem'
@@ -13,28 +13,21 @@ import config from '../../config/config'
 // Load all hero images at once using Vite glob import
 const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eager: true, as: 'url' })
 
-const ITEMS_PER_LOAD = 12
-
 const Menu = () => {
   const { food_list, isLoadingFood } = useContext(StoreContext)
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [parentCategories, setParentCategories] = useState([])
-  const [selectedCategory, setSelectedCategory] = useState('') // Category con được chọn từ filter
+  const [selectedCategory, setSelectedCategory] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showCartPopup, setShowCartPopup] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD)
-  const sectionsRef = useRef(null)
+  const categoryRefs = useRef({})
 
   useEffect(() => {
     fetchMenuStructure()
   }, [])
-
-  useEffect(() => {
-    setVisibleCount(ITEMS_PER_LOAD)
-  }, [selectedCategory, searchTerm, food_list])
 
   useEffect(() => {
     const update = () => setIsMobile(window.innerWidth <= 768)
@@ -42,22 +35,6 @@ const Menu = () => {
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [])
-
-  useEffect(() => {
-    if (!selectedCategory || !sectionsRef.current) return
-    const offset = isMobile ? 120 : 150
-    const rect = sectionsRef.current.getBoundingClientRect()
-    const target =
-      rect.top + window.pageYOffset - offset < 0
-        ? 0
-        : rect.top + window.pageYOffset - offset
-
-    window.scrollTo({
-      top: target,
-      behavior: 'smooth',
-    })
-  }, [selectedCategory, isMobile])
-
 
   const fetchMenuStructure = async () => {
     try {
@@ -83,33 +60,131 @@ const Menu = () => {
   }
 
 
-  // Filter foods based on selected parent category, selected category, and search
-  const getFilteredFoods = () => {
-    let filtered = food_list
+  const normalizeValue = (value) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : ''
 
-    // Filter by selected category (category con)
-    if (selectedCategory) {
-      filtered = filtered.filter(food => food.category === selectedCategory)
-    }
+  const doesFoodBelongToCategory = (food, category) => {
+    if (!category) return false
+    const categoryId = category._id?.toString()
 
-    // Filter by search term
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      filtered = filtered.filter(food => {
-        const localizedName = getLocalizedName(food)
-        return (
-          localizedName.toLowerCase().includes(searchLower) ||
-          food.name.toLowerCase().includes(searchLower) ||
-          food.description.toLowerCase().includes(searchLower)
-        )
+    const possibleCategoryLabels = [
+      category.name,
+      category.nameEN,
+      category.nameVI,
+      category.nameSK,
+      getLocalizedName(category),
+    ]
+      .filter(Boolean)
+      .map(normalizeValue)
+
+    const foodCategoryMatches =
+      possibleCategoryLabels.includes(normalizeValue(food.category)) ||
+      possibleCategoryLabels.includes(normalizeValue(food.categoryEN)) ||
+      possibleCategoryLabels.includes(normalizeValue(food.categoryVI)) ||
+      possibleCategoryLabels.includes(normalizeValue(food.categorySK))
+
+    const foodCategoryId = food.categoryId?.toString()
+
+    return (categoryId && foodCategoryId && categoryId === foodCategoryId) || foodCategoryMatches
+  }
+
+  const filteredFoods = useMemo(() => {
+    if (!searchTerm) return food_list
+
+    const searchLower = normalizeValue(searchTerm)
+    return food_list.filter((food) => {
+      const localizedName = getLocalizedName(food)
+      const description = food.description || ''
+      return (
+        normalizeValue(localizedName).includes(searchLower) ||
+        normalizeValue(food.name).includes(searchLower) ||
+        normalizeValue(description).includes(searchLower)
+      )
+    })
+  }, [food_list, searchTerm, i18n.language])
+
+  const sortByCreatedAt = (items = []) =>
+    [...items].sort((a, b) => {
+      const dateA = new Date(a?.createdAt || 0).getTime()
+      const dateB = new Date(b?.createdAt || 0).getTime()
+      return dateA - dateB
+    })
+
+  const menuSections = useMemo(() => {
+    if (!parentCategories.length) return []
+
+    const coveredFoodIds = new Set()
+
+    const sections = sortByCreatedAt(parentCategories)
+      .map((parent) => {
+        const localizedParentName = getLocalizedName(parent)
+        const categories = sortByCreatedAt(parent.categories || [])
+          .map((category) => {
+            const categoryKey = category._id?.toString() || category.name || localizedParentName
+            const foods = filteredFoods.filter((food) => {
+              const belongs = doesFoodBelongToCategory(food, category)
+              if (belongs) {
+                coveredFoodIds.add(food._id)
+              }
+              return belongs
+            })
+
+            return {
+              ...category,
+              key: categoryKey,
+              localizedName: getLocalizedName(category),
+              foods,
+            }
+          })
+          .filter((category) => category.foods.length > 0)
+
+        const totalItems = categories.reduce((total, category) => total + category.foods.length, 0)
+
+        if (!categories.length) {
+          return null
+        }
+
+        return {
+          ...parent,
+          localizedName: localizedParentName,
+          categories,
+          totalItems,
+        }
+      })
+      .filter(Boolean)
+
+    const ungroupedFoods = filteredFoods.filter((food) => !coveredFoodIds.has(food._id))
+    if (ungroupedFoods.length) {
+      sections.push({
+        _id: 'fallback',
+        localizedName: t('menu.miscGroup') || 'Chef’s picks',
+        categories: [
+          {
+            key: 'fallback-category',
+            localizedName: t('menu.miscCategory') || 'Popular now',
+            foods: ungroupedFoods,
+          },
+        ],
+        totalItems: ungroupedFoods.length,
       })
     }
 
-    return filtered
-  }
+    return sections
+  }, [parentCategories, filteredFoods, t, i18n.language])
 
-  const filteredFoods = getFilteredFoods()
-  const visibleFoods = filteredFoods.slice(0, visibleCount)
+  useEffect(() => {
+    if (!selectedCategory?.id) return
+    const target = categoryRefs.current[selectedCategory.id]
+    if (!target) return
+
+    const offset = isMobile ? 90 : 140
+    const top = target.getBoundingClientRect().top + window.pageYOffset - offset
+
+    window.scrollTo({
+      top: top < 0 ? 0 : top,
+      behavior: 'smooth',
+    })
+  }, [selectedCategory, isMobile])
 
   const handleViewDetails = (product) => {
     setSelectedProduct(product)
@@ -186,7 +261,7 @@ const Menu = () => {
         </div>
 
         {/* Food Sections - Grouped by Parent Category */}
-        <div className="menu-sections-container" ref={sectionsRef}>
+        <div className="menu-sections-container">
         {loading || isLoadingFood ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
@@ -198,71 +273,108 @@ const Menu = () => {
             <h3>No menu available</h3>
             <p>Please check back later.</p>
           </div>
+        ) : filteredFoods.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🔍</div>
+            <h3>No dishes found</h3>
+            <p>
+              {searchTerm
+                ? `No dishes match your search. Try a different keyword.`
+                : 'No dishes available at the moment.'}
+            </p>
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="reset-btn"
+              >
+                Clear Search
+              </button>
+            )}
+          </div>
+        ) : menuSections.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🍱</div>
+            <h3>No categories to show</h3>
+            <p>We couldn’t match these dishes to any category.</p>
+          </div>
         ) : (
-          <>
-            {/* Show all foods - simplified display */}
-            {filteredFoods.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">🔍</div>
-                <h3>No dishes found</h3>
-                <p>
-                  {searchTerm || selectedCategory
-                    ? `No dishes match your filter. Try a different search term or category.`
-                    : 'No dishes available at the moment.'}
-                </p>
-                {(searchTerm || selectedCategory) && (
-                  <button 
-                    onClick={() => {
-                      setSearchTerm('')
-                      setSelectedCategory('')
-                    }}
-                    className="reset-btn"
-                  >
-                    Clear Filters
-                  </button>
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="food-grid">
-                  {visibleFoods.map((food) => (
-                    <div key={food._id} className="food-item-wrapper">
-                      <FoodItem 
-                        id={food._id} 
-                        name={food.name}
-                        nameVI={food.nameVI}
-                        nameEN={food.nameEN}
-                        nameSK={food.nameSK}
-                        description={food.description} 
-                        price={food.price} 
-                        image={food.image}
-                        sku={food.sku}
-                        isPromotion={food.isPromotion}
-                        originalPrice={food.originalPrice}
-                        promotionPrice={food.promotionPrice}
-                        soldCount={food.soldCount}
-                        likes={food.likes}
-                        options={food.options}
-                        onViewDetails={handleViewDetails}
-                        compact={isMobile}
-                      />
+          <div className="menu-sections-list">
+            {menuSections.map((section) => (
+              <section className="menu-section" key={section._id}>
+                <div className="menu-section-header">
+                  <div className="menu-section-heading">
+                    {section.icon && <span className="menu-section-icon">{section.icon}</span>}
+                    <div>
+                      <p className="menu-section-label">{section.localizedName}</p>
+                      {section.description && (
+                        <p className="menu-section-description">{section.description}</p>
+                      )}
                     </div>
-                  ))}
+                  </div>
+                  <span className="menu-section-count">
+                    {section.totalItems} dish{section.totalItems !== 1 ? 'es' : ''}
+                  </span>
                 </div>
 
-                {visibleCount < filteredFoods.length && (
-                  <div className="load-more-container">
-                    <button 
-                      className="load-more-btn"
-                      onClick={() => setVisibleCount(prev => prev + ITEMS_PER_LOAD)}
+                <div className="menu-category-grid">
+                  {section.categories.map((category) => (
+                    <article
+                      key={category.key}
+                      ref={(node) => {
+                        if (node) {
+                          categoryRefs.current[category.key] = node
+                        } else {
+                          delete categoryRefs.current[category.key]
+                        }
+                      }}
+                      className={`menu-category-block ${
+                        selectedCategory?.id === category.key ? 'is-active' : ''
+                      }`}
+                      id={`category-${category.key}`}
                     >
-                      Read more dishes
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </>
+                      <div className="menu-category-header">
+                        <div>
+                          <p className="menu-category-name">{category.localizedName}</p>
+                          {category.description && (
+                            <p className="menu-category-description">{category.description}</p>
+                          )}
+                        </div>
+                        <span className="menu-category-count">
+                          {category.foods.length} dish{category.foods.length !== 1 ? 'es' : ''}
+                        </span>
+                      </div>
+
+                      <div className="menu-category-dishes">
+                        {category.foods.map((food) => (
+                          <div key={food._id} className="menu-category-item">
+                            <FoodItem 
+                              id={food._id} 
+                              name={food.name}
+                              nameVI={food.nameVI}
+                              nameEN={food.nameEN}
+                              nameSK={food.nameSK}
+                              description={food.description} 
+                              price={food.price} 
+                              image={food.image}
+                              sku={food.sku}
+                              isPromotion={food.isPromotion}
+                              originalPrice={food.originalPrice}
+                              promotionPrice={food.promotionPrice}
+                              soldCount={food.soldCount}
+                              likes={food.likes}
+                              options={food.options}
+                              onViewDetails={handleViewDetails}
+                              compact={isMobile}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         )}
         </div>
       </div>
