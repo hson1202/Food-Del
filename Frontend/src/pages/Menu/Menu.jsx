@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 import './Menu.css'
 import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../../components/FoodItem/FoodItem'
@@ -23,6 +23,7 @@ const Menu = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showCartPopup, setShowCartPopup] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const sectionsRef = useRef(null)
 
   useEffect(() => {
     fetchMenuStructure()
@@ -34,6 +35,14 @@ const Menu = () => {
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [])
+
+  useEffect(() => {
+    if (!selectedCategory) return
+    sectionsRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }, [selectedCategory])
 
 
   const fetchMenuStructure = async () => {
@@ -162,7 +171,7 @@ const Menu = () => {
         </div>
 
         {/* Food Sections - Grouped by Parent Category */}
-        <div className="menu-sections-container">
+        <div className="menu-sections-container" ref={sectionsRef}>
         {loading || isLoadingFood ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>

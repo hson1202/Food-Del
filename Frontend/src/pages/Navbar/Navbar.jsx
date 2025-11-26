@@ -75,7 +75,6 @@ const Navbar = ({setShowLogin}) => {
 
             {/* Desktop Menu */}
             <ul className='navbar-menu desktop-menu'>
-                <Link to='/' onClick={()=>setMenu("home")} className={menu==="home"?"active":""}>{t('nav.home')}</Link>
                 <Link to='/menu' onClick={()=>setMenu("menu")} className={menu==="menu"?"active":""}>{t('nav.menu')}</Link>
                 <Link to='/about' onClick={()=>setMenu("about")} className={menu==="about"?"active":""}>{t('nav.about')}</Link>
                 {/* <Link to='/blog' onClick={()=>setMenu("blog")} className={menu==="blog"?"active":""}>{t('nav.blog')}</Link> */}
@@ -87,7 +86,6 @@ const Navbar = ({setShowLogin}) => {
             {/* Mobile Menu Overlay */}
             <div className={`mobile-menu-overlay ${isMobileMenuOpen ? 'active' : ''}`}>
                 <ul className='navbar-menu mobile-menu'>
-                    <Link to='/' onClick={() => handleNavLinkClick("home")} className={menu==="home"?"active":""}>{t('nav.home')}</Link>
                     <Link to='/menu' onClick={() => handleNavLinkClick("menu")} className={menu==="menu"?"active":""}>{t('nav.menu')}</Link>
                     <Link to='/about' onClick={() => handleNavLinkClick("about")} className={menu==="about"?"active":""}>{t('nav.about')}</Link>
                     {/* <Link to='/blog' onClick={() => handleNavLinkClick("blog")} className={menu==="blog"?"active":""}>{t('nav.blog')}</Link> */}
