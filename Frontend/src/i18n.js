@@ -156,6 +156,37 @@ const resources = {
       'contact.map.title': 'Vị Trí Của Chúng Tôi',
       'contact.tabs.contactUs': 'Liên Hệ',
       'contact.tabs.makeReservation': 'Đặt Bàn',
+
+      // Footer
+      'footer.brandDescription': 'Viet Bowls mang ẩm thực Việt đến tận cửa nhà bạn với những món ăn chuẩn vị, nguyên liệu tươi và dịch vụ tận tâm.',
+      'footer.cta': 'Đặt món ngay',
+      'footer.navTitle': 'Khám phá',
+      'footer.serviceTitle': 'Dịch vụ',
+      'footer.contactTitle': 'Kết nối',
+      'footer.bottomTagline': 'Món ngon chuẩn vị, làm mới mỗi ngày.',
+      'footer.bottomCopyright': '© 2025 Viet Bowls. Bảo lưu mọi quyền.',
+      'footer.navLinks': [
+        { label: 'Trang chủ', href: '#hero' },
+        { label: 'Menu', href: '#menu' },
+        { label: 'Ưu đãi', href: '#promo' },
+        { label: 'Giới thiệu', href: '#about' }
+      ],
+      'footer.serviceLinks': [
+        { label: 'Đặt bàn', href: '#reservation' },
+        { label: 'Giao hàng', href: '#delivery' },
+        { label: 'Chính sách', href: '#policy' },
+        { label: 'Hỗ trợ', href: '#support' }
+      ],
+      'footer.contactInfo': [
+        { label: 'Email', value: 'vietbowlssala666@gmail.com' },
+        { label: 'Hotline', value: '+421 950 452 111' },
+        { label: 'Địa chỉ', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
+      ],
+      'footer.socialLabels': {
+        fb: 'Facebook',
+        tw: 'Twitter',
+        in: 'LinkedIn'
+      },
       
       // Contact Reservation
       'contact.reservation.form.title': 'Chi Tiết Đặt Bàn',
@@ -465,6 +496,37 @@ const resources = {
       'contact.map.title': 'Our Location',
       'contact.tabs.contactUs': 'Contact Us',
       'contact.tabs.makeReservation': 'Make Reservation',
+
+      // Footer
+      'footer.brandDescription': 'Viet Bowls brings authentic Vietnamese cuisine right to your doorstep with soulful bowls, fresh ingredients, and attentive service.',
+      'footer.cta': 'Order now',
+      'footer.navTitle': 'Explore',
+      'footer.serviceTitle': 'Services',
+      'footer.contactTitle': 'Connect',
+      'footer.bottomTagline': 'Fresh bowls crafted daily.',
+      'footer.bottomCopyright': '© 2025 Viet Bowls. All rights reserved.',
+      'footer.navLinks': [
+        { label: 'Home', href: '#hero' },
+        { label: 'Menu', href: '#menu' },
+        { label: 'Specials', href: '#promo' },
+        { label: 'About', href: '#about' }
+      ],
+      'footer.serviceLinks': [
+        { label: 'Reservations', href: '#reservation' },
+        { label: 'Delivery', href: '#delivery' },
+        { label: 'Policies', href: '#policy' },
+        { label: 'Support', href: '#support' }
+      ],
+      'footer.contactInfo': [
+        { label: 'Email', value: 'vietbowlssala666@gmail.com' },
+        { label: 'Hotline', value: '+421 950 452 111' },
+        { label: 'Address', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
+      ],
+      'footer.socialLabels': {
+        fb: 'Facebook',
+        tw: 'Twitter',
+        in: 'LinkedIn'
+      },
       
       // Contact Reservation
       'contact.reservation.form.title': 'Reservation Details',
@@ -779,6 +841,37 @@ const resources = {
       'contact.map.getDirections': 'Získať navigáciu',
       'contact.tabs.contactUs': 'Kontakt',
       'contact.tabs.makeReservation': 'Urobiť rezerváciu',
+
+      // Footer
+      'footer.brandDescription': 'Viet Bowls prináša autentickú vietnamskú kuchyňu priamo k vašim dverám s poctivými miskami, čerstvými surovinami a starostlivým servisom.',
+      'footer.cta': 'Objednať teraz',
+      'footer.navTitle': 'Preskúmajte',
+      'footer.serviceTitle': 'Služby',
+      'footer.contactTitle': 'Spojte sa',
+      'footer.bottomTagline': 'Čerstvé bowls pripravované každý deň.',
+      'footer.bottomCopyright': '© 2025 Viet Bowls. Všetky práva vyhradené.',
+      'footer.navLinks': [
+        { label: 'Domov', href: '#hero' },
+        { label: 'Menu', href: '#menu' },
+        { label: 'Akcie', href: '#promo' },
+        { label: 'O nás', href: '#about' }
+      ],
+      'footer.serviceLinks': [
+        { label: 'Rezervácie', href: '#reservation' },
+        { label: 'Donáška', href: '#delivery' },
+        { label: 'Zásady', href: '#policy' },
+        { label: 'Podpora', href: '#support' }
+      ],
+      'footer.contactInfo': [
+        { label: 'Email', value: 'vietbowlssala666@gmail.com' },
+        { label: 'Infolinka', value: '+421 950 452 111' },
+        { label: 'Adresa', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
+      ],
+      'footer.socialLabels': {
+        fb: 'Facebook',
+        tw: 'Twitter',
+        in: 'LinkedIn'
+      },
       
       // Contact Reservation
       'contact.reservation.form.title': 'Detaily rezervácie',

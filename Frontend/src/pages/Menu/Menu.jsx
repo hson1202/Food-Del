@@ -13,6 +13,8 @@ import config from '../../config/config'
 // Load all hero images at once using Vite glob import
 const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eager: true, as: 'url' })
 
+const ITEMS_PER_LOAD = 12
+
 const Menu = () => {
   const { food_list, isLoadingFood } = useContext(StoreContext)
   const { i18n } = useTranslation()
@@ -23,11 +25,16 @@ const Menu = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showCartPopup, setShowCartPopup] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD)
   const sectionsRef = useRef(null)
 
   useEffect(() => {
     fetchMenuStructure()
   }, [])
+
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_LOAD)
+  }, [selectedCategory, searchTerm, food_list])
 
   useEffect(() => {
     const update = () => setIsMobile(window.innerWidth <= 768)
@@ -37,12 +44,19 @@ const Menu = () => {
   }, [])
 
   useEffect(() => {
-    if (!selectedCategory) return
-    sectionsRef.current?.scrollIntoView({
+    if (!selectedCategory || !sectionsRef.current) return
+    const offset = isMobile ? 120 : 150
+    const rect = sectionsRef.current.getBoundingClientRect()
+    const target =
+      rect.top + window.pageYOffset - offset < 0
+        ? 0
+        : rect.top + window.pageYOffset - offset
+
+    window.scrollTo({
+      top: target,
       behavior: 'smooth',
-      block: 'start',
     })
-  }, [selectedCategory])
+  }, [selectedCategory, isMobile])
 
 
   const fetchMenuStructure = async () => {
@@ -95,6 +109,7 @@ const Menu = () => {
   }
 
   const filteredFoods = getFilteredFoods()
+  const visibleFoods = filteredFoods.slice(0, visibleCount)
 
   const handleViewDetails = (product) => {
     setSelectedProduct(product)
@@ -208,31 +223,44 @@ const Menu = () => {
                 )}
               </div>
             ) : (
-              <div className="food-grid">
-                {filteredFoods.map((food) => (
-                  <div key={food._id} className="food-item-wrapper">
-                    <FoodItem 
-                      id={food._id} 
-                      name={food.name}
-                      nameVI={food.nameVI}
-                      nameEN={food.nameEN}
-                      nameSK={food.nameSK}
-                      description={food.description} 
-                      price={food.price} 
-                      image={food.image}
-                      sku={food.sku}
-                      isPromotion={food.isPromotion}
-                      originalPrice={food.originalPrice}
-                      promotionPrice={food.promotionPrice}
-                      soldCount={food.soldCount}
-                      likes={food.likes}
-                      options={food.options}
-                      onViewDetails={handleViewDetails}
-                      compact={isMobile}
-                    />
+              <>
+                <div className="food-grid">
+                  {visibleFoods.map((food) => (
+                    <div key={food._id} className="food-item-wrapper">
+                      <FoodItem 
+                        id={food._id} 
+                        name={food.name}
+                        nameVI={food.nameVI}
+                        nameEN={food.nameEN}
+                        nameSK={food.nameSK}
+                        description={food.description} 
+                        price={food.price} 
+                        image={food.image}
+                        sku={food.sku}
+                        isPromotion={food.isPromotion}
+                        originalPrice={food.originalPrice}
+                        promotionPrice={food.promotionPrice}
+                        soldCount={food.soldCount}
+                        likes={food.likes}
+                        options={food.options}
+                        onViewDetails={handleViewDetails}
+                        compact={isMobile}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {visibleCount < filteredFoods.length && (
+                  <div className="load-more-container">
+                    <button 
+                      className="load-more-btn"
+                      onClick={() => setVisibleCount(prev => prev + ITEMS_PER_LOAD)}
+                    >
+                      Read more dishes
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </>
         )}
