@@ -155,13 +155,15 @@ const Menu = () => {
 
     const ungroupedFoods = filteredFoods.filter((food) => !coveredFoodIds.has(food._id))
     if (ungroupedFoods.length) {
+      const fallbackGroupLabel = t('menu.miscGroup', { defaultValue: 'Chef’s picks' })
+      const fallbackCategoryLabel = t('menu.miscCategory', { defaultValue: 'Popular now' })
       sections.push({
         _id: 'fallback',
-        localizedName: t('menu.miscGroup') || 'Chef’s picks',
+        localizedName: fallbackGroupLabel,
         categories: [
           {
             key: 'fallback-category',
-            localizedName: t('menu.miscCategory') || 'Popular now',
+            localizedName: fallbackCategoryLabel,
             foods: ungroupedFoods,
           },
         ],

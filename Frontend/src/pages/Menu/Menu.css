@@ -162,11 +162,8 @@
 }
 
 .menu-section {
-  background: var(--menu-card);
-  border: 1px solid var(--menu-border);
-  border-radius: var(--menu-radius);
-  padding: 28px;
-  box-shadow: 0 15px 45px rgba(15, 23, 42, 0.08);
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--menu-border);
 }
 
 .menu-section-header {
@@ -216,16 +213,13 @@
 }
 
 .menu-category-block {
-  border: 1px solid var(--menu-border);
-  border-radius: var(--menu-radius-small);
-  padding: 20px;
-  background: var(--menu-card);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
 }
 
-.menu-category-block.is-active {
-  border-color: var(--menu-accent);
-  box-shadow: 0 15px 40px rgba(17, 24, 39, 0.12);
+.menu-category-block.is-active .menu-category-name {
+  color: var(--menu-accent);
 }
 
 .menu-category-header {
@@ -258,14 +252,103 @@
   border-radius: 999px;
 }
 
+/* Desktop-style cards (Wolt-inspired) */
 .menu-category-dishes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
 }
 
 .menu-category-item {
   height: 100%;
+}
+
+.menu-category-item .food-item {
+  margin: 0;
+  border: 1px solid var(--menu-border);
+  border-radius: 26px;
+  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.06);
+  background: var(--menu-card);
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  padding: 18px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-category-item .food-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.12);
+}
+
+.menu-category-item .food-item-img-container {
+  flex: 0 0 140px;
+  height: 140px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #f4f1ea;
+}
+
+.menu-category-item .food-item-img-container img,
+.menu-category-item .food-item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.menu-category-item .food-item-info {
+  flex: 1;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.menu-category-item .food-item-name p {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--menu-text);
+  white-space: normal;
+  overflow: visible;
+}
+
+.menu-category-item .food-item-stats {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+}
+
+.menu-category-item .stat-item {
+  color: var(--menu-muted);
+  font-size: 0.85rem;
+}
+
+.menu-category-item .food-item-pricing {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--menu-text);
+}
+
+.menu-category-item .food-item-actions {
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+.menu-category-item .add-to-cart-btn {
+  border-radius: 14px;
+  padding: 10px 22px;
+  font-size: 0.95rem;
+}
+
+.menu-category-item .quantity-controls-bottom {
+  gap: 12px;
+}
+
+.menu-category-item + .menu-category-item {
+  margin-top: 12px;
 }
 
 .loading-container,
@@ -323,6 +406,12 @@
   }
 }
 
+@media (max-width: 1200px) {
+  .menu-category-dishes {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
 @media (max-width: 1024px) {
   .menu-filter-container {
     flex-direction: column;
@@ -335,6 +424,20 @@
     max-width: none;
     flex: 1 1 auto;
     z-index: 40;
+  }
+ 
+  .menu-category-dishes {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+ 
+  .menu-category-item .food-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+ 
+  .menu-category-item .food-item-img-container {
+    width: 100%;
+    height: 220px;
   }
 }
 
@@ -349,11 +452,25 @@
   }
 
   .menu-section {
-    padding: 20px;
+    padding-bottom: 24px;
   }
 
   .menu-category-dishes {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+
+  .menu-category-dishes {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .menu-category-item .food-item {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .menu-category-item .food-item-img-container {
+    height: 200px;
   }
 
   .menu-section-header {
@@ -364,6 +481,14 @@
 
 @media (max-width: 540px) {
   .menu-category-dishes {
-    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .menu-category-item .food-item {
+    padding: 14px;
+  }
+
+  .menu-category-item .food-item-img-container {
+    height: 180px;
   }
 }

@@ -1608,17 +1608,23 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
           <select
             value={filterCategory}
             onChange={(e) => {
-              setFilterCategory(e.target.value);
+              const value = e.target.value === 'all'
+                ? 'all'
+                : (e.target.value || '').trim();
+              setFilterCategory(value || 'all');
               setCurrentPage(1); // Reset to page 1 on filter change
             }}
             className="filter-select"
           >
-                            <option value="all">All Categories</option>
-                {categories.map(category => (
-                  <option key={category._id} value={category._id}>
-                    {category.name}
-                  </option>
-                ))}
+            <option value="all">All Categories</option>
+            {categories.map(category => (
+              <option 
+                key={category._id || category.name}
+                value={category.name?.trim() || category._id}
+              >
+                {category.name || '(No name)'}
+              </option>
+            ))}
           </select>
         </div>
         <div className="filter-box">

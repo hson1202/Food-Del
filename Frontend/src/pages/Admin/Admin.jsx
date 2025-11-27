@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import './Admin.css'
 import config from '../../config/config'
 
@@ -28,9 +28,22 @@ const Admin = () => {
   const [locationSaving, setLocationSaving] = useState(false)
   const [locationStatus, setLocationStatus] = useState({ type: '', message: '' })
 
+  // Category management state
+  const [categories, setCategories] = useState([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [categoryError, setCategoryError] = useState('')
+  const [categoryStatus, setCategoryStatus] = useState({ type: '', message: '' })
+  const [categoryRenameValues, setCategoryRenameValues] = useState({})
+  const [savingCategoryId, setSavingCategoryId] = useState(null)
+
+  // Product filtering state
+  const [productSearch, setProductSearch] = useState('')
+  const [productCategoryFilter, setProductCategoryFilter] = useState('all')
+
   useEffect(() => {
     fetchFoods()
     fetchRestaurantLocation()
+    fetchCategories()
   }, [])
 
   const fetchFoods = async () => {
@@ -82,6 +95,34 @@ const Admin = () => {
       setLocationLoading(false)
     }
   }
+
+  const fetchCategories = async () => {
+    try {
+      setCategoriesLoading(true)
+      setCategoryError('')
+      const response = await fetch(`${config.BACKEND_URL}/api/category/admin`)
+      const data = await response.json()
+
+      if (data.success) {
+        setCategories(data.data)
+        setCategoryRenameValues(
+          (data.data || []).reduce((acc, category) => {
+            if (category?._id) {
+              acc[category._id] = category.name || ''
+            }
+            return acc
+          }, {})
+        )
+      } else {
+        setCategoryError('Không thể tải danh sách category.')
+      }
+    } catch (err) {
+      setCategoryError('Lỗi tải category: ' + err.message)
+    } finally {
+      setCategoriesLoading(false)
+    }
+  }
+
 
   const handleLocationChange = (e) => {
     const { name, value } = e.target
@@ -170,6 +211,116 @@ const Admin = () => {
     }
   }
 
+  const handleCategoryNameChange = (categoryId, value) => {
+    setCategoryRenameValues((prev) => ({
+      ...prev,
+      [categoryId]: value
+    }))
+  }
+
+  const getParentLabel = (category) => {
+    const parent = category?.parentCategory
+    if (!parent) return 'Danh mục gốc'
+    if (typeof parent === 'object') return parent.name || parent._id || 'Danh mục cha'
+    return parent
+  }
+
+  const handleSaveCategoryName = async (category) => {
+    const currentValue = category.name || ''
+    const draftValue = (categoryRenameValues[category._id] ?? '').trim()
+
+    if (!draftValue) {
+      setCategoryStatus({ type: 'error', message: 'Tên danh mục không được để trống.' })
+      return
+    }
+
+    if (draftValue === currentValue) {
+      setCategoryStatus({ type: 'info', message: 'Tên danh mục chưa thay đổi.' })
+      return
+    }
+
+    try {
+      setSavingCategoryId(category._id)
+      setCategoryStatus({ type: '', message: '' })
+
+      const payload = {
+        name: draftValue,
+        description: category.description || '',
+        sortOrder: category.sortOrder ?? 0,
+        isActive: category.isActive,
+        parentCategory: category.parentCategory?._id || category.parentCategory || null
+      }
+
+      const response = await fetch(`${config.BACKEND_URL}/api/category/${category._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        const updated = data.data || { ...category, ...payload }
+
+        setCategories((prev) =>
+          prev.map((item) => (item._id === category._id ? { ...item, ...updated } : item))
+        )
+        setCategoryRenameValues((prev) => ({
+          ...prev,
+          [category._id]: updated.name || draftValue
+        }))
+
+        setCategoryStatus({ type: 'success', message: 'Đã cập nhật tên danh mục thành công.' })
+      } else {
+        setCategoryStatus({
+          type: 'error',
+          message: data.message || 'Không thể cập nhật danh mục.'
+        })
+      }
+    } catch (error) {
+      setCategoryStatus({
+        type: 'error',
+        message: 'Có lỗi khi cập nhật danh mục: ' + error.message
+      })
+    } finally {
+      setSavingCategoryId(null)
+    }
+  }
+
+  const normalizeValue = (value) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : ''
+
+  const productCategoryOptions = useMemo(() => {
+    const unique = new Set()
+    foods.forEach((food) => {
+      if (food?.category) {
+        unique.add(food.category)
+      }
+    })
+    return Array.from(unique).sort((a, b) => a.localeCompare(b))
+  }, [foods])
+
+  const filteredFoods = useMemo(() => {
+    return foods.filter((food) => {
+      const matchesCategory =
+        productCategoryFilter === 'all' ||
+        normalizeValue(food.category) === normalizeValue(productCategoryFilter)
+
+      if (!matchesCategory) return false
+
+      if (!productSearch.trim()) return true
+
+      const search = normalizeValue(productSearch)
+      return (
+        normalizeValue(food.name).includes(search) ||
+        normalizeValue(food.sku).includes(search) ||
+        normalizeValue(food.description).includes(search)
+      )
+    })
+  }, [foods, productCategoryFilter, productSearch])
+
   const handleEdit = (food) => {
     setEditingFood(food)
     setEditForm({
@@ -200,7 +351,7 @@ const Admin = () => {
     }))
   }
 
-  const handlSubmitEdit = async (e) => {
+  const handleSubmitEdit = async (e) => {
     e.preventDefault()
     
     try {
@@ -348,10 +499,160 @@ const Admin = () => {
         </form>
       </section>
 
-      <h2>Manage Products</h2>
-      
-      <div className="foods-list">
-        {foods.map(food => (
+      <section className="categories-card">
+        <div className="categories-header">
+          <div>
+            <h2>Manage Categories</h2>
+            <p>Đổi tên danh mục không làm mất món ăn; chúng vẫn giữ nguyên ID.</p>
+          </div>
+          <button
+            type="button"
+            className="refresh-btn"
+            onClick={fetchCategories}
+            disabled={categoriesLoading}
+          >
+            {categoriesLoading ? 'Đang tải...' : 'Tải lại'}
+          </button>
+        </div>
+
+        {categoryStatus.message && (
+          <div className={`category-status ${categoryStatus.type}`}>
+            {categoryStatus.message}
+          </div>
+        )}
+
+        {categoryError && (
+          <div className="category-status error">
+            {categoryError}
+          </div>
+        )}
+
+        {categoriesLoading ? (
+          <div className="category-loading">Đang tải danh sách danh mục...</div>
+        ) : categories.length === 0 ? (
+          <div className="category-empty">Chưa có danh mục nào.</div>
+        ) : (
+          <div className="category-list">
+            {categories.map((category) => {
+              const inputValue = categoryRenameValues[category._id] ?? category.name ?? ''
+              const hasChanges = inputValue.trim() !== (category.name || '')
+              const isSaving = savingCategoryId === category._id
+
+              return (
+                <div key={category._id} className="category-item">
+                  <div className="category-item-header">
+                    <div>
+                      <p className="category-language">
+                        {category.language?.toUpperCase() || 'VI'} ·{' '}
+                        {category.isActive ? 'Đang hiển thị' : 'Đang ẩn'}
+                      </p>
+                      <p className="category-parent">{getParentLabel(category)}</p>
+                    </div>
+                    <span className="category-id">ID: {category._id}</span>
+                  </div>
+
+                  <label
+                    className="category-label"
+                    htmlFor={`category-name-${category._id}`}
+                  >
+                    Tên danh mục
+                  </label>
+                  <div className="category-input-row">
+                    <input
+                      type="text"
+                      id={`category-name-${category._id}`}
+                      value={inputValue}
+                      onChange={(e) => handleCategoryNameChange(category._id, e.target.value)}
+                      className="category-name-input"
+                    />
+                    <div className="category-actions">
+                      <button
+                        type="button"
+                        className="save-btn"
+                        disabled={!hasChanges || isSaving}
+                        onClick={() => handleSaveCategoryName(category)}
+                      >
+                        {isSaving ? 'Đang lưu...' : 'Lưu'}
+                      </button>
+                      <button
+                        type="button"
+                        className="cancel-btn"
+                        disabled={!hasChanges || isSaving}
+                        onClick={() => handleCategoryNameChange(category._id, category.name || '')}
+                      >
+                        Hoàn tác
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="products-card">
+        <div className="products-header">
+          <h2>Manage Products</h2>
+          <p>Tìm kiếm theo tên/SKU và lọc theo danh mục để quản lý nhanh hơn.</p>
+        </div>
+
+        <div className="products-toolbar">
+          <div className="toolbar-field">
+            <label htmlFor="product-search">Tìm kiếm sản phẩm</label>
+            <input
+              id="product-search"
+              type="text"
+              value={productSearch}
+              placeholder="Nhập tên, SKU hoặc mô tả..."
+              onChange={(e) => setProductSearch(e.target.value)}
+            />
+          </div>
+          <div className="toolbar-field">
+            <label htmlFor="product-category-filter">Danh mục</label>
+            <select
+              id="product-category-filter"
+              value={productCategoryFilter}
+              onChange={(e) => setProductCategoryFilter(e.target.value)}
+            >
+              <option value="all">Tất cả</option>
+              {productCategoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            className="clear-filter-btn"
+            onClick={() => {
+              setProductSearch('')
+              setProductCategoryFilter('all')
+            }}
+            disabled={!productSearch && productCategoryFilter === 'all'}
+          >
+            Xóa lọc
+          </button>
+        </div>
+
+        {filteredFoods.length === 0 ? (
+          <div className="foods-empty">
+            <div>Không tìm thấy sản phẩm phù hợp bộ lọc hiện tại.</div>
+            <button
+              type="button"
+              className="reset-btn"
+              onClick={() => {
+                setProductSearch('')
+                setProductCategoryFilter('all')
+              }}
+            >
+              Đặt lại bộ lọc
+            </button>
+          </div>
+        ) : (
+          <div className="foods-list">
+        {filteredFoods.map(food => (
           <div key={food._id} className="food-item">
             <div className="food-info">
               <img 
@@ -394,7 +695,9 @@ const Admin = () => {
             </div>
           </div>
         ))}
-      </div>
+          </div>
+        )}
+      </section>
 
       {/* Edit Modal */}
       {editingFood && (

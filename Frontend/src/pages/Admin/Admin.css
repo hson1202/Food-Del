@@ -28,6 +28,239 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
 
+.categories-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 40px;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.categories-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.categories-header h2 {
+  margin: 0;
+  text-align: left;
+}
+
+.categories-header p {
+  margin: 6px 0 0 0;
+  color: #777;
+  font-size: 0.95rem;
+}
+
+.category-status {
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.category-status.success {
+  background: #e8f6ee;
+  color: #1f7a3d;
+  border-color: #bfe5cb;
+}
+
+.category-status.error {
+  background: #fdecea;
+  color: #b3261e;
+  border-color: #f5c6cb;
+}
+
+.category-status.info {
+  background: #e8f1ff;
+  color: #1a56b6;
+  border-color: #c7dcff;
+}
+
+.category-loading,
+.category-empty {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-item {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fafafa;
+}
+
+.category-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.category-language {
+  margin: 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.category-parent {
+  margin: 4px 0 0 0;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.category-id {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.category-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+.category-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.category-name-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.category-name-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
+}
+
+.category-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.products-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  margin-bottom: 40px;
+}
+
+.products-header h2 {
+  margin: 0 0 6px 0;
+  text-align: left;
+}
+
+.products-header p {
+  margin: 0 0 16px 0;
+  color: #777;
+  font-size: 0.95rem;
+}
+
+.products-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.toolbar-field {
+  flex: 1;
+  min-width: 220px;
+}
+
+.toolbar-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+.toolbar-field input,
+.toolbar-field select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.toolbar-field input:focus,
+.toolbar-field select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+.products-toolbar .clear-filter-btn {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  font-weight: 500;
+  height: fit-content;
+}
+
+.products-toolbar .clear-filter-btn:hover:not(:disabled) {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.products-toolbar .clear-filter-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.foods-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  background: #fafafa;
+  border: 1px dashed #ddd;
+  border-radius: 10px;
+}
+
+.foods-empty .reset-btn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background: #007bff;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.foods-empty .reset-btn:hover {
+  background: #0056b3;
+}
+
 .location-header {
   display: flex;
   justify-content: space-between;
@@ -349,6 +582,33 @@
   
   .food-actions {
     justify-content: center;
+  }
+
+  .categories-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .category-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .category-actions {
+    justify-content: stretch;
+  }
+
+  .products-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .toolbar-field {
+    min-width: 100%;
+  }
+  
+  .products-toolbar .clear-filter-btn {
+    width: 100%;
   }
   
   .edit-modal-content {

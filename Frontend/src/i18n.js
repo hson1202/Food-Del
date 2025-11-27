@@ -78,7 +78,7 @@ const resources = {
       'food.originalPrice': 'Giá gốc',
       'food.promotionPrice': 'Giá khuyến mãi',
       'food.viewDetails': 'Xem chi tiết',
-      'food.customizable': 'Tùy chỉnh',
+      'food.customizable': 'Đa dạng',
 
       // Product Detail
       'productDetail.noDescription': 'Chưa có mô tả',
@@ -418,7 +418,7 @@ const resources = {
       'food.originalPrice': 'Original Price',
       'food.promotionPrice': 'Promotion Price',
       'food.viewDetails': 'View Details',
-      'food.customizable': 'Customizable',
+      'food.customizable': 'Options',
 
       // Product Detail
       'productDetail.noDescription': 'No description available',
@@ -760,7 +760,7 @@ const resources = {
       'food.originalPrice': 'Pôvodná cena',
       'food.promotionPrice': 'Akčná cena',
       'food.viewDetails': 'Zobraziť detaily',
-      'food.customizable': 'Prispôsobiteľné',
+      'food.customizable': 'Možnosti',
 
       // Product Detail
       'productDetail.noDescription': 'Žiadny popis nie je k dispozícii',
