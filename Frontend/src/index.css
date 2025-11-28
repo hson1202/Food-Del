@@ -27,6 +27,11 @@ body{
   min-height: 100vh;
   overflow-x: hidden;
   background-color: #fcfcfc;
+  background-image: url('https://res.cloudinary.com/dypybd75u/image/upload/v1764300377/background_uqptuj.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 a{
   text-decoration: none;

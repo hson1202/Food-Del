@@ -1,269 +1,346 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import './CategoryFilter.css'
-import axios from 'axios'
-import config from '../../config/config'
-import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 
-const CategoryFilter = ({ onCategorySelect, selectedCategory }) => {
-  const { i18n, t } = useTranslation()
-  const [parentCategories, setParentCategories] = useState([])
-  const [selectedParentCategory, setSelectedParentCategory] = useState('')
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [isTablet, setIsTablet] = useState(false)
+const CategoryFilter = ({
+  categories = [],
+  onCategorySelect,
+  selectedCategory,
+  categoryRefs = {},
+}) => {
+  const scrollContainerRef = useRef(null)
+  const categoryButtonRefs = useRef({})
+  const [activeCategoryId, setActiveCategoryId] = useState(null)
+  const activeCategoryIdRef = useRef(null)
+  const isScrollingRef = useRef(false)
+  const [scrollState, setScrollState] = useState({
+    hasPrev: false,
+    hasNext: false,
+    isOverflowing: false,
+  })
 
-  const fetchAllCategories = useCallback(async () => {
-    try {
-      const response = await axios.get(`${config.BACKEND_URL}/api/category`)
-      const allCategories = response.data.data || []
-      setCategories(allCategories)
-    } catch (error) {
-      console.error('Error fetching all categories:', error)
-      setCategories([])
+  // Flatten all categories from menu sections
+  const allCategories = categories.flatMap((section) =>
+    section.categories.map((cat) => ({
+      ...cat,
+      sectionId: section._id,
+      sectionName: section.localizedName,
+    }))
+  )
+
+  const getStickyHeaderHeight = useCallback(() => {
+    const filterContainer = document.querySelector('.menu-filter-container')
+    if (filterContainer) {
+      const rect = filterContainer.getBoundingClientRect()
+      const styles = window.getComputedStyle(filterContainer)
+      const marginTop = parseFloat(styles.marginTop || 0)
+      const marginBottom = parseFloat(styles.marginBottom || 0)
+      return rect.height + marginTop + marginBottom
     }
+
+    return window.innerWidth <= 768 ? 180 : 160
   }, [])
 
-  const fetchParentCategories = useCallback(async () => {
-    try {
-      const response = await axios.get(`${config.BACKEND_URL}/api/parent-category`)
-      const data = response.data.data || []
-      setParentCategories(data)
-      setLoading(false)
-    } catch (error) {
-      console.error('Error fetching parent categories:', error)
-      setLoading(false)
-    }
+  const updateScrollIndicators = useCallback(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const { scrollLeft, scrollWidth, clientWidth } = container
+    const canScroll = scrollWidth > clientWidth + 1
+
+    setScrollState({
+      hasPrev: canScroll && scrollLeft > 8,
+      hasNext: canScroll && scrollLeft + clientWidth < scrollWidth - 8,
+      isOverflowing: canScroll,
+    })
   }, [])
 
-  const fetchCategoriesByParent = useCallback(async (parentId) => {
-    try {
-      // Find parent category from already loaded data
-      const parentCategory = parentCategories.find(pc => 
-        (pc._id?.toString() || 'first') === parentId
-      )
-      
-      if (parentCategory && parentCategory.categories) {
-        // Use categories from parentCategory object (already populated from API)
-        setCategories(parentCategory.categories)
-      } else {
-        // Fallback: fetch all categories and filter
-        const response = await axios.get(`${config.BACKEND_URL}/api/category`)
-        const allCategories = response.data.data || []
-        
-        // Filter by parentCategory field
-        const filtered = allCategories.filter(cat => {
-          if (cat.parentCategory) {
-            // If parentCategory is populated object
-            return cat.parentCategory._id?.toString() === parentId
+  // Scroll category button into view in the carousel
+  const scrollCategoryIntoView = useCallback(
+    (categoryId) => {
+      const buttonRef = categoryButtonRefs.current[categoryId]
+      if (buttonRef && scrollContainerRef.current) {
+        const container = scrollContainerRef.current
+        const buttonRect = buttonRef.getBoundingClientRect()
+        const containerRect = container.getBoundingClientRect()
+
+        const scrollLeft = container.scrollLeft
+        const buttonLeft = buttonRect.left - containerRect.left + scrollLeft
+        const buttonRight = buttonLeft + buttonRect.width
+        const containerWidth = containerRect.width
+
+        // Scroll if button is outside visible area
+        if (buttonLeft < scrollLeft) {
+          container.scrollTo({
+            left: buttonLeft - 16,
+            behavior: 'smooth',
+          })
+          requestAnimationFrame(updateScrollIndicators)
+        } else if (buttonRight > scrollLeft + containerWidth) {
+          container.scrollTo({
+            left: buttonRight - containerWidth + 16,
+            behavior: 'smooth',
+          })
+          requestAnimationFrame(updateScrollIndicators)
+        }
+      }
+    },
+    [updateScrollIndicators]
+  )
+
+  const handleCarouselScroll = useCallback(() => {
+    updateScrollIndicators()
+  }, [updateScrollIndicators])
+
+  const categoryKeySignature = useMemo(
+    () => allCategories.map((cat) => cat.key).join('|'),
+    [allCategories]
+  )
+
+  const categoryMetaById = useMemo(() => {
+    const map = new Map()
+    allCategories.forEach((cat) => {
+      if (cat?.key) {
+        map.set(cat.key, cat)
+      }
+    })
+    return map
+  }, [allCategories])
+
+  useEffect(() => {
+    updateScrollIndicators()
+
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    container.addEventListener('scroll', handleCarouselScroll, { passive: true })
+    window.addEventListener('resize', updateScrollIndicators)
+
+    return () => {
+      container.removeEventListener('scroll', handleCarouselScroll)
+      window.removeEventListener('resize', updateScrollIndicators)
+    }
+  }, [handleCarouselScroll, updateScrollIndicators])
+
+  // Intersection observer to detect which category header is visible
+  useEffect(() => {
+    const refs = categoryRefs?.current || categoryRefs
+    if (!refs || Object.keys(refs).length === 0) return
+
+    const observedHeaders = new Set()
+    let observer
+
+    const cleanupObserverTargets = () => {
+      observedHeaders.forEach((header) => {
+        observer?.unobserve(header)
+      })
+      observedHeaders.clear()
+    }
+
+    const setupObserver = () => {
+      cleanupObserverTargets()
+      observer?.disconnect()
+
+      const stickyHeaderHeight = getStickyHeaderHeight()
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (isScrollingRef.current) return
+
+          const visibleEntries = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+
+          const nextCategory = visibleEntries[0]?.target?.dataset?.categoryId
+          if (nextCategory && nextCategory !== activeCategoryIdRef.current) {
+            activeCategoryIdRef.current = nextCategory
+            setActiveCategoryId(nextCategory)
+            scrollCategoryIntoView(nextCategory)
+
+            const meta = categoryMetaById.get(nextCategory)
+            if (meta && onCategorySelect) {
+              onCategorySelect({
+                id: nextCategory,
+                label: meta.localizedName || meta.name,
+                source: 'scroll',
+              })
+            }
           }
-          // If parentCategory is just ID string
-          return cat.parentCategory?.toString() === parentId
-        })
-        setCategories(filtered)
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-      setCategories([])
+        },
+        {
+          root: null,
+          rootMargin: `-${stickyHeaderHeight + 4}px 0px -70% 0px`,
+          threshold: [0, 0.25, 0.5, 0.75, 1],
+        }
+      )
+
+      Object.entries(refs).forEach(([categoryId, refObj]) => {
+        const categoryElement = refObj?.current
+        if (!categoryElement) return
+        const categoryHeader = categoryElement.querySelector('.menu-category-header')
+        if (!categoryHeader) return
+        categoryHeader.dataset.categoryId = categoryId
+        observer.observe(categoryHeader)
+        observedHeaders.add(categoryHeader)
+      })
     }
-  }, [parentCategories])
 
-  // Detect mobile and tablet
-  useEffect(() => {
-    const checkDevice = () => {
-      const width = window.innerWidth
-      setIsMobile(width <= 768)
-      setIsTablet(width > 768 && width <= 1024)
-      // Auto expand only on desktop (>1024px)
-      if (width > 1024) {
-        setIsExpanded(true)
-      } else {
-        // Tablet and mobile: start collapsed
-        setIsExpanded(false)
-      }
+    const handleResize = () => {
+      requestAnimationFrame(setupObserver)
     }
-    checkDevice()
-    window.addEventListener('resize', checkDevice)
-    return () => window.removeEventListener('resize', checkDevice)
-  }, [])
 
-  useEffect(() => {
-    fetchParentCategories()
-  }, [fetchParentCategories])
+    setupObserver()
+    window.addEventListener('resize', handleResize)
 
-  useEffect(() => {
-    if (selectedParentCategory && parentCategories.length > 0) {
-      fetchCategoriesByParent(selectedParentCategory)
-    } else {
-      // Khi chưa chọn danh mục cha, hiển thị tất cả categories
-      fetchAllCategories()
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      cleanupObserverTargets()
+      observer?.disconnect()
     }
-  }, [selectedParentCategory, parentCategories, fetchCategoriesByParent, fetchAllCategories])
-
-  const getLocalizedName = (item, field = 'name') => {
-    const currentLang = i18n.language
-    const localizedField = `${field}${currentLang.toUpperCase()}`
-    return item[localizedField] || item[field] || ''
-  }
-
-  const handleParentCategoryChange = (e) => {
-    const parentId = e.target.value
-    setSelectedParentCategory(parentId)
-    // Reset selected category when parent changes
-    if (onCategorySelect) {
-      onCategorySelect(null)
-    }
-  }
-
-  const getCategoryId = (category) => {
-    if (typeof category === 'string') return category
-    return category._id?.toString() || getLocalizedName(category)
-  }
-
-  const getCategoryLabel = (category) => {
-    if (typeof category === 'string') return category
-    return getLocalizedName(category)
-  }
+  }, [categoryRefs, categoryKeySignature, scrollCategoryIntoView, getStickyHeaderHeight, categoryMetaById, onCategorySelect])
 
   const handleCategoryClick = (category) => {
-    if (!onCategorySelect) return
+    isScrollingRef.current = true
+    activeCategoryIdRef.current = category.key
+    setActiveCategoryId(category.key)
 
-    const categoryId = getCategoryId(category)
-    const label = getCategoryLabel(category)
-
-    // Toggle off when clicking the same category
-    if (selectedCategory?.id === categoryId) {
-      onCategorySelect(null)
-    } else {
-      onCategorySelect({ id: categoryId, label })
-    }
-
-    // Tự động ẩn filter sau khi chọn (chỉ trên mobile/tablet)
-    if (isMobile || isTablet) {
-      setTimeout(() => {
-        setIsExpanded(false)
-      }, 300) // Delay 300ms để user thấy được feedback
-    }
-  }
-
-  const clearFilter = () => {
-    setSelectedParentCategory('')
-    setCategories([])
     if (onCategorySelect) {
-      onCategorySelect(null)
+      onCategorySelect({ id: category.key, label: category.localizedName, source: 'click' })
     }
+
+    const refs = categoryRefs?.current || categoryRefs
+    const target = refs?.[category.key]
+    if (target && target.current) {
+      const offset = getStickyHeaderHeight()
+      const top = target.current.getBoundingClientRect().top + window.pageYOffset - offset
+
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: 'smooth',
+      })
+    }
+
+    requestAnimationFrame(updateScrollIndicators)
+
+    setTimeout(() => {
+      isScrollingRef.current = false
+    }, 1000)
   }
 
-  if (loading) {
-    return (
-      <div className="category-filter">
-        <div className="filter-loading">{t('filter.loading')}</div>
-      </div>
-    )
+  const handleNavClick = (direction) => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const scrollAmount = window.innerWidth <= 768 ? 220 : 320
+    container.scrollBy({
+      left: direction === 'prev' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    })
   }
+
+  useEffect(() => {
+    if (selectedCategory?.id && selectedCategory.id !== activeCategoryId) {
+      activeCategoryIdRef.current = selectedCategory.id
+      setActiveCategoryId(selectedCategory.id)
+      scrollCategoryIntoView(selectedCategory.id)
+    }
+  }, [selectedCategory, activeCategoryId, scrollCategoryIntoView])
+
+  useEffect(() => {
+    updateScrollIndicators()
+  }, [allCategories.length, updateScrollIndicators])
+
+  if (allCategories.length === 0) {
+    return null
+  }
+
+  const activeCategory = allCategories.find((cat) => cat.key === activeCategoryId)
 
   return (
-    <div className={`category-filter ${isMobile ? 'mobile' : ''} ${isTablet ? 'tablet' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      <div className="filter-header">
-        <div className="filter-header-left">
-          <h3>{t('filter.title')}</h3>
-          {selectedCategory?.label && (
-            <span className="filter-badge">{selectedCategory.label}</span>
-          )}
+    <section className="category-filter">
+      <div className="category-filter-header">
+        <div className="category-filter-copy">
+          <p className="eyebrow">Browse menu</p>
+          <h3>Find what you are craving</h3>
         </div>
-        <div className="filter-header-right">
-          {(isMobile || isTablet) && (
-            <button 
-              className="toggle-filter-btn"
-              onClick={() => setIsExpanded(!isExpanded)}
-              aria-label={isExpanded ? t('filter.hide') : t('filter.show')}
-              title={isExpanded ? t('filter.hide') : t('filter.show')}
-            >
-              <span className="toggle-icon">{isExpanded ? '▼' : '☰'}</span>
-            </button>
-          )}
-          {(selectedParentCategory || selectedCategory?.id) && (
-            <button className="clear-filter-btn" onClick={clearFilter} title={t('filter.clear')}>
-              <span className="clear-icon">✕</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-
-      {/* Filter content - hidden when collapsed on mobile/tablet */}
-      <div className={`filter-content ${(isMobile || isTablet) && !isExpanded ? 'hidden' : ''}`}>
-
-        {/* Step 1: Chọn danh mục món ăn */}
-        <div className="filter-step">
-          <label className="filter-label">
-            {t('filter.menuCategories') || 'Danh mục món ăn'}
-          </label>
-          <select
-            className="filter-select"
-            value={selectedParentCategory}
-            onChange={handleParentCategoryChange}
-          >
-            <option value="">{t('filter.allCategories')}</option>
-            {parentCategories.map((parent) => {
-              const parentId = parent._id?.toString() || 'first'
-              return (
-                <option key={parentId} value={parentId}>
-                  {parent.icon && `${parent.icon} `}
-                  {getLocalizedName(parent)}
-                </option>
-              )
-            })}
-          </select>
-        </div>
-
-        {/* Step 2: Hiển thị danh sách category con */}
-        {categories.length > 0 && (
-          <div className="filter-step">
-            <label className="filter-label">
-              {selectedParentCategory ? t('filter.selectSubcategory') : t('filter.selectCategory')}
-            </label>
-            <div className="category-list">
-              {categories.map((category) => {
-                const categoryId = getCategoryId(category)
-                const categoryName = getCategoryLabel(category)
-                const isSelected = selectedCategory?.id === categoryId
-                
-                return (
-                  <button
-                    key={categoryId}
-                    className={`category-item ${isSelected ? 'active' : ''}`}
-                    onClick={() => handleCategoryClick(category)}
-                  >
-                    {categoryName}
-                    {isSelected && <span className="check-mark">✓</span>}
-                  </button>
-                )
-              })}
+        <div className="category-filter-meta">
+          <span className="active-label">
+            {activeCategory?.localizedName || selectedCategory?.label || 'All categories'}
+          </span>
+          {scrollState.isOverflowing && (
+            <div className="category-filter-nav">
+              <button
+                type="button"
+                className="nav-button"
+                onClick={() => handleNavClick('prev')}
+                disabled={!scrollState.hasPrev}
+                aria-label="Scroll categories left"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="nav-button"
+                onClick={() => handleNavClick('next')}
+                disabled={!scrollState.hasNext}
+                aria-label="Scroll categories right"
+              >
+                ›
+              </button>
             </div>
-          </div>
-        )}
-
-        {/* Hiển thị khi chưa có category con */}
-        {selectedParentCategory && categories.length === 0 && (
-          <div className="filter-message">
-            <p>{t('filter.noSubcategories')}</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+
+      <div className="category-carousel-shell">
+        {scrollState.hasPrev && <span className="fade-edge left" aria-hidden="true" />}
+        <div className="category-carousel-container" ref={scrollContainerRef}>
+          {allCategories.map((category) => {
+            const isActive = activeCategoryId === category.key || selectedCategory?.id === category.key
+
+            return (
+              <button
+                key={category.key}
+                ref={(el) => {
+                  if (el) {
+                    categoryButtonRefs.current[category.key] = el
+                  }
+                }}
+                className={`category-chip ${isActive ? 'active' : ''}`}
+                onClick={() => handleCategoryClick(category)}
+              >
+                <span className="category-chip-label">{category.localizedName}</span>
+                {category.sectionName && (
+                  <span className="category-chip-section">{category.sectionName}</span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+        {scrollState.hasNext && <span className="fade-edge right" aria-hidden="true" />}
+      </div>
+    </section>
   )
 }
 
 export default CategoryFilter
 
 CategoryFilter.propTypes = {
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string,
+      localizedName: PropTypes.string,
+      categories: PropTypes.arrayOf(
+        PropTypes.shape({
+          key: PropTypes.string,
+          localizedName: PropTypes.string,
+        })
+      ),
+    })
+  ),
   onCategorySelect: PropTypes.func,
   selectedCategory: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     label: PropTypes.string,
   }),
+  categoryRefs: PropTypes.object,
 }
-

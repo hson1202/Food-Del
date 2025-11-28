@@ -62,11 +62,11 @@ const Navbar = ({setShowLogin}) => {
     };
   
     return (
-
-        <div className='navbar'>
-            <Link to='/' onClick={() => handleNavLinkClick("home")}>
-                <img src={assets.logo} alt='' className='logo'/>
-            </Link>
+        <div className='navbar-wrapper'>
+            <div className='navbar'>
+                <Link to='/' onClick={() => handleNavLinkClick("home")}>
+                    <img src={assets.logo} alt='' className='logo'/>
+                </Link>
 
             {/* Mobile center language switcher */}
             <div className="mobile-lang-center">
@@ -158,6 +158,7 @@ const Navbar = ({setShowLogin}) => {
                     <span></span>
                     <span></span>
                 </button>
+            </div>
             </div>
         </div>
   )

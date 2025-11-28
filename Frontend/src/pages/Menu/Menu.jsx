@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useMemo, useRef } from 'react'
+import { useState, useEffect, useContext, useMemo, useRef, useCallback } from 'react'
 import './Menu.css'
 import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../../components/FoodItem/FoodItem'
@@ -10,20 +10,31 @@ import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import config from '../../config/config'
 
-// Load all hero images at once using Vite glob import
-const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eager: true, as: 'url' })
-
 const Menu = () => {
   const { food_list, isLoadingFood } = useContext(StoreContext)
   const { t, i18n } = useTranslation()
   const [parentCategories, setParentCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedParentCategory, setSelectedParentCategory] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showCartPopup, setShowCartPopup] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const categoryRefs = useRef({})
+
+  const getMenuStickyOffset = useCallback(() => {
+    const filterContainer = document.querySelector('.menu-filter-container')
+    if (filterContainer) {
+      const rect = filterContainer.getBoundingClientRect()
+      const styles = window.getComputedStyle(filterContainer)
+      const marginTop = parseFloat(styles.marginTop || 0)
+      const marginBottom = parseFloat(styles.marginBottom || 0)
+      return rect.height + marginTop + marginBottom
+    }
+
+    return isMobile ? 180 : 160
+  }, [isMobile])
 
   useEffect(() => {
     fetchMenuStructure()
@@ -52,18 +63,17 @@ const Menu = () => {
   }
 
 
-  // Function to get localized name based on current language
-  const getLocalizedName = (item, field = 'name') => {
+  const getLocalizedName = useCallback((item, field = 'name') => {
     const currentLang = i18n.language
     const localizedField = `${field}${currentLang.toUpperCase()}`
     return item[localizedField] || item[field] || ''
-  }
+  }, [i18n.language])
 
 
   const normalizeValue = (value) =>
     typeof value === 'string' ? value.trim().toLowerCase() : ''
 
-  const doesFoodBelongToCategory = (food, category) => {
+  const doesFoodBelongToCategory = useCallback((food, category) => {
     if (!category) return false
     const categoryId = category._id?.toString()
 
@@ -86,7 +96,7 @@ const Menu = () => {
     const foodCategoryId = food.categoryId?.toString()
 
     return (categoryId && foodCategoryId && categoryId === foodCategoryId) || foodCategoryMatches
-  }
+  }, [getLocalizedName])
 
   const filteredFoods = useMemo(() => {
     if (!searchTerm) return food_list
@@ -101,7 +111,7 @@ const Menu = () => {
         normalizeValue(description).includes(searchLower)
       )
     })
-  }, [food_list, searchTerm, i18n.language])
+  }, [food_list, searchTerm, getLocalizedName])
 
   const sortByCreatedAt = (items = []) =>
     [...items].sort((a, b) => {
@@ -171,22 +181,28 @@ const Menu = () => {
       })
     }
 
+    // Filter by selected parent category if any
+    if (selectedParentCategory) {
+      return sections.filter(section => section._id === selectedParentCategory)
+    }
+
     return sections
-  }, [parentCategories, filteredFoods, t, i18n.language])
+  }, [parentCategories, filteredFoods, selectedParentCategory, t, getLocalizedName, doesFoodBelongToCategory])
 
   useEffect(() => {
-    if (!selectedCategory?.id) return
+    if (!selectedCategory?.id || selectedCategory?.source === 'scroll') return
     const target = categoryRefs.current[selectedCategory.id]
-    if (!target) return
+    if (!target || !target.current) return
 
-    const offset = isMobile ? 90 : 140
-    const top = target.getBoundingClientRect().top + window.pageYOffset - offset
+    // Offset includes: parent category filter + category carousel + some padding
+    const offset = getMenuStickyOffset()
+    const top = target.current.getBoundingClientRect().top + window.pageYOffset - offset
 
     window.scrollTo({
-      top: top < 0 ? 0 : top,
+      top: Math.max(0, top),
       behavior: 'smooth',
     })
-  }, [selectedCategory, isMobile])
+  }, [selectedCategory, isMobile, getMenuStickyOffset])
 
   const handleViewDetails = (product) => {
     setSelectedProduct(product)
@@ -200,70 +216,43 @@ const Menu = () => {
     setShowCartPopup(false)
   }
 
-  const clearSearch = () => {
-    setSearchTerm('')
-  }
-
   return (
     <div className="menu-page">
-      {/* Hero Section */}
-      <div className="menu-hero">
-        <div className="hero-background">
-          <img 
-            src={
-              HERO_IMAGES['../../assets/back10.jpg'] 
-              ?? HERO_IMAGES['../../assets/header_img.png'] 
-              ?? Object.values(HERO_IMAGES)[0]
-            }
-            alt="Menu background"
-            className="hero-bg-image"
-          />
-        </div>
-        
-        <div className="hero-content">
-          <div className="hero-text-section">
-            <h1>Our Delicious Menu</h1>
-            <p>Discover our amazing collection of dishes, carefully crafted to satisfy your cravings</p>
-            
-            {/* Search Bar */}
-            <div className="search-container">
-              <div className="search-box">
-                <input
-                  type="text"
-                  placeholder="Search for your favorite dishes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input"
-                />
-                {searchTerm && (
-                  <button onClick={clearSearch} className="clear-search">
-                    ✕
-                  </button>
-                )}
-                <div className="search-icon">🔍</div>
-              </div>
-              {searchTerm && (
-                <div className="search-results-info">
-                  Found {filteredFoods.length} result{filteredFoods.length !== 1 ? 's' : ''} for &quot;{searchTerm}&quot;
-                </div>
-              )}
-            </div>
+      {/* Sticky Filter Container */}
+      <div className="menu-filter-container">
+        {/* Parent Category Filter */}
+          <div className="parent-category-container">
+            {parentCategories.map((parent) => {
+              const parentId = parent._id?.toString() || 'first'
+              const isActive = selectedParentCategory === parentId
+              return (
+                <button
+                  key={parentId}
+                  className={`parent-category-btn ${isActive ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedParentCategory(parentId)
+                    setSelectedCategory(null)
+                  }}
+                >
+                  {parent.icon && <span className="parent-category-icon">{parent.icon}</span>}
+                  {getLocalizedName(parent)}
+                </button>
+              )
+            })}
           </div>
-        </div>
+            
+
+        {/* Category Filter Carousel */}
+        <CategoryFilter 
+          categories={menuSections}
+          onCategorySelect={setSelectedCategory}
+          selectedCategory={selectedCategory}
+          categoryRefs={categoryRefs}
+        />
       </div>
 
-
-      {/* Category Filter Sidebar */}
-      <div className="menu-filter-container">
-        <div className="filter-sidebar">
-          <CategoryFilter 
-            onCategorySelect={setSelectedCategory}
-            selectedCategory={selectedCategory}
-          />
-        </div>
-
-        {/* Food Sections - Grouped by Parent Category */}
-        <div className="menu-sections-container">
+      {/* Food Sections - Grouped by Parent Category */}
+      <div className="menu-sections-container">
         {loading || isLoadingFood ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
@@ -300,85 +289,66 @@ const Menu = () => {
             <p>We couldn’t match these dishes to any category.</p>
           </div>
         ) : (
-          <div className="menu-sections-list">
+          <div className="menu-categories-list">
             {menuSections.map((section) => (
-              <section className="menu-section" key={section._id}>
-                <div className="menu-section-header">
-                  <div className="menu-section-heading">
-                    {section.icon && <span className="menu-section-icon">{section.icon}</span>}
-                    <div>
-                      <p className="menu-section-label">{section.localizedName}</p>
-                      {section.description && (
-                        <p className="menu-section-description">{section.description}</p>
+              <div key={section._id} className="menu-parent-section">
+                <div className="menu-parent-header">
+                  {section.icon && <span className="menu-parent-icon">{section.icon}</span>}
+                  <h1 className="menu-parent-name">{section.localizedName}</h1>
+                </div>
+                
+                {section.categories.map((category) => (
+                  <article
+                    key={category.key}
+                    ref={(node) => {
+                      if (node) {
+                        categoryRefs.current[category.key] = { current: node }
+                      } else {
+                        delete categoryRefs.current[category.key]
+                      }
+                    }}
+                    data-category-id={category.key}
+                    className="menu-category-block"
+                    id={`category-${category.key}`}
+                  >
+                    <div className="menu-category-header">
+                      <h2 className="menu-category-name">{category.localizedName}</h2>
+                      {category.description && (
+                        <p className="menu-category-description">{category.description}</p>
                       )}
                     </div>
-                  </div>
-                  <span className="menu-section-count">
-                    {section.totalItems} dish{section.totalItems !== 1 ? 'es' : ''}
-                  </span>
-                </div>
 
-                <div className="menu-category-grid">
-                  {section.categories.map((category) => (
-                    <article
-                      key={category.key}
-                      ref={(node) => {
-                        if (node) {
-                          categoryRefs.current[category.key] = node
-                        } else {
-                          delete categoryRefs.current[category.key]
-                        }
-                      }}
-                      className={`menu-category-block ${
-                        selectedCategory?.id === category.key ? 'is-active' : ''
-                      }`}
-                      id={`category-${category.key}`}
-                    >
-                      <div className="menu-category-header">
-                        <div>
-                          <p className="menu-category-name">{category.localizedName}</p>
-                          {category.description && (
-                            <p className="menu-category-description">{category.description}</p>
-                          )}
-                        </div>
-                        <span className="menu-category-count">
-                          {category.foods.length} dish{category.foods.length !== 1 ? 'es' : ''}
-                        </span>
+                  <div className="menu-category-dishes">
+                    {category.foods.map((food) => (
+                      <div key={food._id} className="menu-category-item">
+                        <FoodItem 
+                          id={food._id} 
+                          name={food.name}
+                          nameVI={food.nameVI}
+                          nameEN={food.nameEN}
+                          nameSK={food.nameSK}
+                          description={food.description} 
+                          price={food.price} 
+                          image={food.image}
+                          sku={food.sku}
+                          isPromotion={food.isPromotion}
+                          originalPrice={food.originalPrice}
+                          promotionPrice={food.promotionPrice}
+                          soldCount={food.soldCount}
+                          likes={food.likes}
+                          options={food.options}
+                          onViewDetails={handleViewDetails}
+                          compact={isMobile}
+                        />
                       </div>
-
-                      <div className="menu-category-dishes">
-                        {category.foods.map((food) => (
-                          <div key={food._id} className="menu-category-item">
-                            <FoodItem 
-                              id={food._id} 
-                              name={food.name}
-                              nameVI={food.nameVI}
-                              nameEN={food.nameEN}
-                              nameSK={food.nameSK}
-                              description={food.description} 
-                              price={food.price} 
-                              image={food.image}
-                              sku={food.sku}
-                              isPromotion={food.isPromotion}
-                              originalPrice={food.originalPrice}
-                              promotionPrice={food.promotionPrice}
-                              soldCount={food.soldCount}
-                              likes={food.likes}
-                              options={food.options}
-                              onViewDetails={handleViewDetails}
-                              compact={isMobile}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
+                    ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
             ))}
           </div>
         )}
-        </div>
       </div>
 
       {/* Product Detail Popup */}

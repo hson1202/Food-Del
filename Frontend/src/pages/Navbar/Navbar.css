@@ -1,12 +1,41 @@
+.navbar-wrapper {
+    width: 100%;
+    background-color: #ffffff;
+    position: relative;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+}
+
 .navbar{
     padding: 20px 0px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
     position: relative;
     z-index: 1000;
     box-sizing: border-box;
+}
+
+@media (max-width: 1050px) {
+    .navbar {
+        width: 90%;
+    }
+}
+
+@media (max-width: 750px) {
+    .navbar {
+        width: 95%;
+    }
+}
+
+@media (max-width: 500px) {
+    .navbar {
+        width: 100%;
+        padding: 12px 15px;
+    }
 }
 
 .mobile-lang-center {
