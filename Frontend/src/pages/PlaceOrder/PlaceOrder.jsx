@@ -31,6 +31,14 @@ const PlaceOrder = () => {
   const [deliveryAddress, setDeliveryAddress] = useState(null);
   const [timeSlots, setTimeSlots] = useState([]);
 
+  const formatPrice = (price) => {
+    const n = Number(price);
+    if (isNaN(n) || n < 0) return '0';
+    // Format với 2 số thập phân, sau đó loại bỏ .00 nếu không cần
+    const formatted = n.toFixed(2);
+    return formatted.replace(/\.00$/, '');
+  }
+
   const onChangeHandler = (event) => {
     const name = event.target.name;
     const value = event.target.value;
@@ -83,16 +91,16 @@ const PlaceOrder = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     
-    // Validate required fields
-    if (!data.firstName || !data.lastName || !data.phone) {
-      alert('Please fill in all required fields (Name and Phone)');
+    // Validate delivery address first (most important)
+    if (!deliveryAddress || !deliveryAddress.address) {
+      alert(t('placeOrder.errors.invalidAddress'));
       setIsSubmitting(false);
       return;
     }
 
-    // Validate delivery address
-    if (!deliveryAddress || !deliveryAddress.address) {
-      alert('Please enter a valid delivery address');
+    // Validate required fields
+    if (!data.firstName || !data.lastName || !data.phone) {
+      alert(t('placeOrder.errors.requiredFields'));
       setIsSubmitting(false);
       return;
     }
@@ -103,7 +111,11 @@ const PlaceOrder = () => {
       const minOrder = deliveryInfo.zone.minOrder;
       
       if (subtotal < minOrder) {
-        alert(`❌ Minimum order for this delivery zone is €${minOrder.toFixed(2)}. Your current order is €${subtotal.toFixed(2)}. Please add €${(minOrder - subtotal).toFixed(2)} more to proceed.`);
+        alert(t('placeOrder.errors.minOrderNotMet', {
+          minOrder: formatPrice(minOrder),
+          subtotal: formatPrice(subtotal),
+          needed: formatPrice(minOrder - subtotal)
+        }));
         setIsSubmitting(false);
         return;
       }
@@ -131,7 +143,7 @@ const PlaceOrder = () => {
 
     // Check if cart is empty
     if (orderItems.length === 0) {
-      alert('Your cart is empty. Please add some items first.');
+      alert(t('placeOrder.errors.emptyCart'));
       setIsSubmitting(false);
       return;
     }
@@ -219,7 +231,7 @@ const PlaceOrder = () => {
         // Không xóa cart ngay lập tức, để popup hiển thị trước
         // Cart sẽ được xóa khi user đóng popup
       } else {
-        alert(`❌ Order failed: ${response.data.message || 'Unknown error occurred'}`);
+        alert(`❌ ${response.data.message || t('placeOrder.errors.unknownError')}`);
       }
     } catch (error) {
       console.error('Error placing order:', error);
@@ -279,18 +291,18 @@ const PlaceOrder = () => {
         }
       }
       
-      let errorMessage = 'An error occurred while placing your order.';
+      let errorMessage = t('placeOrder.errors.general');
       
       if (error.response) {
         // Server responded with error
         console.log('Error response:', error.response.data);
-        errorMessage = error.response.data.message || `Server error: ${error.response.status}`;
+        errorMessage = error.response.data.message || t('placeOrder.errors.serverError', { status: error.response.status });
       } else if (error.request) {
         // Network error
-        errorMessage = 'Network error: Unable to connect to server. Please check your internet connection.';
+        errorMessage = t('placeOrder.errors.networkError');
       } else {
         // Other error
-        errorMessage = error.message || 'Unknown error occurred';
+        errorMessage = error.message || t('placeOrder.errors.unknownError');
       }
       
       alert(`❌ ${errorMessage}`);
@@ -372,7 +384,7 @@ const PlaceOrder = () => {
         <div className="place-order-left">
           <p className="title">{t('placeOrder.title')}</p>
           
-                    {/* Order Type Selection - Chỉ hiển thị khi chưa login */}
+          {/* Order Type Selection - Chỉ hiển thị khi chưa login */}
           {!token && (
             <div className="order-type-section">
               <h3>{t('placeOrder.orderType.title')}</h3>
@@ -391,49 +403,9 @@ const PlaceOrder = () => {
             </div>
           )}
 
-          <div className="multi-fields">
-            <input 
-              required 
-              name='firstName' 
-              onChange={onChangeHandler} 
-              value={data.firstName} 
-              type="text" 
-              placeholder={t('placeOrder.form.firstName')}
-              autoComplete="given-name"
-            />
-            <input 
-              required 
-              name='lastName' 
-              onChange={onChangeHandler} 
-              value={data.lastName} 
-              type="text" 
-              placeholder={t('placeOrder.form.lastName')}
-              autoComplete="family-name"
-            />
-          </div>
-          <input 
-            name='email' 
-            onChange={onChangeHandler} 
-            value={data.email} 
-            type="email" 
-            placeholder={t('placeOrder.form.email')}
-            autoComplete="email"
-          />
-          <input 
-            required 
-            name='phone' 
-            onChange={onChangeHandler} 
-            value={data.phone} 
-            type="tel" 
-            placeholder={t('placeOrder.form.phone')}
-            title="Phone number"
-            autoComplete="tel"
-            maxLength="25"
-          />
-          
-          {/* Delivery Address with Mapbox */}
+          {/* Delivery Address with Mapbox - Đặt lên đầu vì quan trọng nhất */}
           <div className="delivery-address-section">
-              <label className="delivery-label">{t('placeOrder.form.addressLabel')}</label>
+            <label className="delivery-label">{t('placeOrder.form.addressLabel')}</label>
             <DeliveryAddressInput
               value={deliveryAddress?.address || ''}
               onChange={handleDeliveryAddressChange}
@@ -458,9 +430,53 @@ const PlaceOrder = () => {
             </div>
           </div>
 
+          {/* Contact Information Section */}
+          <div className="contact-info-section">
+            <h3 className="section-title">{t('placeOrder.form.contactInfo')}</h3>
+            <div className="multi-fields">
+              <input 
+                required 
+                name='firstName' 
+                onChange={onChangeHandler} 
+                value={data.firstName} 
+                type="text" 
+                placeholder={t('placeOrder.form.firstName')}
+                autoComplete="given-name"
+              />
+              <input 
+                required 
+                name='lastName' 
+                onChange={onChangeHandler} 
+                value={data.lastName} 
+                type="text" 
+                placeholder={t('placeOrder.form.lastName')}
+                autoComplete="family-name"
+              />
+            </div>
+            <input 
+              name='email' 
+              onChange={onChangeHandler} 
+              value={data.email} 
+              type="email" 
+              placeholder={t('placeOrder.form.email')}
+              autoComplete="email"
+            />
+            <input 
+              required 
+              name='phone' 
+              onChange={onChangeHandler} 
+              value={data.phone} 
+              type="tel" 
+              placeholder={t('placeOrder.form.phone')}
+              title="Phone number"
+              autoComplete="tel"
+              maxLength="25"
+            />
+          </div>
+
           {/* Delivery Time Slot */}
           <div className="delivery-time-section">
-            <label className="delivery-label">🕐 Preferred Delivery Time</label>
+            <label className="delivery-label">{t('placeOrder.form.deliveryTimeLabel')}</label>
             <select
               name='preferredDeliveryTime'
               onChange={onChangeHandler}
@@ -477,26 +493,74 @@ const PlaceOrder = () => {
 
           {/* Customer Note */}
           <div className="note-section">
-            <label className="delivery-label">📝 Note for delivery (Optional)</label>
+            <label className="delivery-label">{t('placeOrder.form.noteLabel')}</label>
             <textarea
               name='note'
               onChange={onChangeHandler}
               value={data.note}
-              placeholder="E.g., Ring the bell, leave at door, etc."
+              placeholder={t('placeOrder.form.notePlaceholder')}
               className="note-textarea"
               rows="3"
             />
           </div>
-
-          {/* Delivery Zones Info */}
-          <DeliveryZoneDisplay url={url} />
           
           {/* Thông báo về dò đơn hàng */}
           <div className="tracking-notice">
-            <p>💡 <strong>{t('placeOrder.notice.title')}:</strong> {t('placeOrder.notice.message')}</p>
+            <p><strong>{t('placeOrder.notice.title')}:</strong> {t('placeOrder.notice.message')}</p>
+          </div>
+        </div>
+        
+        <div className="place-order-right">
+          <div className="cart-total">
+            <h2>{t('placeOrder.cart.title')}</h2>
+            <div>
+              <div className='cart-total-details'>
+                <p>{t('placeOrder.cart.subtotal')}</p>
+                <p>€{formatPrice(getTotalCartAmount())}</p>
+              </div>
+              <hr />
+              <div className='cart-total-details'>
+                <p>{t('placeOrder.cart.deliveryFee')}</p>
+                <p>
+                  {deliveryInfo && deliveryInfo.zone
+                    ? `€${formatPrice(getDeliveryFee())}`
+                    : '--'}
+                </p>
+              </div>
+              {!deliveryInfo && (
+                <div className="min-order-warning">
+                  {t('placeOrder.cart.deliveryFeePrompt')}
+                </div>
+              )}
+              {deliveryInfo && deliveryInfo.zone && (
+                <>
+                  <div className='cart-total-details delivery-zone-info'>
+                    <span className="zone-badge">
+                      {deliveryInfo.zone.name} • {deliveryInfo.distance}km • {deliveryInfo.zone.estimatedTime}min
+                    </span>
+                  </div>
+                  {getTotalCartAmount() < deliveryInfo.zone.minOrder && (
+                    <div className="min-order-warning">
+                      {t('placeOrder.cart.minOrderWarning', {
+                        minOrder: formatPrice(deliveryInfo.zone.minOrder),
+                        needed: formatPrice(deliveryInfo.zone.minOrder - getTotalCartAmount())
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+              <hr />
+              <div className='cart-total-details'>
+                <b>{t('placeOrder.cart.total')}</b>
+                <b>€{formatPrice(getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + getDeliveryFee())}</b>
+              </div>
+            </div>
+            <button type='submit' disabled={isSubmitting} className="desktop-submit-btn">
+              {isSubmitting ? t('placeOrder.cart.submitting') : t('placeOrder.cart.proceedButton')}
+            </button>
           </div>
           
-          {/* Mobile-friendly submit button for form */}
+          {/* Mobile-friendly submit button - ở cuối sau cart */}
           <div className="mobile-submit-section">
             <button 
               type='submit' 
@@ -507,55 +571,12 @@ const PlaceOrder = () => {
             </button>
           </div>
         </div>
-        
-        <div className="place-order-right">
-          <div className="cart-total">
-            <h2>{t('placeOrder.cart.title')}</h2>
-            <div>
-              <div className='cart-total-details'>
-                <p>{t('placeOrder.cart.subtotal')}</p>
-                <p>€{getTotalCartAmount()}</p>
-              </div>
-              <hr />
-              <div className='cart-total-details'>
-                <p>{t('placeOrder.cart.deliveryFee')}</p>
-                <p>
-                  {deliveryInfo && deliveryInfo.zone
-                    ? `€${getDeliveryFee().toFixed(2)}`
-                    : '--'}
-                </p>
-              </div>
-              {!deliveryInfo && (
-                <div className="min-order-warning">
-                  🔔 {t('placeOrder.cart.deliveryFeePrompt')}
-                </div>
-              )}
-              {deliveryInfo && deliveryInfo.zone && (
-                <>
-                  <div className='cart-total-details delivery-zone-info'>
-                    <span className="zone-badge" style={{ color: deliveryInfo.zone.color }}>
-                      {deliveryInfo.zone.name} • {deliveryInfo.distance}km • {deliveryInfo.zone.estimatedTime}min
-                    </span>
-                  </div>
-                  {getTotalCartAmount() < deliveryInfo.zone.minOrder && (
-                    <div className="min-order-warning">
-                      ⚠️ Min. order: €{deliveryInfo.zone.minOrder} (Add €{(deliveryInfo.zone.minOrder - getTotalCartAmount()).toFixed(2)} more)
-                    </div>
-                  )}
-                </>
-              )}
-              <hr />
-              <div className='cart-total-details'>
-                <b>{t('placeOrder.cart.total')}</b>
-                <b>€{getTotalCartAmount() === 0 ? 0 : getTotalCartAmount() + getDeliveryFee()}</b>
-              </div>
-            </div>
-            <button type='submit' disabled={isSubmitting}>
-              {isSubmitting ? t('placeOrder.cart.submitting') : t('placeOrder.cart.proceedButton')}
-            </button>
-          </div>
-        </div>
       </form>
+      
+      {/* Delivery Zones Info - Đặt cuối cùng */}
+      <div className="delivery-zones-display-wrapper">
+        <DeliveryZoneDisplay url={url} />
+      </div>
       
       {/* Success Popup */}
       <SuccessPopup

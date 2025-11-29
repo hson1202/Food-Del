@@ -1,11 +1,16 @@
 import React, { useContext, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { StoreContext } from '../../Context/StoreContext'
 import CartPopup from '../CartPopup/CartPopup'
 import './FloatingCartBtn.css'
 
 const FloatingCartBtn = () => {
-  const { cartItems, getTotalCartAmount, isMobileMenuOpen, food_list } = useContext(StoreContext)
+  const { cartItems, getTotalCartAmount, isMobileMenuOpen } = useContext(StoreContext)
   const [showCartPopup, setShowCartPopup] = useState(false)
+  const location = useLocation()
+  
+  // Ẩn button khi đang ở trang order
+  const isOnOrderPage = location.pathname === '/order'
 
   const getTotalCartItems = () => {
     let totalItems = 0
@@ -16,16 +21,6 @@ const FloatingCartBtn = () => {
     }
     return totalItems
   }
-
-  // Debug logs
-  console.log('FloatingCartBtn Debug:', {
-    cartItems,
-    totalItems: getTotalCartItems(),
-    isMobileMenuOpen,
-    shouldShow: getTotalCartItems() > 0 && !isMobileMenuOpen,
-    totalAmount: getTotalCartAmount(),
-    foodListLength: food_list ? food_list.length : 0
-  })
 
   const handleCartClick = () => {
     setShowCartPopup(true)
@@ -47,15 +42,15 @@ const FloatingCartBtn = () => {
     return formatted.replace(/\.00$/, '');
   }
 
-  // Chỉ hiển thị khi có items trong cart và mobile menu không mở
-  if (getTotalCartItems() === 0) {
+  // Chỉ hiển thị khi có items trong cart, mobile menu không mở, và không ở trang order
+  if (getTotalCartItems() === 0 || isOnOrderPage) {
     return null
   }
 
   return (
     <>
       <button 
-        className="floating-cart-btn"
+        className={`floating-cart-btn ${showCartPopup ? 'cart-popup-open' : ''}`}
         onClick={handleCartClick}
       >
         <div className="cart-icon">

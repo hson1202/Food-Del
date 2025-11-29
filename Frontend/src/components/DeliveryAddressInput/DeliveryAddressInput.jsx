@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './DeliveryAddressInput.css';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import ManualLocationPicker from '../ManualLocationPicker/ManualLocationPicker';
 
 const DEFAULT_COORDS = { latitude: 50.08804, longitude: 14.42076 };
@@ -32,6 +33,7 @@ const DeliveryAddressInput = ({
   url,
   restaurantLocation
 }) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -72,7 +74,7 @@ const DeliveryAddressInput = ({
       }
     } catch (err) {
       console.error('Error fetching suggestions:', err);
-      setError('Failed to fetch address suggestions');
+      setError(t('placeOrder.form.addressError'));
     } finally {
       setIsLoading(false);
     }
@@ -162,7 +164,7 @@ const DeliveryAddressInput = ({
           }
         }
         
-        setError(response.data.message || 'Delivery not available to this location');
+        setError(response.data.message || t('placeOrder.form.deliveryNotAvailable'));
         setDeliveryInfo(null);
         if (onDeliveryCalculated) {
           onDeliveryCalculated(null);
@@ -170,7 +172,7 @@ const DeliveryAddressInput = ({
       }
     } catch (err) {
       console.error('Error calculating delivery:', err);
-      setError('Failed to calculate delivery fee');
+      setError(t('placeOrder.form.deliveryCalculationError'));
       setDeliveryInfo(null);
       if (onDeliveryCalculated) {
         onDeliveryCalculated(null);
@@ -228,7 +230,7 @@ const DeliveryAddressInput = ({
     setIsManualPickerOpen(false);
     
     // Set temporary query (will be updated by calculateDelivery after reverse geocoding)
-    setQuery('Đang tìm địa chỉ...');
+    setQuery(t('placeOrder.form.findingAddress'));
     setSelectedAddress({
       address: '',
       latitude: coords.latitude,
@@ -263,7 +265,7 @@ const DeliveryAddressInput = ({
           type="text"
           value={query}
           onChange={handleInputChange}
-          placeholder="Enter your delivery address..."
+          placeholder={t('placeOrder.form.addressPlaceholder')}
           className="address-input"
           autoComplete="off"
         />
@@ -298,21 +300,21 @@ const DeliveryAddressInput = ({
           </div>
           <div className="delivery-info-details">
             <div className="info-row">
-              <span className="info-label">Distance:</span>
+              <span className="info-label">{t('placeOrder.form.deliveryInfo.distance')}</span>
               <span className="info-value">{deliveryInfo.distance} km</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Delivery Fee:</span>
+              <span className="info-label">{t('placeOrder.form.deliveryInfo.deliveryFee')}</span>
               <span className="info-value delivery-fee">
-                €{deliveryInfo.zone.deliveryFee === 0 ? 'FREE' : deliveryInfo.zone.deliveryFee.toFixed(2)}
+                €{deliveryInfo.zone.deliveryFee === 0 ? t('placeOrder.form.deliveryInfo.free') : deliveryInfo.zone.deliveryFee.toFixed(2)}
               </span>
             </div>
             <div className="info-row">
-              <span className="info-label">Min. Order:</span>
+              <span className="info-label">{t('placeOrder.form.deliveryInfo.minOrder')}</span>
               <span className="info-value">€{deliveryInfo.zone.minOrder.toFixed(2)}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Estimated Time:</span>
+              <span className="info-label">{t('placeOrder.form.deliveryInfo.estimatedTime')}</span>
               <span className="info-value">{deliveryInfo.zone.estimatedTime} min</span>
             </div>
           </div>
@@ -334,7 +336,7 @@ const DeliveryAddressInput = ({
             className="manual-pin-trigger"
             onClick={() => setIsManualPickerOpen(true)}
           >
-            📍 Can't find your address? Drop a pin manually
+            {t('placeOrder.form.manualPinButton')}
           </button>
           <ManualLocationPicker
             isOpen={isManualPickerOpen}

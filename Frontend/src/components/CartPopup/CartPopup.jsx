@@ -220,8 +220,8 @@ const CartPopup = ({ onClose }) => {
       <div className="cart-popup-modal">
         <div className="cart-popup-header">
           <h2>
-            🛒 {t('cart.title')} 
-            <span className="cart-badge">{getTotalItems()}</span>
+            {t('cart.title')}
+            {getTotalItems() > 0 && <span className="cart-badge">{getTotalItems()}</span>}
           </h2>
           <button className="close-btn" onClick={onClose}>
             <img src={assets.cross_icon} alt="Close" />
@@ -268,33 +268,25 @@ const CartPopup = ({ onClose }) => {
                               <span className="options-text">{formatSelectedOptions(item)}</span>
                             </div>
                           )}
-                          <div className="cart-item-price">
+                        </div>
+                        <div className="cart-item-controls">
+                          <div className="cart-item-controls-wrapper">
+                            <button onClick={() => removeFromCart(item.cartItemId)}>
+                              <img src={assets.remove_icon_red} alt="" />
+                            </button>
+                            <span className="quantity">{item.quantity}</span>
+                            <button onClick={() => addToCart(item.cartItemId, item)}>
+                              <img src={assets.add_icon_green} alt="" />
+                            </button>
+                          </div>
+                          <div className="cart-item-total">
                             {(() => {
                               const unitPrice = (item.currentPrice != null)
                                 ? Number(item.currentPrice)
                                 : computeVariantPrice(item, item.selectedOptions);
-                              return (
-                                <span className="regular-price">{formatPrice(unitPrice)}</span>
-                              );
+                              return formatPrice(unitPrice * item.quantity);
                             })()}
                           </div>
-                        </div>
-                        <div className="cart-item-controls">
-                          <button onClick={() => removeFromCart(item.cartItemId)}>
-                            <img src={assets.remove_icon_red} alt="" />
-                          </button>
-                          <span className="quantity">{item.quantity}</span>
-                          <button onClick={() => addToCart(item.cartItemId, item)}>
-                            <img src={assets.add_icon_green} alt="" />
-                          </button>
-                        </div>
-                        <div className="cart-item-total">
-                          {(() => {
-                            const unitPrice = (item.currentPrice != null)
-                              ? Number(item.currentPrice)
-                              : computeVariantPrice(item, item.selectedOptions);
-                            return formatPrice(unitPrice * item.quantity);
-                          })()}
                         </div>
                       </div>
                     ))}
@@ -304,7 +296,7 @@ const CartPopup = ({ onClose }) => {
                 {/* Recommended Items */}
                 {recommendedItems.length > 0 && (
                   <div className="recommendations-section">
-                    <h3>💡 {t('cartPopup.recommendedForYou')}</h3>
+                    <h3>{t('cartPopup.recommendedForYou')}</h3>
                     <p className="recommendations-subtitle">{t('cartPopup.perfectWith')}</p>
                     <div className="recommended-items">
                       {recommendedItems.map((item) => (

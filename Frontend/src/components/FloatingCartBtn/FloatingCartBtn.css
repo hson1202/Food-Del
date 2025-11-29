@@ -71,6 +71,17 @@
 
 /* Floating cart button will be hidden via JavaScript when mobile menu is open */
 
+/* Hide button when cart popup is open on mobile */
+@media (max-width: 768px) {
+  .floating-cart-btn.cart-popup-open {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(20px) scale(0.9);
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .floating-cart-btn {
