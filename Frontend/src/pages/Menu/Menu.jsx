@@ -47,6 +47,20 @@ const Menu = () => {
     return () => window.removeEventListener('resize', update)
   }, [])
 
+  // Tự động chọn parent category đầu tiên khi menu được load
+  useEffect(() => {
+    if (parentCategories.length > 0 && selectedParentCategory === null) {
+      const sortedParents = [...parentCategories].sort((a, b) => {
+        const dateA = new Date(a?.createdAt || 0).getTime()
+        const dateB = new Date(b?.createdAt || 0).getTime()
+        return dateA - dateB
+      })
+      const firstParent = sortedParents[0]
+      const firstParentId = firstParent._id?.toString() || 'first'
+      setSelectedParentCategory(firstParentId)
+    }
+  }, [parentCategories, selectedParentCategory])
+
   const fetchMenuStructure = async () => {
     try {
       const response = await axios.get(`${config.BACKEND_URL}/api/category/menu-structure`)
@@ -222,7 +236,7 @@ const Menu = () => {
       <div className="menu-filter-container">
         {/* Parent Category Filter */}
           <div className="parent-category-container">
-            {parentCategories.map((parent) => {
+            {sortByCreatedAt(parentCategories).map((parent) => {
               const parentId = parent._id?.toString() || 'first'
               const isActive = selectedParentCategory === parentId
               return (
@@ -240,7 +254,9 @@ const Menu = () => {
               )
             })}
           </div>
-            
+          
+          {/* Separator Line */}
+          <div className="menu-filter-separator"></div>
 
         {/* Category Filter Carousel */}
         <CategoryFilter 
