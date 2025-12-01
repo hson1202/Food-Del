@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import './CategoryFilter.css'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
 const CategoryFilter = ({
   categories = [],
@@ -8,6 +9,7 @@ const CategoryFilter = ({
   selectedCategory,
   categoryRefs = {},
 }) => {
+  const { t } = useTranslation()
   const scrollContainerRef = useRef(null)
   const categoryButtonRefs = useRef({})
   const [activeCategoryId, setActiveCategoryId] = useState(null)
@@ -259,12 +261,12 @@ const CategoryFilter = ({
     <section className="category-filter">
       <div className="category-filter-header">
         <div className="category-filter-copy">
-          <p className="eyebrow">Browse menu</p>
-          <h3>Find what you are craving</h3>
+          <p className="eyebrow">{t('categoryFilter.browseMenu')}</p>
+          <h3>{t('categoryFilter.findWhatYouCraving')}</h3>
         </div>
         <div className="category-filter-meta">
           <span className="active-label">
-            {activeCategory?.localizedName || selectedCategory?.label || 'All categories'}
+            {activeCategory?.localizedName || selectedCategory?.label || t('categoryFilter.allCategories')}
           </span>
           {scrollState.isOverflowing && (
             <div className="category-filter-nav">
@@ -273,7 +275,7 @@ const CategoryFilter = ({
                 className="nav-button"
                 onClick={() => handleNavClick('prev')}
                 disabled={!scrollState.hasPrev}
-                aria-label="Scroll categories left"
+                aria-label={t('categoryFilter.scrollLeft')}
               >
                 ‹
               </button>
@@ -282,7 +284,7 @@ const CategoryFilter = ({
                 className="nav-button"
                 onClick={() => handleNavClick('next')}
                 disabled={!scrollState.hasNext}
-                aria-label="Scroll categories right"
+                aria-label={t('categoryFilter.scrollRight')}
               >
                 ›
               </button>

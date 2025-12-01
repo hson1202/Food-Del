@@ -69,6 +69,11 @@ const resources = {
       'filter.selectCategory': 'Danh mục:',
       'filter.noSubcategories': 'Chưa có danh mục con.',
       'filter.selected': 'Đã chọn:',
+      'categoryFilter.browseMenu': 'Duyệt thực đơn',
+      'categoryFilter.findWhatYouCraving': 'Tìm món bạn đang thèm',
+      'categoryFilter.allCategories': 'Tất cả danh mục',
+      'categoryFilter.scrollLeft': 'Cuộn danh mục sang trái',
+      'categoryFilter.scrollRight': 'Cuộn danh mục sang phải',
 
       // Food Items
       'food.addToCart': 'Thêm vào giỏ',
@@ -448,6 +453,11 @@ const resources = {
       'filter.selectCategory': 'Category:',
       'filter.noSubcategories': 'No subcategories.',
       'filter.selected': 'Selected:',
+      'categoryFilter.browseMenu': 'Browse menu',
+      'categoryFilter.findWhatYouCraving': 'Find what you are craving',
+      'categoryFilter.allCategories': 'All categories',
+      'categoryFilter.scrollLeft': 'Scroll categories left',
+      'categoryFilter.scrollRight': 'Scroll categories right',
 
       // Food Items
       'food.addToCart': 'Add to Cart',
@@ -829,6 +839,11 @@ const resources = {
       'filter.selectCategory': 'Kategória:',
       'filter.noSubcategories': 'Žiadne podkategórie.',
       'filter.selected': 'Vybrané:',
+      'categoryFilter.browseMenu': 'Prehľadať menu',
+      'categoryFilter.findWhatYouCraving': 'Nájdite to, po čom túžite',
+      'categoryFilter.allCategories': 'Všetky kategórie',
+      'categoryFilter.scrollLeft': 'Posunúť kategórie doľava',
+      'categoryFilter.scrollRight': 'Posunúť kategórie doprava',
 
       // Food Items
       'food.addToCart': 'Pridať do košíka',
