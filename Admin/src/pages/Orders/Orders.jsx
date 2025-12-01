@@ -66,6 +66,7 @@ const Orders = ({url}) => {
         });
         
         setOrders(sortedOrders);
+        setLastRefresh(new Date());
         setLoading(false);
       }
     } catch (error) {
@@ -244,6 +245,8 @@ const Orders = ({url}) => {
     }
   };
 
+  const getStatusClass = (status = '') => status.toLowerCase().replace(/\s+/g, '-');
+
   const getStatusCount = (status) => {
     return orders.filter(order => order.status === status).length;
   };
@@ -280,107 +283,111 @@ const Orders = ({url}) => {
     <div className='orders-page'>
       {/* Hidden audio element for realtime notification */}
       <audio ref={audioRef} src={`${config.BACKEND_URL}/sound/thongbao.mp3`} preload="auto" />
-      <div className="orders-header">
-        <div className="header-content">
-          <h1>{t('orders.title')}</h1>
-          <p>{t('orders.subtitle', 'Manage and track all customer orders')}</p>
-        </div>
-        <div className="header-actions">
-          <button className="refresh-btn" onClick={() => fetchAllOrders(true)}>
-            <span>🔄</span> {t('common.refresh') || 'Refresh'}
-          </button>
-        </div>
-      </div>
 
-      {/* Order Statistics */}
-      <div className="order-stats">
-        <div className="stat-card">
-          <h3>{orders.length}</h3>
-          <p>{t('orders.totalOrders', 'Total Orders')}</p>
-        </div>
-        <div className="stat-card">
-          <h3>{getStatusCount('Pending')}</h3>
-          <p>{t('orders.pending', 'Pending')}</p>
-        </div>
-        <div className="stat-card">
-          <h3>{getStatusCount('Out for delivery')}</h3>
-          <p>{t('orders.outForDelivery', 'Out for Delivery')}</p>
-        </div>
-        <div className="stat-card">
-          <h3>{getStatusCount('Delivered')}</h3>
-          <p>{t('orders.delivered', 'Delivered')}</p>
-        </div>
-      </div>
+      <section className="orders-top">
+        <section className="orders-header">
+          <div className="header-content">
+            <p className="section-label">{t('orders.subtitle', 'Realtime order monitoring')}</p>
+            <h1>{t('orders.title')}</h1>
+          </div>
+          <div className="header-actions">
+            <button className="ghost-btn" onClick={() => fetchAllOrders(true)}>
+              {t('common.refresh') || 'Refresh'}
+            </button>
+          </div>
+        </section>
 
-      {/* Search and Filter */}
-      <div className="orders-controls">
-        <div className="search-section">
-          <div className="search-box">
+        <section className="orders-stats">
+          <div className="stat-card">
+            <span className="stat-label">{t('orders.totalOrders', 'Total Orders')}</span>
+            <strong>{orders.length}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">{t('orders.pending', 'Pending')}</span>
+            <strong>{getStatusCount('Pending')}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">{t('orders.outForDelivery', 'Out for Delivery')}</span>
+            <strong>{getStatusCount('Out for delivery')}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">{t('orders.delivered', 'Delivered')}</span>
+            <strong>{getStatusCount('Delivered')}</strong>
+          </div>
+        </section>
+      </section>
+
+      <section className="orders-toolbar">
+        <div className="search-group">
+          <div className="input-wrapper">
+            <span className="input-icon">🔍</span>
             <input
               type="text"
               placeholder={t('orders.searchPlaceholder', 'Search orders by customer name, phone, or order ID...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
             />
             {searchTerm && (
-              <button onClick={clearSearch} className="clear-search">
-                ✕
+              <button className="clear-pill" onClick={clearSearch}>
+                {t('common.clear', 'Clear')}
               </button>
             )}
           </div>
         </div>
-        
-        <div className="auto-refresh-section">
-          <div className="refresh-controls">
-            <label className="refresh-toggle">
-              <input
-                type="checkbox"
-                checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
-              />
-              <span className="toggle-label">🔄 Auto-refresh</span>
-            </label>
-            
-            {autoRefresh && (
-              <select
-                value={refreshInterval}
-                onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                className="refresh-interval-select"
-              >
-                <option value={15000}>15s</option>
-                <option value={30000}>30s</option>
-                <option value={60000}>1m</option>
-                <option value={300000}>5m</option>
-              </select>
-            )}
-            
-            <button 
-              onClick={() => {
-                fetchAllOrders();
-                setLastRefresh(new Date());
-              }}
-              className="manual-refresh-btn"
-              title="Refresh now"
+
+        <div className="toolbar-divider" />
+
+        <div className="refresh-stack">
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+            />
+            <span>{t('orders.autoRefresh', 'Auto refresh')}</span>
+          </label>
+
+          {autoRefresh && (
+            <select
+              value={refreshInterval}
+              onChange={(e) => setRefreshInterval(Number(e.target.value))}
             >
-              🔄
-            </button>
-          </div>
-          
-          <div className="last-refresh-info">
-            <small>
-              Last updated: {lastRefresh.toLocaleTimeString()}
-            </small>
-          </div>
+              <option value={15000}>15s</option>
+              <option value={30000}>30s</option>
+              <option value={60000}>1m</option>
+              <option value={300000}>5m</option>
+            </select>
+          )}
+
+          <button
+            className="icon-button"
+            onClick={() => {
+              fetchAllOrders();
+              setLastRefresh(new Date());
+            }}
+            title="Refresh now"
+          >
+            🔄
+          </button>
+
+          <span className="last-refresh">{t('orders.lastRefresh', 'Last update')} · {lastRefresh.toLocaleTimeString()}</span>
         </div>
-        
-        <div className="filter-section">
+
+        <div className="toolbar-spacer" />
+
+        <button className="primary-btn" onClick={() => fetchAllOrders(true)}>
+          {t('orders.refreshList', 'Reload list')}
+        </button>
+      </section>
+
+      <section className="orders-panel">
+        <div className="status-filter">
           <div className="status-tabs">
             <button 
               className={`status-tab ${selectedStatus === 'all' ? 'active' : ''}`}
               onClick={() => setSelectedStatus('all')}
             >
-              {t('orders.allStatuses', 'All Statuses')}
+              {t('orders.allStatuses', 'All statuses')}
             </button>
             <button 
               className={`status-tab ${selectedStatus === 'Pending' ? 'active' : ''}`}
@@ -392,7 +399,7 @@ const Orders = ({url}) => {
               className={`status-tab ${selectedStatus === 'Out for delivery' ? 'active' : ''}`}
               onClick={() => setSelectedStatus('Out for delivery')}
             >
-              {t('orders.outForDelivery', 'Out for Delivery')}
+              {t('orders.outForDelivery', 'Out for delivery')}
             </button>
             <button 
               className={`status-tab ${selectedStatus === 'Delivered' ? 'active' : ''}`}
@@ -401,113 +408,129 @@ const Orders = ({url}) => {
               {t('orders.delivered', 'Delivered')}
             </button>
           </div>
+          {(searchTerm || selectedStatus !== 'all') && (
+            <button className="link-btn" onClick={clearFilters}>
+              {t('orders.resetFilters', 'Reset filters')}
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Orders List */}
-      <div className="orders-list">
-        {filteredOrders.length === 0 ? (
-          <div className="no-orders">
-            <p>{t('orders.noOrders', 'No orders found')}</p>
-          </div>
-        ) : (
-          <div className="orders-grid">
-            {filteredOrders.map((order) => (
-              <div key={order._id} className="order-card">
-                <div className="order-header">
-                  <div className="order-info">
-                    <h3>{t('orders.orderId')}: #{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}</h3>
-                    <p className="order-date">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
-                    </p>
-                    <p className="order-type">
-                      
-                      {order.orderType === 'guest' && (
-                        <span className="guest-note">GUEST</span>
-                      )}
-                      {order.orderType === 'registered' && order.userId && (
-                        <span className="user-note">
-                          👤 {order.customerInfo?.name || 'Unknown User'} 
-                          <small> (ID: {order.userId.slice(-8)})</small>
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="order-status">
-                    <span
-                      className="status-badge"
-                      style={{ backgroundColor: getStatusColor(order.status) }}
-                    >
-                      {t(`orders.orderStatus.${order.status}`, order.status)}
-                    </span>
-                  </div>
-                </div>
+        <div className="orders-table-wrapper">
+          {filteredOrders.length === 0 ? (
+            <div className="empty-state">
+              <p className="empty-title">{t('orders.noOrders', 'No orders match your filters')}</p>
+              <p className="empty-text">{t('orders.tryAdjusting', 'Try another search term or reset the filters.')}</p>
+            </div>
+          ) : (
+            <table className="orders-table">
+              <thead>
+                <tr>
+                  <th>{t('orders.orderId', 'Order')}</th>
+                  <th>{t('orders.customer', 'Customer')}</th>
+                  <th>{t('orders.items', 'Items')}</th>
+                  <th>{t('orders.total', 'Payment')}</th>
+                  <th>{t('orders.status', 'Status')}</th>
+                  <th>{t('orders.actions', 'Actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrders.map((order) => {
+                  const createdAt = order.createdAt ? new Date(order.createdAt) : null;
+                  const prettyDate = createdAt
+                    ? createdAt.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
+                    : 'N/A';
+                  const prettyTime = createdAt
+                    ? createdAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+                    : '';
+                  const items = Array.isArray(order.items) ? order.items : [];
+                  const previewItems = items.slice(0, 2);
+                  const remainingItems = Math.max(items.length - 2, 0);
+                  const deliveryFee = Number(order.deliveryInfo?.deliveryFee ?? 0);
+                  const showDeliveryFee = deliveryFee > 0;
 
-                <div className="order-items">
-                  <h4>{t('orders.items')}</h4>
-                  {order.items && Array.isArray(order.items) ? (
-                    order.items.map((item, index) => (
-                      <div key={index} className="order-item">
-                        <div className="item-details">
-                          <span className="item-name">{item.name || 'Unknown Item'}</span>
-                          <span className="item-sku">SKU: {item.sku || 'N/A'}</span>
+                  return (
+                    <tr key={order._id}>
+                      <td data-label={t('orders.orderId', 'Order')}>
+                        <div className="order-id-block">
+                          <p className="order-code">#{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}</p>
+                          <span className="order-date">{prettyDate} · {prettyTime}</span>
+                          {order.trackingCode && (
+                            <span className="order-meta">
+                              {t('orders.trackingCode', 'Tracking')} #{order.trackingCode}
+                            </span>
+                          )}
                         </div>
-                        <div className="item-quantity-price">
-                          <span className="item-quantity">x{item.quantity || 1}</span>
-                          <span className="item-price">€{((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+                      </td>
+                      <td data-label={t('orders.customer', 'Customer')}>
+                        <div className="customer-cell">
+                          <p className="customer-name">{order.customerInfo?.name || t('orders.customerName', 'Customer')}</p>
+                          <p className="customer-meta">
+                            {order.customerInfo?.phone || '—'}
+                            {order.address?.city ? ` • ${order.address.city}` : ''}
+                          </p>
+                          <span className={`order-type-chip ${order.orderType === 'guest' ? 'guest' : 'registered'}`}>
+                            {order.orderType === 'guest' ? t('orders.guest', 'Guest checkout') : t('orders.user', 'Logged in')}
+                          </span>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p>No items found</p>
-                  )}
-                </div>
-                
-                {/* Additional order info */}
-                <div className="order-additional-info">
-                  <div className="info-row">
-                    <span className="info-label">{t('orders.trackingCode', 'Tracking Code')}:</span>
-                    <span className="info-value tracking-code">{order.trackingCode || 'N/A'}</span>
-                  </div>
-                  {order.preferredDeliveryTime && (
-                    <div className="info-row">
-                      <span className="info-label">🕐 {t('orders.preferredDeliveryTime', 'Time')}:</span>
-                      <span className="info-value">{order.preferredDeliveryTime}</span>
-                    </div>
-                  )}
-                  {(order.notes || order.note) && (
-                    <div className="info-row">
-                      <span className="info-label">📝 {t('orders.notes', 'Notes')}:</span>
-                      <span className="info-value notes">{order.note || order.notes}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="order-summary">
-                  <div className="order-total">
-                    <span className="total-label">{t('orders.total', 'Total Amount')}:</span>
-                    <span className="total-amount">€{order.amount || 0}</span>
-                  </div>
-                  <div className="order-actions">
-                    <button className="view-details-btn" onClick={() => showOrderDetails(order)}>
-                      {t('orders.viewDetails', 'View Details')}
-                    </button>
-                    <select
-                      value={order.status}
-                      onChange={(e) => statusHandler(e, order._id)}
-                      className="status-select"
-                    >
-                      <option value="Pending">{t('orders.pending', 'Pending')}</option>
-                      <option value="Out for delivery">{t('orders.outForDelivery', 'Out for Delivery')}</option>
-                      <option value="Delivered">{t('orders.delivered', 'Delivered')}</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                      </td>
+                      <td data-label={t('orders.items', 'Items')}>
+                        <div className="items-preview">
+                          {previewItems.length === 0 ? (
+                            <span className="muted">{t('orders.noItems', 'No items')}</span>
+                          ) : (
+                            <>
+                              {previewItems.map((item, index) => (
+                                <span key={`${order._id}-${item.sku || index}`} className="item-pill">
+                                  {item.name || 'Item'} ×{item.quantity || 1}
+                                </span>
+                              ))}
+                              {remainingItems > 0 && (
+                                <span className="extra-count">+{remainingItems}</span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </td>
+                      <td data-label={t('orders.total', 'Payment')}>
+                        <div className="amount-stack">
+                          <span className="total-amount">€{Number(order.amount || 0).toFixed(2)}</span>
+                          {showDeliveryFee && (
+                            <span className="delivery-fee">
+                              {t('orders.deliveryFee', 'Delivery')} €{deliveryFee.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td data-label={t('orders.status', 'Status')}>
+                        <div className="status-cell">
+                          <span className={`status-pill ${getStatusClass(order.status)}`}>
+                            {t(`orders.orderStatus.${order.status}`, order.status)}
+                          </span>
+                          <select
+                            value={order.status}
+                            onChange={(e) => statusHandler(e, order._id)}
+                          >
+                            <option value="Pending">{t('orders.pending', 'Pending')}</option>
+                            <option value="Out for delivery">{t('orders.outForDelivery', 'Out for delivery')}</option>
+                            <option value="Delivered">{t('orders.delivered', 'Delivered')}</option>
+                          </select>
+                        </div>
+                      </td>
+                      <td data-label={t('orders.actions', 'Actions')}>
+                        <div className="table-actions">
+                          <button className="ghost-btn" onClick={() => showOrderDetails(order)}>
+                            {t('orders.viewDetails', 'View details')}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </section>
 
       {/* Order Details Modal */}
       {showDetailsModal && selectedOrder && (

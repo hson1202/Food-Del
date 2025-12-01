@@ -1752,10 +1752,9 @@ const fetchCategories = async (signal) => {
               if (product.name === 'test') {
                 console.log(`DEBUG - Rendering test product: ${product.name}, status: "${product.status}", filter: ${statusFilter}`)
               }
-              return (
-                <div key={product._id} className="product-card">
+            return (
+              <div key={product._id} className="product-card">
                 <div className="product-image">
-                
                   <img 
                     src={
                       product.image && product.image.startsWith('http')

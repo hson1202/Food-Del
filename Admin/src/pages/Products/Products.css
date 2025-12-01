@@ -745,26 +745,27 @@
     gap: 12px;
   }
 
-  /* Mobile: Card thành hình chữ nhật ngang - compact */
+  /* Mobile: Card ngang gọn - ảnh & nội dung chung một khối */
   .product-card {
-    flex-direction: row;
+    /* Đảo chiều để HÌNH Ở BÊN PHẢI, NỘI DUNG BÊN TRÁI nhưng vẫn là 1 card thống nhất */
+	  flex-direction: row-reverse;
+    align-items: stretch;
     border-radius: 10px;
-    padding: 0;
-    gap: 0;
-    height: auto;
   }
 
   .product-image {
-    width: 100px;
-    min-width: 100px;
-    height: 100px;
+	  /* Tăng kích thước hình để ăn bớt khoảng trống dư */
+	  width: 130px;
+	  min-width: 130px;
+	  height: 130px;
     aspect-ratio: 1;
-    border-radius: 10px 0 0 10px;
+	  /* Bo góc bên PHẢI vì hình nằm bên phải */
+	  border-radius: 0 10px 10px 0;
     flex-shrink: 0;
   }
 
   .product-image img {
-    border-radius: 10px 0 0 10px;
+	  border-radius: 0 10px 10px 0;
   }
 
   .product-overlay {
@@ -903,18 +904,20 @@
 
   /* Mobile nhỏ: Card còn compact hơn */
   .product-card {
+    flex-direction: row-reverse;
     border-radius: 8px;
   }
 
   .product-image {
-    width: 80px;
-    min-width: 80px;
-    height: 80px;
-    border-radius: 8px 0 0 8px;
+	  /* Mobile rất nhỏ: hình cũng to hơn chút nhưng vẫn vừa màn */
+	  width: 110px;
+	  min-width: 110px;
+	  height: 110px;
+	  border-radius: 0 8px 8px 0;
   }
 
   .product-image img {
-    border-radius: 8px 0 0 8px;
+	  border-radius: 0 8px 8px 0;
   }
 
   .product-content {

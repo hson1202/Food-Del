@@ -4,6 +4,17 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next';
 import '../../i18n';
 import config from '../../config/config';
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Line,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
 
 // Configure axios defaults
 axios.defaults.timeout = 10000;
@@ -19,6 +30,7 @@ const Dashboard = ({ url }) => {
     totalUsers: 0,
     totalProducts: 0
   })
+
   const [timeStats, setTimeStats] = useState({
     today: { orders: 0, revenue: 0 },
     week: { orders: 0, revenue: 0 },
@@ -36,12 +48,28 @@ const Dashboard = ({ url }) => {
     completed: 0
   })
 
+  // Time-based analytics (chart + comparison table)
+  const [timeBasedData, setTimeBasedData] = useState([])
+  const [isTimeBasedLoading, setIsTimeBasedLoading] = useState(false)
+  const [timeBasedError, setTimeBasedError] = useState('')
+  const [chartFilters, setChartFilters] = useState({
+    days: 30,
+    granularity: 'day', // 'day' | 'week' | 'month'
+    metric: 'revenue',  // 'revenue' | 'totalOrders'
+    chartType: 'line'   // 'line' | 'bar'
+  })
+
 
   useEffect(() => {
     console.log('🚀 Dashboard component mounted')
     console.log('🔗 Backend URL:', url)
     fetchDashboardData()
   }, [])
+
+  // Fetch time-based stats whenever filters change
+  useEffect(() => {
+    fetchTimeBasedStats()
+  }, [chartFilters.days, chartFilters.granularity, chartFilters.metric])
 
   // Calculate trends based on current vs previous period
   const calculateTrends = (currentStats, previousStats) => {
@@ -99,8 +127,6 @@ const Dashboard = ({ url }) => {
 
     return trends
   }
-
-
 
   const fetchDashboardData = async () => {
     try {
@@ -244,6 +270,49 @@ const Dashboard = ({ url }) => {
     }
   }
 
+  const fetchTimeBasedStats = async () => {
+    try {
+      setIsTimeBasedLoading(true)
+      setTimeBasedError('')
+
+      const adminToken = localStorage.getItem('adminToken');
+      if (!adminToken) {
+        console.error('❌ Admin not logged in. Please login again.')
+        setTimeBasedError('Admin not logged in')
+        setIsTimeBasedLoading(false)
+        return
+      }
+
+      const params = new URLSearchParams({
+        days: String(chartFilters.days),
+        granularity: chartFilters.granularity,
+        metric: chartFilters.metric
+      })
+
+      const response = await axios.get(
+        `${config.BACKEND_URL}/api/admin/time-based-stats?${params.toString()}`,
+        { headers: { token: adminToken } }
+      )
+
+      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        setTimeBasedData(response.data.data)
+      } else if (Array.isArray(response.data)) {
+        // Fallback nếu backend trả thẳng mảng
+        setTimeBasedData(response.data)
+      } else {
+        console.error('Unexpected time-based stats response:', response.data)
+        setTimeBasedError(t('dashboard.noDataForTimeRange'))
+        setTimeBasedData([])
+      }
+    } catch (error) {
+      console.error('💥 Error fetching time-based stats:', error)
+      setTimeBasedError(t('dashboard.noDataForTimeRange'))
+      setTimeBasedData([])
+    } finally {
+      setIsTimeBasedLoading(false)
+    }
+  }
+
   const formatDate = (date) => {
     try {
       const d = new Date(date || new Date());
@@ -281,6 +350,84 @@ const Dashboard = ({ url }) => {
     }).format(amount)
   }
 
+  const formatChartLabel = (dateString, granularity) => {
+    try {
+      const d = new Date(dateString)
+      const locale = i18n?.language === 'vi' ? 'vi-VN' : i18n?.language === 'sk' ? 'sk-SK' : 'en-US';
+
+      if (granularity === 'month') {
+        return new Intl.DateTimeFormat(locale, { month: '2-digit', year: '2-digit' }).format(d)
+      }
+
+      if (granularity === 'week') {
+        // Hiển thị theo dạng tuần bắt đầu
+        const weekStart = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(d)
+        return `${t('dashboard.week')} ${weekStart}`
+      }
+
+      // Mặc định: ngày
+      return new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(d)
+    } catch {
+      return ''
+    }
+  }
+
+  const dynamicChartData = (timeBasedData || []).map(point => ({
+    label: formatChartLabel(point.date, chartFilters.granularity),
+    value: point.value || 0
+  }))
+
+  const comparisonRows = dynamicChartData.map((row, index) => {
+    if (index === 0) {
+      return {
+        ...row,
+        diff: 0,
+        diffPercent: 0
+      }
+    }
+    const prev = dynamicChartData[index - 1]
+    const diff = row.value - prev.value
+    const diffPercent = prev.value ? Math.round((diff / prev.value) * 100) : 0
+    return {
+      ...row,
+      diff,
+      diffPercent
+    }
+  })
+
+  const timeChartData = [
+    {
+      key: 'today',
+      period: t('dashboard.today'),
+      orders: timeStats.today?.orders || 0,
+      revenue: timeStats.today?.revenue || 0
+    },
+    {
+      key: 'week',
+      period: t('dashboard.thisWeek'),
+      orders: timeStats.week?.orders || 0,
+      revenue: timeStats.week?.revenue || 0
+    },
+    {
+      key: 'month',
+      period: t('dashboard.thisMonth'),
+      orders: timeStats.month?.orders || 0,
+      revenue: timeStats.month?.revenue || 0
+    },
+    {
+      key: 'quarter',
+      period: t('dashboard.thisQuarter'),
+      orders: timeStats.quarter?.orders || 0,
+      revenue: timeStats.quarter?.revenue || 0
+    },
+    {
+      key: 'year',
+      period: t('dashboard.thisYear'),
+      orders: timeStats.year?.orders || 0,
+      revenue: timeStats.year?.revenue || 0
+    }
+  ]
+
   if (isLoading) {
     console.log('⏳ Dashboard is loading...')
     return (
@@ -313,210 +460,214 @@ const Dashboard = ({ url }) => {
         </div>
       </div>
 
-      {/* Main Stats Cards */}
-      <div className="stats-grid">
-        <div className="stat-card orders">
-          <div className="stat-icon">
-            <span>📦</span>
-          </div>
-          <div className="stat-content">
-            <h3>{((stats.currentMonth && stats.currentMonth.orders) || stats.totalOrders || 0).toLocaleString()}</h3>
-            <p>{t('dashboard.totalOrders')}</p>
-            <div className="stat-details">
-              <span className="detail-item">
-                <strong>Today:</strong> {timeStats.today?.orders || 0}
-              </span>
-              <span className="detail-item">
-                <strong>Week:</strong> {timeStats.week?.orders || 0}
-              </span>
-            </div>
-            <div className={`stat-trend ${trends.orders > 0 ? 'positive' : trends.orders < 0 ? 'negative' : 'neutral'}`}>
-              <span>{trends.orders > 0 ? '↗️' : trends.orders < 0 ? '↘️' : '➡️'}</span>
-              {trends.orders !== 0 ? `${trends.orders > 0 ? '+' : ''}${trends.orders}%` : '0%'} {t('dashboard.trendFromLastMonth')}
-            </div>
-          </div>
-        </div>
-        
-        <div className="stat-card revenue">
-          <div className="stat-icon">
-            <span>💰</span>
-          </div>
-          <div className="stat-content">
-            <h3>{formatCurrency((stats.currentMonth && stats.currentMonth.revenue) || stats.totalRevenue || 0)}</h3>
-            <p>{t('dashboard.totalRevenue')}</p>
-            <div className="stat-details">
-              <span className="detail-item">
-                <strong>Today:</strong> {formatCurrency(timeStats.today?.revenue || 0)}
-              </span>
-              <span className="detail-item">
-                <strong>Week:</strong> {formatCurrency(timeStats.week?.revenue || 0)}
-              </span>
-            </div>
-            <div className={`stat-trend ${trends.revenue > 0 ? 'positive' : trends.revenue < 0 ? 'negative' : 'neutral'}`}>
-              <span>{trends.revenue > 0 ? '↗️' : trends.revenue < 0 ? '↘️' : '➡️'}</span>
-              {trends.revenue !== 0 ? `${trends.revenue > 0 ? '+' : ''}${trends.revenue}%` : '0%'} {t('dashboard.trendFromLastMonth')}
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card pending">
-          <div className="stat-icon">
-            <span>⏳</span>
-          </div>
-          <div className="stat-content">
-            <h3>{stats.pendingOrders || 0}</h3>
-            <p>{t('dashboard.pendingOrders')}</p>
-            <div className="stat-details">
-              <span className="detail-item">
-                <strong>Today:</strong> {timeStats.today?.orders || 0}
-              </span>
-              <span className="detail-item">
-                <strong>Priority:</strong> High
-              </span>
-            </div>
-            <div className="stat-trend urgent">
-              <span>🚨</span> Requires attention
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card users">
-          <div className="stat-icon">
-            <span>👥</span>
-          </div>
-          <div className="stat-content">
-            <h3>{(stats.totalUsers || 0).toLocaleString()}</h3>
-            <p>{t('dashboard.totalUsers')}</p>
-            <div className="stat-details">
-              <span className="detail-item">
-                <strong>Active:</strong> {Math.round((stats.totalUsers || 0) * 0.8)}
-              </span>
-              <span className="detail-item">
-                <strong>New:</strong> {Math.round((stats.totalUsers || 0) * 0.1)}
-              </span>
-            </div>
-            <div className={`stat-trend ${trends.users > 0 ? 'positive' : trends.users < 0 ? 'negative' : 'neutral'}`}>
-              <span>{trends.users > 0 ? '↗️' : trends.users < 0 ? '↘️' : '➡️'}</span>
-              {trends.users !== 0 ? `${trends.users > 0 ? '+' : ''}${trends.users}%` : '0%'} {t('dashboard.trendFromLastMonth')}
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card products">
-          <div className="stat-icon">
-            <span>🍽️</span>
-          </div>
-          <div className="stat-content">
-            <h3>{stats.totalProducts || 0}</h3>
-            <p>{t('dashboard.totalProducts')}</p>
-            <div className="stat-details">
-              <span className="detail-item">
-                <strong>Active:</strong> {Math.round((stats.totalProducts || 0) * 0.9)}
-              </span>
-              <span className="detail-item">
-                <strong>Categories:</strong> {Math.ceil((stats.totalProducts || 0) / 10)}
-              </span>
-            </div>
-            <div className={`stat-trend ${trends.products > 0 ? 'positive' : trends.products < 0 ? 'negative' : 'neutral'}`}>
-              <span>{trends.products > 0 ? '↗️' : trends.products < 0 ? '↘️' : '➡️'}</span>
-              {trends.products !== 0 ? `${trends.products > 0 ? '+' : ''}${trends.products}%` : '0%'} {t('dashboard.trendFromLastMonth')}
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card completed">
-          <div className="stat-icon">
-            <span>✅</span>
-          </div>
-          <div className="stat-content">
-            <h3>{(stats.completedOrders || 0).toLocaleString()}</h3>
-            <p>{t('dashboard.completedOrders')}</p>
-            <div className="stat-details">
-              <span className="detail-item">
-                <strong>Today:</strong> {timeStats.today?.orders || 0}
-              </span>
-              <span className="detail-item">
-                <strong>Rate:</strong> {stats.totalOrders > 0 ? Math.round((stats.completedOrders / stats.totalOrders) * 100) : 0}%
-              </span>
-            </div>
-            <div className={`stat-trend ${trends.completed > 0 ? 'positive' : trends.completed < 0 ? 'negative' : 'neutral'}`}>
-              <span>{trends.completed > 0 ? '↗️' : trends.completed < 0 ? '↘️' : '➡️'}</span>
-              {trends.completed !== 0 ? `${trends.completed > 0 ? '+' : ''}${trends.completed}%` : '0%'} {t('dashboard.trendFromLastMonth')}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* (Đã xoá stats-grid theo yêu cầu, chỉ giữ lại phần chart và quick actions) */}
 
       {/* Time-based Stats */}
       <div className="time-stats-section">
-        <h2>{t('dashboard.timeStats')}</h2>
-        <div className="time-stats-grid">
-          <div className="time-stat-card">
-            <h3>{t('dashboard.today')}</h3>
-            <div className="time-stat-content">
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.orders')}:</span>
-                <span className="stat-value">{timeStats.today?.orders || 0}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.revenue')}:</span>
-                <span className="stat-value">{formatCurrency(timeStats.today?.revenue || 0)}</span>
-              </div>
+        <div className="time-stats-header">
+          <div>
+            <h2>{t('dashboard.timeStats')}</h2>
+            <p>{t('dashboard.timeStatsDescription') || 'Xem nhanh xu hướng đơn hàng và doanh thu theo mốc thời gian.'}</p>
+          </div>
+          <div className="time-filters-row">
+            <div className="time-filter-group">
+              <label>{t('dashboard.timeRange')}</label>
+              <select
+                value={chartFilters.days}
+                onChange={(e) => setChartFilters(prev => ({ ...prev, days: Number(e.target.value) }))}
+              >
+                <option value={7}>7 {t('dashboard.day')}</option>
+                <option value={30}>30 {t('dashboard.day')}</option>
+                <option value={90}>90 {t('dashboard.day')}</option>
+                <option value={365}>365 {t('dashboard.day')}</option>
+              </select>
+            </div>
+            <div className="time-filter-group">
+              <label>{t('dashboard.granularity')}</label>
+              <select
+                value={chartFilters.granularity}
+                onChange={(e) => setChartFilters(prev => ({ ...prev, granularity: e.target.value }))}
+              >
+                <option value="day">{t('dashboard.day')}</option>
+                <option value="week">{t('dashboard.week')}</option>
+                <option value="month">{t('dashboard.month')}</option>
+              </select>
+            </div>
+            <div className="time-filter-group">
+              <label>{t('dashboard.metric')}</label>
+              <select
+                value={chartFilters.metric}
+                onChange={(e) => setChartFilters(prev => ({ ...prev, metric: e.target.value }))}
+              >
+                <option value="revenue">{t('dashboard.revenue')}</option>
+                <option value="totalOrders">{t('dashboard.totalOrders')}</option>
+              </select>
+            </div>
+            <div className="time-filter-group">
+              <label>{t('dashboard.chartType')}</label>
+              <select
+                value={chartFilters.chartType}
+                onChange={(e) => setChartFilters(prev => ({ ...prev, chartType: e.target.value }))}
+              >
+                <option value="line">{t('dashboard.lineChart')}</option>
+                <option value="bar">{t('dashboard.barChart')}</option>
+              </select>
             </div>
           </div>
-
-          <div className="time-stat-card">
-            <h3>{t('dashboard.thisWeek')}</h3>
-            <div className="time-stat-content">
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.orders')}:</span>
-                <span className="stat-value">{timeStats.week?.orders || 0}</span>
+        </div>
+        <div className="time-stats-content">
+          <div className="time-stats-chart-card">
+            {isTimeBasedLoading ? (
+              <div className="time-based-loading">
+                <div className="loading-spinner"></div>
+                <p>{t('common.loading')}</p>
               </div>
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.revenue')}:</span>
-                <span className="stat-value">{formatCurrency(timeStats.week?.revenue || 0)}</span>
+            ) : timeBasedError ? (
+              <div className="time-based-error">
+                <p>{timeBasedError}</p>
+              </div>
+            ) : dynamicChartData.length === 0 ? (
+              <div className="time-based-error">
+                <p>{t('dashboard.noDataForTimeRange')}</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <ComposedChart
+                  data={dynamicChartData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) =>
+                      chartFilters.metric === 'revenue'
+                        ? `${Math.round(value / 1000)}k`
+                        : value
+                    }
+                  />
+                  <Tooltip
+                    formatter={(value) => {
+                      if (chartFilters.metric === 'revenue') {
+                        return [formatCurrency(value), t('dashboard.revenue')]
+                      }
+                      return [value, t('dashboard.orders')]
+                    }}
+                    labelFormatter={(label) => label}
+                  />
+                  <Legend />
+                  {chartFilters.chartType === 'bar' && (
+                    <Bar
+                      dataKey="value"
+                      name={
+                        chartFilters.metric === 'revenue'
+                          ? t('dashboard.revenue')
+                          : t('dashboard.totalOrders')
+                      }
+                      barSize={28}
+                      radius={[6, 6, 0, 0]}
+                      fill="#3b82f6"
+                    />
+                  )}
+                  {chartFilters.chartType === 'line' && (
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      name={
+                        chartFilters.metric === 'revenue'
+                          ? t('dashboard.revenue')
+                          : t('dashboard.totalOrders')
+                      }
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  )}
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
+
+            {/* Comparison table: so sánh các giai đoạn liên tiếp */}
+            {comparisonRows.length > 0 && (
+              <div className="time-comparison-table-wrapper">
+                <table className="time-comparison-table">
+                  <thead>
+                    <tr>
+                      <th>{t('dashboard.timeRange')}</th>
+                      <th>
+                        {chartFilters.metric === 'revenue'
+                          ? t('dashboard.revenue')
+                          : t('dashboard.totalOrders')}
+                      </th>
+                      <th>{t('dashboard.trendFromLastMonth')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparisonRows.map((row, index) => (
+                      <tr key={row.label || index}>
+                        <td>{row.label}</td>
+                        <td>
+                          {chartFilters.metric === 'revenue'
+                            ? formatCurrency(row.value)
+                            : (row.value || 0).toLocaleString()}
+                        </td>
+                        <td className={
+                          row.diff > 0 ? 'trend-positive' :
+                          row.diff < 0 ? 'trend-negative' : 'trend-neutral'
+                        }>
+                          {index === 0
+                            ? t('dashboard.trendNoChange') || '—'
+                            : `${row.diff > 0 ? '+' : ''}${chartFilters.metric === 'revenue'
+                              ? formatCurrency(row.diff)
+                              : row.diff.toLocaleString()
+                            } (${row.diffPercent > 0 ? '+' : ''}${row.diffPercent}%)`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          <div className="time-stats-side-cards">
+            <div className="time-stat-card">
+              <h3>{t('dashboard.today')}</h3>
+              <div className="time-stat-content">
+                <div className="stat-item">
+                  <span className="stat-label">{t('dashboard.orders')}:</span>
+                  <span className="stat-value">{timeStats.today?.orders || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">{t('dashboard.revenue')}:</span>
+                  <span className="stat-value">{formatCurrency(timeStats.today?.revenue || 0)}</span>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="time-stat-card">
-            <h3>{t('dashboard.thisMonth')}</h3>
-            <div className="time-stat-content">
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.orders')}:</span>
-                <span className="stat-value">{timeStats.month?.orders || 0}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.revenue')}:</span>
-                <span className="stat-value">{formatCurrency(timeStats.month?.revenue || 0)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="time-stat-card">
-            <h3>{t('dashboard.thisQuarter')}</h3>
-            <div className="time-stat-content">
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.orders')}:</span>
-                <span className="stat-value">{timeStats.quarter?.orders || 0}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.revenue')}:</span>
-                <span className="stat-value">{formatCurrency(timeStats.quarter?.revenue || 0)}</span>
+            <div className="time-stat-card">
+              <h3>{t('dashboard.thisMonth')}</h3>
+              <div className="time-stat-content">
+                <div className="stat-item">
+                  <span className="stat-label">{t('dashboard.orders')}:</span>
+                  <span className="stat-value">{timeStats.month?.orders || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">{t('dashboard.revenue')}:</span>
+                  <span className="stat-value">{formatCurrency(timeStats.month?.revenue || 0)}</span>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="time-stat-card">
-            <h3>{t('dashboard.thisYear')}</h3>
-            <div className="time-stat-content">
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.orders')}:</span>
-                <span className="stat-value">{timeStats.year?.orders || 0}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">{t('dashboard.revenue')}:</span>
-                <span className="stat-value">{formatCurrency(timeStats.year?.revenue || 0)}</span>
+            <div className="time-stat-card">
+              <h3>{t('dashboard.thisYear')}</h3>
+              <div className="time-stat-content">
+                <div className="stat-item">
+                  <span className="stat-label">{t('dashboard.orders')}:</span>
+                  <span className="stat-value">{timeStats.year?.orders || 0}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">{t('dashboard.revenue')}:</span>
+                  <span className="stat-value">{formatCurrency(timeStats.year?.revenue || 0)}</span>
+                </div>
               </div>
             </div>
           </div>

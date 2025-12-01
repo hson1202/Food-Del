@@ -280,95 +280,101 @@ const Users = ({ url }) => {
       </div>
 
       {/* Users List */}
-      <div className="users-list">
+      <div className="users-table-wrapper">
         {filteredUsers.length === 0 ? (
           <div className="no-users">
             <p>{t('users.noUsers', 'No users found')}</p>
           </div>
         ) : (
-          <div className="users-grid">
-            {filteredUsers.map((user) => (
-              <div key={user._id} className="user-card">
-                <div className="user-header">
-                  <div className="user-avatar" data-initial={user.name ? user.name.charAt(0).toUpperCase() : 'U'}>
-                    {user.profileImage ? (
-                      <img src={user.profileImage} alt={user.name} />
-                    ) : (
-                      <span>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
-                    )}
-                  </div>
-                  <div className="user-info">
-                    <h3>{user.name}</h3>
-                    <p className="user-email">{user.email}</p>
-                    <div className="user-badges">
-                      {getRoleBadge(user.role)}
-                      {getStatusBadge(user.status)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="user-details">
-                  <div className="detail-item">
-                    <span className="label">{t('users.registrationDate')}:</span>
-                    <span className="value">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="label">{t('users.orderCount')}:</span>
-                    <span className="value">{user.orderCount || 0}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="label">{t('users.lastLogin')}:</span>
-                    <span className="value">
+          <div className="table-scroll">
+            <table className="users-table">
+              <thead>
+                <tr>
+                  <th>{t('users.user', 'User')}</th>
+                  <th>{t('users.email', 'Email')}</th>
+                  <th>{t('users.orderCount', 'Orders')}</th>
+                  <th>{t('users.lastLogin', 'Last login')}</th>
+                  <th>{t('users.status', 'Status')}</th>
+                  <th>{t('users.role', 'Role')}</th>
+                  <th className="actions-col">{t('common.actions', 'Actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user._id}>
+                    <td>
+                      <div className="user-cell">
+                        <div className="user-avatar" data-initial={user.name ? user.name.charAt(0).toUpperCase() : 'U'}>
+                          {user.profileImage ? (
+                            <img src={user.profileImage} alt={user.name} />
+                          ) : (
+                            <span>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
+                          )}
+                        </div>
+                        <div className="user-meta">
+                          <span className="user-name">{user.name || t('users.unknown', 'Unnamed user')}</span>
+                          <span className="user-id">ID: {user._id.slice(-6)}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label={t('users.email', 'Email')}>
+                      <div className="user-email-stack">
+                        <span>{user.email}</span>
+                        {user.phone && <small>{user.phone}</small>}
+                      </div>
+                    </td>
+                    <td data-label={t('users.orderCount', 'Orders')}>
+                      {user.orderCount || 0}
+                    </td>
+                    <td data-label={t('users.lastLogin', 'Last login')}>
                       {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : t('users.never', 'Never')}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="user-actions">
-                  <div className="action-group">
-                    <label>{t('users.status')}:</label>
-                    <select
-                      value={user.status}
-                      onChange={(e) => handleStatusToggle(user._id, e.target.value)}
-                      className="status-select"
-                    >
-                      <option value="active">{t('users.statuses.active', 'Active')}</option>
-                      <option value="inactive">{t('users.statuses.inactive', 'Inactive')}</option>
-                      <option value="suspended">{t('users.statuses.suspended', 'Suspended')}</option>
-                    </select>
-                  </div>
-
-                  <div className="action-group">
-                    <label>{t('users.role')}:</label>
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                      className="role-select"
-                    >
-                      <option value="user">{t('users.roles.user', 'User')}</option>
-                      <option value="admin">{t('users.roles.admin', 'Admin')}</option>
-                      <option value="moderator">{t('users.roles.moderator', 'Moderator')}</option>
-                    </select>
-                  </div>
-
-                  <button
-                    onClick={() => handleEditUser(user)}
-                    className="btn-edit"
-                  >
-                    {t('users.editUser', 'Edit User')}
-                  </button>
-                  
-                  <button
-                    onClick={() => handleDeleteUser(user._id)}
-                    className="btn-delete"
-                  >
-                    {t('users.deleteUser')}
-                  </button>
-                </div>
-              </div>
-            ))}
+                    </td>
+                    <td data-label={t('users.status', 'Status')}>
+                      <span className="badge-wrap">
+                        {getStatusBadge(user.status)}
+                      </span>
+                      <select
+                        value={user.status}
+                        onChange={(e) => handleStatusToggle(user._id, e.target.value)}
+                        className="inline-select"
+                      >
+                        <option value="active">{t('users.statuses.active', 'Active')}</option>
+                        <option value="inactive">{t('users.statuses.inactive', 'Inactive')}</option>
+                        <option value="suspended">{t('users.statuses.suspended', 'Suspended')}</option>
+                      </select>
+                    </td>
+                    <td data-label={t('users.role', 'Role')}>
+                      <span className="badge-wrap">
+                        {getRoleBadge(user.role)}
+                      </span>
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                        className="inline-select"
+                      >
+                        <option value="user">{t('users.roles.user', 'User')}</option>
+                        <option value="admin">{t('users.roles.admin', 'Admin')}</option>
+                        <option value="moderator">{t('users.roles.moderator', 'Moderator')}</option>
+                      </select>
+                    </td>
+                    <td className="table-actions" data-label={t('common.actions', 'Actions')}>
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        className="btn-edit ghost"
+                      >
+                        {t('users.editUser', 'Edit')}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user._id)}
+                        className="btn-delete ghost"
+                      >
+                        {t('users.deleteUser', 'Delete')}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
