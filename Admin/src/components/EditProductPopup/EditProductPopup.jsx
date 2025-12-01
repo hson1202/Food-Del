@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import './EditProductPopup.css';
+import { useTranslation } from 'react-i18next';
 
 const EditProductPopup = ({ 
   isOpen, 
@@ -12,6 +13,7 @@ const EditProductPopup = ({
   onImageChange,
   url
 }) => {
+  const { t } = useTranslation();
   const [showOptionsForm, setShowOptionsForm] = useState(false);
   const [currentOption, setCurrentOption] = useState({
     name: '',
@@ -60,15 +62,15 @@ const EditProductPopup = ({
   // Validate functions
   const validateOption = useCallback((option, existingOptions, editingIndex = -1) => {
     if (!option.name.trim()) {
-      return 'Option name is required';
+      return t('editProduct.validation.optionNameRequired');
     }
     
     if (option.choices.length === 0) {
-      return 'At least one choice is required';
+      return t('editProduct.validation.choiceRequired');
     }
     
     if (!option.defaultChoiceCode) {
-      return 'Default choice is required';
+      return t('editProduct.validation.defaultChoiceRequired');
     }
     
     // Check duplicate names
@@ -76,23 +78,23 @@ const EditProductPopup = ({
       opt.name === option.name && index !== editingIndex
     );
     if (duplicate) {
-      return 'Option name already exists';
+      return t('editProduct.validation.optionNameExists');
     }
     
     return null;
-  }, []);
+  }, [t]);
 
   const validateChoice = useCallback((choice, existingChoices, editingIndex = -1) => {
     if (!choice.code.trim()) {
-      return 'Choice code is required';
+      return t('editProduct.validation.choiceCodeRequired');
     }
     
     if (!choice.label.trim()) {
-      return 'Choice label is required';
+      return t('editProduct.validation.choiceLabelRequired');
     }
     
     if (choice.price === undefined || choice.price === null || isNaN(Number(choice.price))) {
-      return 'Valid choice price is required';
+      return t('editProduct.validation.choicePriceRequired');
     }
     
     // Check duplicate codes
@@ -100,11 +102,11 @@ const EditProductPopup = ({
       ch.code === choice.code && index !== editingIndex
     );
     if (duplicate) {
-      return 'Choice code already exists in this option';
+      return t('editProduct.validation.choiceCodeExists');
     }
     
     return null;
-  }, []);
+  }, [t]);
 
   // Reset functions
   const resetOptionsForm = useCallback(() => {
@@ -141,8 +143,8 @@ const EditProductPopup = ({
     });
     
     resetOptionsForm();
-    alert(`Option ${editingOptionIndex >= 0 ? 'updated' : 'added'} successfully`);
-  }, [currentOption, editForm.options, editingOptionIndex, onInputChange, resetOptionsForm, validateOption]);
+    alert(editingOptionIndex >= 0 ? t('editProduct.optionUpdated') : t('editProduct.optionAdded'));
+  }, [currentOption, editForm.options, editingOptionIndex, onInputChange, resetOptionsForm, validateOption, t]);
 
   const editOption = useCallback((index) => {
     const option = editForm.options[index];
@@ -152,7 +154,7 @@ const EditProductPopup = ({
   }, [editForm.options]);
 
   const deleteOption = useCallback((index) => {
-    if (!window.confirm('Are you sure you want to delete this option?')) {
+    if (!window.confirm(t('editProduct.confirmDeleteOption'))) {
       return;
     }
     
@@ -160,8 +162,8 @@ const EditProductPopup = ({
     onInputChange({
       target: { name: 'options', value: updatedOptions }
     });
-    alert('Option deleted successfully');
-  }, [editForm.options, onInputChange]);
+    alert(t('editProduct.optionDeleted'));
+  }, [editForm.options, onInputChange, t]);
 
   // Choice management
   const addChoice = useCallback(() => {
@@ -181,8 +183,8 @@ const EditProductPopup = ({
     
     setCurrentOption({ ...currentOption, choices: updatedChoices });
     resetChoiceForm();
-    alert(`Choice ${editingChoiceIndex >= 0 ? 'updated' : 'added'} successfully`);
-  }, [currentChoice, currentOption, editingChoiceIndex, resetChoiceForm, validateChoice]);
+    alert(editingChoiceIndex >= 0 ? t('editProduct.choiceUpdated') : t('editProduct.choiceAdded'));
+  }, [currentChoice, currentOption, editingChoiceIndex, resetChoiceForm, validateChoice, t]);
 
   const editChoice = useCallback((index) => {
     const choice = currentOption.choices[index];
@@ -191,7 +193,7 @@ const EditProductPopup = ({
   }, [currentOption.choices]);
 
   const deleteChoice = useCallback((index) => {
-    if (!window.confirm('Are you sure you want to delete this choice?')) {
+    if (!window.confirm(t('editProduct.confirmDeleteChoice'))) {
       return;
     }
     
@@ -209,8 +211,8 @@ const EditProductPopup = ({
       defaultChoiceCode: newDefaultCode
     });
     
-    alert('Choice deleted successfully');
-  }, [currentOption]);
+    alert(t('editProduct.choiceDeleted'));
+  }, [currentOption, t]);
 
   // Event handlers
   const handleOptionChange = useCallback((field, value) => {
@@ -254,13 +256,13 @@ const EditProductPopup = ({
       <div className="edit-product-popup" onClick={e => e.stopPropagation()}>
         <div className="edit-product-popup-header">
           <div className="header-content">
-            <h2>Edit Product</h2>
-            <p className="header-subtitle">Update product information</p>
+            <h2>{t('editProduct.title')}</h2>
+            <p className="header-subtitle">{t('editProduct.subtitle')}</p>
           </div>
           <button 
             className="close-btn"
             onClick={onCancel}
-            title="Close"
+            title={t('editProduct.close')}
             type="button"
           >
             ×
@@ -271,23 +273,23 @@ const EditProductPopup = ({
           <form onSubmit={onSubmit}>
             {/* Basic Information */}
             <div className="form-section">
-              <h3 className="section-title">Basic Information</h3>
+              <h3 className="section-title">{t('editProduct.basicInfo')}</h3>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label>SKU *</label>
+                  <label>{t('products.sku')} *</label>
                   <input
                     type="text"
                     name="sku"
                     value={editForm.sku || ''}
                     onChange={onInputChange}
                     required
-                    placeholder="Enter SKU"
+                    placeholder={t('products.skuPlaceholder')}
                   />
                 </div>
                 
                 <div className="form-group">
-                  <label>Price *</label>
+                  <label>{t('products.price')} *</label>
                   <input
                     type="number"
                     name="price"
@@ -303,26 +305,26 @@ const EditProductPopup = ({
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Name *</label>
+                  <label>{t('products.name')} *</label>
                   <input
                     type="text"
                     name="name"
                     value={editForm.name || ''}
                     onChange={onInputChange}
                     required
-                    placeholder="Enter product name"
+                    placeholder={t('products.namePlaceholder')}
                   />
                 </div>
                 
                 <div className="form-group">
-                  <label>Category *</label>
+                  <label>{t('products.category')} *</label>
                   <select
                     name="category"
                     value={editForm.category || ''}
                     onChange={onInputChange}
                     required
                   >
-                    <option value="">Select category</option>
+                    <option value="">{t('products.selectCategory')}</option>
                     {categories?.map(category => (
                       <option key={category._id} value={category.name}>
                         {category.name}
@@ -334,42 +336,42 @@ const EditProductPopup = ({
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Name (Vietnamese)</label>
+                  <label>{t('products.nameVI')}</label>
                   <input
                     type="text"
                     name="nameVI"
                     value={editForm.nameVI || ''}
                     onChange={onInputChange}
-                    placeholder="Enter Vietnamese name"
+                    placeholder={t('products.nameVIPlaceholder') || t('products.nameVI')}
                   />
                 </div>
                 
                 <div className="form-group">
-                  <label>Name (English)</label>
+                  <label>{t('products.nameEN')}</label>
                   <input
                     type="text"
                     name="nameEN"
                     value={editForm.nameEN || ''}
                     onChange={onInputChange}
-                    placeholder="Enter English name"
+                    placeholder={t('products.nameENPlaceholder') || t('products.nameEN')}
                   />
                 </div>
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Name (Slovak)</label>
+                  <label>{t('products.nameSK')}</label>
                   <input
                     type="text"
                     name="nameSK"
                     value={editForm.nameSK || ''}
                     onChange={onInputChange}
-                    placeholder="Enter Slovak name"
+                    placeholder={t('products.nameSKPlaceholder') || t('products.nameSK')}
                   />
                 </div>
                 
                 <div className="form-group">
-                  <label>Quantity *</label>
+                  <label>{t('common.quantity')} *</label>
                   <input
                     type="number"
                     name="quantity"
@@ -383,31 +385,31 @@ const EditProductPopup = ({
               </div>
 
               <div className="form-group full-width">
-                <label>Description</label>
+                <label>{t('products.description')}</label>
                 <textarea
                   name="description"
                   value={editForm.description || ''}
                   onChange={onInputChange}
                   rows="4"
-                  placeholder="Enter product description..."
+                  placeholder={t('products.descriptionPlaceholder')}
                 />
               </div>
             </div>
 
             {/* Product Image */}
             <div className="form-section">
-              <h3 className="section-title">Product Image</h3>
+              <h3 className="section-title">{t('editProduct.productImage')}</h3>
               
               <div className="image-upload-section">
                 <div className="current-image">
                   <img 
                     src={imageSrc}
-                    alt={editForm.imagePreview ? "New image preview" : "Current product image"} 
+                    alt={editForm.imagePreview ? t('editProduct.newImagePreview') : t('editProduct.currentImage')} 
                     className="current-product-image"
                     loading="lazy"
                   />
                   <p className="image-label">
-                    {editForm.imagePreview ? "New Image Preview" : "Current Image"}
+                    {editForm.imagePreview ? t('editProduct.newImagePreview') : t('editProduct.currentImage')}
                   </p>
                 </div>
                 
@@ -419,23 +421,23 @@ const EditProductPopup = ({
                   className="image-input"
                 />
                 <label htmlFor="edit-image-upload" className="image-upload-label">
-                  📁 Choose New Image
+                  {t('editProduct.chooseNewImage')}
                 </label>
                 <small className="form-help">
-                  Upload a new image to replace the current one (optional)
+                  {t('editProduct.uploadImageHelp')}
                 </small>
               </div>
             </div>
 
             {/* Variant Options Section */}
             <div className="form-section">
-              <h3 className="section-title">Product Options & Variants</h3>
-              <p className="section-description">Customize options like protein type, size, spiciness, etc.</p>
+              <h3 className="section-title">{t('editProduct.optionsVariants')}</h3>
+              <p className="section-description">{t('editProduct.optionsDescription')}</p>
 
               {/* Display existing options */}
               {editForm.options && editForm.options.length > 0 && (
                 <div className="existing-options">
-                  <h4>Current Options:</h4>
+                  <h4>{t('editProduct.currentOptions')}</h4>
                   <div className="options-list">
                     {editForm.options.map((option, optionIndex) => (
                       <div key={optionIndex} className="option-card">
@@ -450,14 +452,14 @@ const EditProductPopup = ({
                               onClick={() => editOption(optionIndex)}
                               className="btn btn-edit"
                             >
-                              ✏️ Edit
+                              {t('editProduct.edit')}
                             </button>
                             <button 
                               type="button" 
                               onClick={() => deleteOption(optionIndex)}
                               className="btn btn-delete"
                             >
-                              🗑️ Delete
+                              {t('editProduct.delete')}
                             </button>
                           </div>
                         </div>
@@ -473,7 +475,7 @@ const EditProductPopup = ({
                               <div className="choice-price">€{choice.price}</div>
                               {choice.image && <div className="choice-image">📷</div>}
                               {option.defaultChoiceCode === choice.code && (
-                                <div className="default-badge">Default</div>
+                                <div className="default-badge">{t('editProduct.default')}</div>
                               )}
                             </div>
                           ))}
@@ -488,74 +490,74 @@ const EditProductPopup = ({
               {showOptionsForm && (
                 <div className="option-form">
                   <div className="form-header">
-                    <h4>{editingOptionIndex >= 0 ? 'Edit Option' : 'Add New Option'}</h4>
+                    <h4>{editingOptionIndex >= 0 ? t('editProduct.editOption') : t('editProduct.addNewOption')}</h4>
                     <button 
                       type="button" 
                       onClick={resetOptionsForm}
                       className="btn btn-secondary btn-sm"
                     >
-                      Cancel
+                      {t('editProduct.cancel')}
                     </button>
                   </div>
                   
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Option Name * (Default)</label>
+                      <label>{t('editProduct.optionName')}</label>
                       <input
                         type="text"
                         value={currentOption.name}
                         onChange={(e) => handleOptionChange('name', e.target.value)}
-                        placeholder="e.g., Protein, Size, Spiciness"
+                        placeholder={t('editProduct.optionNamePlaceholder')}
                       />
                     </div>
                     <div className="form-group">
-                      <label>Pricing Mode *</label>
+                      <label>{t('editProduct.pricingMode')}</label>
                       <select
                         value={currentOption.pricingMode}
                         onChange={(e) => handleOptionChange('pricingMode', e.target.value)}
                       >
-                        <option value="add">Add to base price</option>
-                        <option value="override">Override base price</option>
+                        <option value="add">{t('editProduct.pricingModeAdd')}</option>
+                        <option value="override">{t('editProduct.pricingModeOverride')}</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Option Name (Slovak)</label>
+                      <label>{t('editProduct.optionNameSK')}</label>
                       <input
                         type="text"
                         value={currentOption.nameSK || ''}
                         onChange={(e) => handleOptionChange('nameSK', e.target.value)}
-                        placeholder="e.g., Protein"
+                        placeholder={t('editProduct.optionNamePlaceholder')}
                       />
                     </div>
                     <div className="form-group">
-                      <label>Option Name (Vietnamese)</label>
+                      <label>{t('editProduct.optionNameVI')}</label>
                       <input
                         type="text"
                         value={currentOption.nameVI || ''}
                         onChange={(e) => handleOptionChange('nameVI', e.target.value)}
-                        placeholder="e.g., Loại thịt"
+                        placeholder={t('editProduct.optionNamePlaceholder')}
                       />
                     </div>
                   </div>
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Option Name (English)</label>
+                      <label>{t('editProduct.optionNameEN')}</label>
                       <input
                         type="text"
                         value={currentOption.nameEN || ''}
                         onChange={(e) => handleOptionChange('nameEN', e.target.value)}
-                        placeholder="e.g., Protein"
+                        placeholder={t('editProduct.optionNamePlaceholder')}
                       />
                     </div>
                   </div>
 
                   {/* Choices Management */}
                   <div className="choices-section">
-                    <h5>Choices:</h5>
+                    <h5>{t('editProduct.choices')}</h5>
                     
                     {/* Display existing choices */}
                     {currentOption.choices.length > 0 && (
@@ -589,20 +591,20 @@ const EditProductPopup = ({
 
                     {/* Add/Edit Choice Form */}
                     <div className="choice-form">
-                      <h6>{editingChoiceIndex >= 0 ? 'Edit Choice' : 'Add New Choice'}</h6>
+                      <h6>{editingChoiceIndex >= 0 ? t('editProduct.editChoice') : t('editProduct.addNewChoice')}</h6>
                       
                       <div className="form-row">
                         <div className="form-group">
-                          <label>Code *</label>
+                          <label>{t('editProduct.choiceCode')}</label>
                           <input
                             type="text"
                             value={currentChoice.code}
                             onChange={(e) => handleChoiceChange('code', e.target.value)}
-                            placeholder="e.g., chicken, beef"
+                            placeholder={t('editProduct.choiceCodePlaceholder')}
                           />
                         </div>
                         <div className="form-group">
-                          <label>Price *</label>
+                          <label>{t('editProduct.choicePrice')}</label>
                           <input
                             type="number"
                             value={currentChoice.price}
@@ -616,45 +618,45 @@ const EditProductPopup = ({
 
                       <div className="form-row">
                         <div className="form-group">
-                          <label>Label * (Default)</label>
+                          <label>{t('editProduct.choiceLabel')}</label>
                           <input
                             type="text"
                             value={currentChoice.label}
                             onChange={(e) => handleChoiceChange('label', e.target.value)}
-                            placeholder="e.g., with Chicken"
+                            placeholder={t('editProduct.choiceLabelPlaceholder')}
                           />
                         </div>
                       </div>
 
                       <div className="form-row">
                         <div className="form-group">
-                          <label>Label (Slovak)</label>
+                          <label>{t('editProduct.choiceLabelSK')}</label>
                           <input
                             type="text"
                             value={currentChoice.labelSK || ''}
                             onChange={(e) => handleChoiceChange('labelSK', e.target.value)}
-                            placeholder="e.g., s kuracím mäsom"
+                            placeholder={t('editProduct.choiceLabelPlaceholder')}
                           />
                         </div>
                         <div className="form-group">
-                          <label>Label (Vietnamese)</label>
+                          <label>{t('editProduct.choiceLabelVI')}</label>
                           <input
                             type="text"
                             value={currentChoice.labelVI || ''}
                             onChange={(e) => handleChoiceChange('labelVI', e.target.value)}
-                            placeholder="e.g., với thịt gà"
+                            placeholder={t('editProduct.choiceLabelPlaceholder')}
                           />
                         </div>
                       </div>
 
                       <div className="form-row">
                         <div className="form-group">
-                          <label>Label (English)</label>
+                          <label>{t('editProduct.choiceLabelEN')}</label>
                           <input
                             type="text"
                             value={currentChoice.labelEN || ''}
                             onChange={(e) => handleChoiceChange('labelEN', e.target.value)}
-                            placeholder="e.g., with chicken"
+                            placeholder={t('editProduct.choiceLabelPlaceholder')}
                           />
                         </div>
                       </div>
@@ -665,7 +667,7 @@ const EditProductPopup = ({
                           onClick={addChoice}
                           className="btn btn-primary"
                         >
-                          {editingChoiceIndex >= 0 ? 'Update Choice' : 'Add Choice'}
+                          {editingChoiceIndex >= 0 ? t('editProduct.updateChoice') : t('editProduct.addChoice')}
                         </button>
                         {editingChoiceIndex >= 0 && (
                           <button 
@@ -673,7 +675,7 @@ const EditProductPopup = ({
                             onClick={resetChoiceForm}
                             className="btn btn-secondary"
                           >
-                            Cancel Edit
+                            {t('editProduct.cancelEdit')}
                           </button>
                         )}
                       </div>
@@ -682,12 +684,12 @@ const EditProductPopup = ({
                     {/* Default Choice Selection */}
                     {currentOption.choices.length > 0 && (
                       <div className="default-choice-section">
-                        <label>Default Choice:</label>
+                        <label>{t('editProduct.defaultChoice')}</label>
                         <select
                           value={currentOption.defaultChoiceCode}
                           onChange={(e) => handleOptionChange('defaultChoiceCode', e.target.value)}
                         >
-                          <option value="">Select default choice</option>
+                          <option value="">{t('editProduct.selectDefaultChoice')}</option>
                           {currentOption.choices.map((choice) => (
                             <option key={choice.code} value={choice.code}>
                               {choice.code} - {choice.label} (€{choice.price})
@@ -705,7 +707,7 @@ const EditProductPopup = ({
                       className="btn btn-primary"
                       disabled={!currentOption.name || currentOption.choices.length === 0 || !currentOption.defaultChoiceCode}
                     >
-                      {editingOptionIndex >= 0 ? 'Update Option' : 'Add Option'}
+                      {editingOptionIndex >= 0 ? t('editProduct.updateOption') : t('editProduct.addOption')}
                     </button>
                   </div>
                 </div>
@@ -718,14 +720,14 @@ const EditProductPopup = ({
                   onClick={() => setShowOptionsForm(true)}
                   className="btn btn-success btn-add-option"
                 >
-                  ➕ Add Variant Option
+                  {t('editProduct.addVariantOption')}
                 </button>
               )}
             </div>
 
             {/* Promotion Section */}
             <div className="form-section">
-              <h3 className="section-title">Promotion</h3>
+              <h3 className="section-title">{t('editProduct.promotion')}</h3>
               
               <div className="form-group checkbox-group">
                 <label className="checkbox-label">
@@ -740,14 +742,61 @@ const EditProductPopup = ({
                       }
                     })}
                   />
-                  Enable Promotion
+                  {t('editProduct.enablePromotion')}
                 </label>
+              </div>
+              
+              <div className="form-group checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={editForm.disableBoxFee || false}
+                    onChange={(e) => onInputChange({
+                      target: {
+                        name: 'disableBoxFee',
+                        type: 'checkbox',
+                        checked: e.target.checked
+                      }
+                    })}
+                  />
+                  {t('editProduct.disableBoxFee')}
+                </label>
+                <small className="form-help">
+                  {t('editProduct.disableBoxFeeHelp')}
+                </small>
+                <div style={{ 
+                  marginTop: '10px', 
+                  padding: '10px', 
+                  backgroundColor: editForm.disableBoxFee ? '#e8f5e9' : '#fff3e0',
+                  borderRadius: '5px',
+                  border: '1px solid #ddd'
+                }}>
+                  <strong>{t('editProduct.priceDisplay')}</strong>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1976d2', marginTop: '5px' }}>
+                    €{(() => {
+                      const basePrice = Number(editForm.price) || 0;
+                      const boxFee = editForm.disableBoxFee ? 0 : 0.3;
+                      const finalPrice = basePrice + boxFee;
+                      return finalPrice.toFixed(2);
+                    })()}
+                    {!editForm.disableBoxFee && (
+                      <span style={{ fontSize: '12px', color: '#666', fontWeight: 'normal', marginLeft: '5px' }}>
+                        ({t('editProduct.originalPriceLabel')} €{(Number(editForm.price) || 0).toFixed(2)} + {t('editProduct.boxFeeLabel')} €0.30)
+                      </span>
+                    )}
+                    {editForm.disableBoxFee && (
+                      <span style={{ fontSize: '12px', color: '#4caf50', fontWeight: 'normal', marginLeft: '5px' }}>
+                        ({t('editProduct.boxFeeDisabled')})
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               
               {editForm.isPromotion && (
                 <div className="promotion-details">
                   <div className="form-group">
-                    <label>Promotion Price *</label>
+                    <label>{t('editProduct.promotionPrice')}</label>
                     <input
                       type="number"
                       name="promotionPrice"
@@ -755,18 +804,18 @@ const EditProductPopup = ({
                       onChange={onInputChange}
                       step="0.01"
                       min="0"
-                      placeholder="Enter promotion price..."
+                      placeholder={t('editProduct.promotionPrice')}
                       required
                     />
                     <small className="form-help">
-                      This will be the discounted price when promotion is active
+                      {t('editProduct.promotionPriceHelp')}
                     </small>
                   </div>
                   
                   {discountAmount > 0 && (
                     <div className="discount-info">
                       <div className="discount-badge">
-                        Promotion Active! Save €{discountAmount.toFixed(2)}
+                        {t('editProduct.promotionActive')}{discountAmount.toFixed(2)}
                       </div>
                     </div>
                   )}
@@ -778,7 +827,7 @@ const EditProductPopup = ({
             <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-save">
                 <span className="btn-icon">💾</span>
-                Save Changes
+                {t('editProduct.saveChanges')}
               </button>
               <button 
                 type="button" 
@@ -786,7 +835,7 @@ const EditProductPopup = ({
                 className="btn btn-secondary btn-cancel"
               >
                 <span className="btn-icon">❌</span>
-                Cancel
+                {t('editProduct.cancel')}
               </button>
             </div>
           </form>

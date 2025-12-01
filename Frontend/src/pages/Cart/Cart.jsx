@@ -3,6 +3,7 @@ import './Cart.css'
 import {StoreContext} from '../../Context/StoreContext'
 import { food_list } from '../../assets/assets';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -11,6 +12,26 @@ const Cart = () => {
 
   const {cartItems,food_list,removeFromCart,getTotalCartAmount,url}=useContext(StoreContext);
   const navigate= useNavigate();
+  const { t } = useTranslation();
+
+  // Helper function to check if box fee is disabled for an item
+  const isBoxFeeDisabled = (item) => {
+    return item.disableBoxFee === true || 
+           item.disableBoxFee === "true" || 
+           item.disableBoxFee === 1 || 
+           item.disableBoxFee === "1" ||
+           (typeof item.disableBoxFee === 'string' && item.disableBoxFee.toLowerCase() === 'true');
+  }
+
+  // Check if any item in cart requires box fee
+  const hasItemsWithBoxFee = () => {
+    return food_list.some(item => {
+      if (cartItems[item._id] > 0) {
+        return !isBoxFeeDisabled(item);
+      }
+      return false;
+    });
+  }
 
   return (
     <div className='cart'>
@@ -53,6 +74,11 @@ const Cart = () => {
               <p>Subtotal</p>
               <p>€{getTotalCartAmount()}</p>
             </div>
+            {hasItemsWithBoxFee() && (
+              <div className='cart-total-details box-fee-note'>
+                <p className="box-fee-text">{t('cart.boxFeeNote')}</p>
+              </div>
+            )}
             <hr/>
             <div className='cart-total-details'>
               <p>Delivery Fee</p>

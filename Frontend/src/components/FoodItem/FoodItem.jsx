@@ -159,7 +159,12 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
           <div className="thumb">
             <img src={imgSrc} alt={getLocalizedName()} loading="lazy" decoding="async" />
           </div>
-          <div className="title">{getLocalizedName()}</div>
+          <div className="title-section">
+            <div className="title">{getLocalizedName()}</div>
+            {description && (
+              <div className="title-description">{description}</div>
+            )}
+          </div>
           <div className="price-now">{formatPrice(currentPrice)}</div>
           <div className="compact-controls" onClick={(e) => e.stopPropagation()}>
             {!cartItems[id] ? (
@@ -229,6 +234,12 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
           <p>{getLocalizedName()}</p>  
         </div>  
         
+        {description && (
+          <div className="food-item-description">
+            <p>{description}</p>
+          </div>
+        )}
+        
         <div className="food-item-stats">
           {likes > 0 && (
             <div className="stat-item">
@@ -239,7 +250,7 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
           {soldCount > 0 && (
             <div className="stat-item">
               <span className="stat-icon">🛒</span>
-              <span className="stat-text">{soldCount}+ đã bán</span>
+              <span className="stat-text">{soldCount}+ {t('food.sold')}</span>
             </div>
           )}
         </div>

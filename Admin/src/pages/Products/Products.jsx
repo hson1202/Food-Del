@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import './Products.css'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import i18n from '../../i18n'
 import EditProductPopup from '../../components/EditProductPopup/EditProductPopup'
-import InventoryStatus from '../../components/InventoryStatus/InventoryStatus'
 import config from '../../config/config'
 
 
@@ -20,6 +19,10 @@ const Products = ({ url }) => {
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'inactive'
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  
+  // Ref để lưu scroll position
+  const scrollPositionRef = useRef(0)
+  const shouldRestoreScrollRef = useRef(false)
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -39,6 +42,7 @@ const Products = ({ url }) => {
     isPromotion: false,
     promotionPrice: '',
     soldCount: 0,
+    disableBoxFee: false,
     image: null,
     imagePreview: null,
     options: []
@@ -60,6 +64,7 @@ const Products = ({ url }) => {
     isPromotion: false,
     promotionPrice: '',
     soldCount: 0,
+    disableBoxFee: false,
     options: [] // Thêm options array
   })
 
@@ -88,7 +93,29 @@ useEffect(() => {
   return () => { controller1.abort(); controller2.abort(); };
 }, [currentPage, itemsPerPage, statusFilter, filterCategory, searchTerm]);
 
-const fetchFoodList = async (showToast = false, signal) => {
+// useEffect để restore scroll position sau khi foodList được update
+useEffect(() => {
+  if (shouldRestoreScrollRef.current && !isLoading) {
+    // Sử dụng requestAnimationFrame để đảm bảo DOM đã render xong
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.scrollTo({
+          top: scrollPositionRef.current,
+          behavior: 'instant'
+        });
+        shouldRestoreScrollRef.current = false;
+      }, 50);
+    });
+  }
+}, [foodList, isLoading]);
+
+const fetchFoodList = async (showToast = false, signal, preserveScroll = false) => {
+  // Lưu scroll position nếu cần preserve
+  if (preserveScroll) {
+    scrollPositionRef.current = window.pageYOffset || document.documentElement.scrollTop;
+    shouldRestoreScrollRef.current = true;
+  }
+  
   setIsLoading(true); setError(null);
   try {
     // Build query params with pagination
@@ -116,7 +143,10 @@ const fetchFoodList = async (showToast = false, signal) => {
     if (axios.isCancel(e)) return;
     setError(`Failed to fetch products: ${e.message ?? 'Unknown'}`);
     toast.error(t('products.fetchError') || 'Failed to fetch products');
-  } finally { setIsLoading(false); }
+  } finally { 
+    setIsLoading(false);
+    // Scroll restoration sẽ được xử lý bởi useEffect khi foodList thay đổi
+  }
 };
 
 const fetchCategories = async (signal) => {
@@ -155,7 +185,7 @@ const fetchCategories = async (signal) => {
         const ok = (res.status >= 200 && res.status < 300) && (res.data?.success !== false)
         if (ok) {
           toast.success(t('products.deleteSuccess') || 'Product deleted successfully')
-          fetchFoodList()
+          fetchFoodList(false, undefined, true) // Preserve scroll position
           return
         }
         lastErr = new Error(res.data?.message || 'Delete not acknowledged')
@@ -189,6 +219,7 @@ const fetchCategories = async (signal) => {
       isPromotion: product.isPromotion || false,
       promotionPrice: product.promotionPrice || '',
       soldCount: product.soldCount || 0,
+      disableBoxFee: product.disableBoxFee || false,
       options: product.options || [] // Ensure options are included
     });
   };
@@ -305,6 +336,16 @@ const fetchCategories = async (signal) => {
       
       // Append all form fields
       Object.keys(editForm).forEach(key => {
+        // Skip imagePreview - it's only for UI preview
+        if (key === 'imagePreview') {
+          return;
+        }
+        
+        // Skip boolean fields - they will be set explicitly below
+        if (key === 'isPromotion' || key === 'disableBoxFee') {
+          return;
+        }
+        
         if (key === 'image' && editForm[key] instanceof File) {
           formData.append('image', editForm[key]);
         } else if (key === 'options') {
@@ -329,10 +370,26 @@ const fetchCategories = async (signal) => {
           formData.append(key, editForm[key]);
         }
       });
+      // Set numeric and boolean fields explicitly
       formData.set('price', String(Number(editForm.price)));          // đảm bảo là số
-formData.set('quantity', String(Number(editForm.quantity) || 0));
-formData.set('promotionPrice', String(Number(editForm.promotionPrice) || 0));
-formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "true"/"false"
+      formData.set('quantity', String(Number(editForm.quantity) || 0));
+      formData.set('promotionPrice', String(Number(editForm.promotionPrice) || 0));
+      formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "true"/"false"
+      formData.set('disableBoxFee', String(!!editForm.disableBoxFee));    // boolean -> "true"/"false"
+      
+      // Debug: Log formData values
+      console.log('🔍 Edit Form Data:', {
+        disableBoxFee: editForm.disableBoxFee,
+        disableBoxFeeType: typeof editForm.disableBoxFee,
+        disableBoxFeeString: String(!!editForm.disableBoxFee),
+        isPromotion: editForm.isPromotion
+      });
+      
+      // Debug: Log all FormData entries
+      console.log('🔍 FormData entries:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
       
       const response = await axios.put(`${config.BACKEND_URL}/api/food/edit/${editingProduct._id}`, formData, {
         headers: {
@@ -365,11 +422,12 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
           isPromotion: false,
           promotionPrice: '',
           soldCount: 0,
+          disableBoxFee: false,
           image: null,
           imagePreview: null,
           options: [] // Reset options
         });
-        fetchFoodList(); // Refresh list
+        fetchFoodList(false, undefined, true); // Refresh list và preserve scroll position
       } else {
         toast.error('Failed to update product: ' + response.data.message);
       }
@@ -393,7 +451,7 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
         })
       if (response.data) {
         toast.success(t('products.statusUpdateSuccess') || 'Product status updated successfully')
-        fetchFoodList()
+        fetchFoodList(false, undefined, true) // Preserve scroll position
       }
     } catch (error) {
       console.error('Error updating product status:', error)
@@ -471,6 +529,7 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
             formData.append('price', String(Number(newProduct.price)));
             formData.append('quantity', String(Number(newProduct.quantity) || 0));
             formData.append('isPromotion', String(!!newProduct.isPromotion));
+            formData.append('disableBoxFee', String(!!newProduct.disableBoxFee));
             if (newProduct.isPromotion) {
               formData.append('promotionPrice', String(Number(newProduct.promotionPrice) || 0));
             }
@@ -525,10 +584,11 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
           isPromotion: false,
           promotionPrice: '',
           soldCount: 0,
+          disableBoxFee: false,
           options: [] // Reset options
         })
         setShowAddForm(false)
-        fetchFoodList()
+        fetchFoodList(false, undefined, true) // Preserve scroll position
       }
     } catch (error) {
       console.error('Error adding product:', error)
@@ -768,9 +828,8 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
   const getStatusBadge = (status) => {
     if (!status) {
       return (
-        <span className="status-badge undefined">
+        <span className="status-badge undefined" title="Undefined">
           <span className="status-icon">❓</span>
-          Undefined
         </span>
       )
     }
@@ -808,9 +867,8 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
     }
     
     return (
-      <span className={`status-badge ${config.className}`}>
+      <span className={`status-badge ${config.className}`} title={config.label}>
         <span className="status-icon">{config.icon}</span>
-        {config.label}
       </span>
     )
   }
@@ -1009,6 +1067,45 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
                   />
                   {t('products.promotion', { defaultValue: 'Promotion' })}
                 </label>
+              </div>
+              
+              <div className="promotion-toggle">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={newProduct.disableBoxFee}
+                    onChange={(e) => setNewProduct({ ...newProduct, disableBoxFee: e.target.checked })}
+                  />
+                  Tắt tiền hộp (0.3€)
+                </label>
+                <div style={{ 
+                  marginTop: '10px', 
+                  padding: '10px', 
+                  backgroundColor: newProduct.disableBoxFee ? '#e8f5e9' : '#fff3e0',
+                  borderRadius: '5px',
+                  border: '1px solid #ddd',
+                  marginLeft: '25px'
+                }}>
+                  <strong>Giá hiển thị cho khách hàng:</strong>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1976d2', marginTop: '5px' }}>
+                    €{(() => {
+                      const basePrice = Number(newProduct.price) || 0;
+                      const boxFee = newProduct.disableBoxFee ? 0 : 0.3;
+                      const finalPrice = basePrice + boxFee;
+                      return finalPrice.toFixed(2);
+                    })()}
+                    {!newProduct.disableBoxFee && newProduct.price && (
+                      <span style={{ fontSize: '12px', color: '#666', fontWeight: 'normal', marginLeft: '5px' }}>
+                        (Giá gốc: €{(Number(newProduct.price) || 0).toFixed(2)} + Phí hộp: €0.30)
+                      </span>
+                    )}
+                    {newProduct.disableBoxFee && newProduct.price && (
+                      <span style={{ fontSize: '12px', color: '#4caf50', fontWeight: 'normal', marginLeft: '5px' }}>
+                        (Đã tắt phí hộp)
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {newProduct.isPromotion && (
@@ -1674,10 +1771,6 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
                     style={{ width: '100%', height: '180px', objectFit: 'cover' }}
                   />
                   <div className="product-overlay">
-                  <button onClick={() => handleStatusToggle(product._id, product.status)} className="status-toggle">
-  {getStatusBadge(product.status)}
-  <span className="sr-only">{t('products.toggleStatus')}</span>
-</button>
                     {(product.quantity || 0) === 0 && (
                       <div className="out-of-stock-badge">
                         <span className="out-of-stock-icon">🚫</span>
@@ -1692,13 +1785,15 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
                     <span className="product-sku">SKU: {product.sku || 'N/A'}</span>
                   </div>
                   <div className="product-info">
-                    {product.nameVI && <p className="product-name-vi">🇻🇳 {product.nameVI}</p>}
-                    {product.nameEN && <p className="product-name-en">🇬🇧 {product.nameEN}</p>}
-                    {product.nameSK && <p className="product-name-sk">🇸🇰 {product.nameSK}</p>}
-                    <p className="product-category">📁 {getCategoryName(product.category) || 'No Category'}</p>
-                    <p className="product-description">📝 {product.description || 'No description'}</p>
-                    <div className="product-inventory">
-                      <InventoryStatus quantity={product.quantity || 0} />
+                    <p className="product-category">{getCategoryName(product.category) || 'No Category'}</p>
+                    {product.description && (
+                      <p className="product-description">{product.description}</p>
+                    )}
+                    <div className="product-quantity">
+                      <span className="quantity-label">Stock:</span>
+                      <span className={`quantity-value ${(product.quantity || 0) === 0 ? 'out-of-stock' : (product.quantity || 0) <= 5 ? 'low-stock' : 'in-stock'}`}>
+                        {product.quantity || 0}
+                      </span>
                     </div>
                   </div>
                   <div className="product-pricing">
@@ -1714,39 +1809,27 @@ formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "t
                       <div className="regular-price">€{(Number(product.price) || 0).toFixed(2)}</div>
                     )}
                     
-                    {/* Display variant options if available */}
+                    {/* Display variant options if available - Compact view */}
                     {product.options && product.options.length > 0 && (
                       <div className="variant-options">
-                        <div className="variant-label">Variants:</div>
-                        {product.options.map((option, optionIndex) => (
+                        <span className="variant-label">{product.options.length} Variant{product.options.length > 1 ? 's' : ''}</span>
+                        {product.options.slice(0, 1).map((option, optionIndex) => (
                           <div key={optionIndex} className="variant-option">
                             <span className="variant-name">{option.name}:</span>
                             <div className="variant-choices">
-                              {option.choices.map((choice, choiceIndex) => (
+                              {option.choices.slice(0, 3).map((choice, choiceIndex) => (
                                 <div key={choiceIndex} className="variant-choice">
-                                  <div className="choice-info">
-                                    <span className="choice-label">{choice.label}</span>
-                                    <span className="choice-price">€{Number(choice.price).toFixed(2)}</span>
-                                  </div>
-                                  {choice.image && (
-                                    <div className="choice-image">
-                                      <img 
-                                        src={
-                                          choice.image.startsWith('http')
-                                            ? choice.image
-                                            : `${config.BACKEND_URL}/images/${choice.image}`
-                                        }
-                                        alt={`${choice.label} variant`}
-                                        onError={(e) => {
-                                          e.target.onerror = null;
-                                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5WYXJpYW50IEltYWdlPC90ZXh0Pjwvc3ZnPg==';
-                                        }}
-                                        style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
-                                      />
-                                    </div>
+                                  <span className="choice-label">{choice.label}</span>
+                                  {Number(choice.price) !== 0 && (
+                                    <span className="choice-price">+€{Number(choice.price).toFixed(2)}</span>
                                   )}
                                 </div>
                               ))}
+                              {option.choices.length > 3 && (
+                                <span className="variant-choice" style={{ background: 'transparent', border: 'none', padding: 0, color: '#6b7280' }}>
+                                  +{option.choices.length - 3} more
+                                </span>
+                              )}
                             </div>
                           </div>
                         ))}

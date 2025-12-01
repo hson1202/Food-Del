@@ -518,6 +518,18 @@
   color: #666;
 }
 
+.summary-row.box-fee-note {
+  margin-bottom: 8px;
+  margin-top: 4px;
+  justify-content: flex-start;
+}
+
+.summary-row.box-fee-note .box-fee-text {
+  font-size: 0.8rem;
+  color: #888;
+  font-style: italic;
+}
+
 .summary-row.total {
   border-top: 1px solid #e0e0e0;
   padding-top: 12px;

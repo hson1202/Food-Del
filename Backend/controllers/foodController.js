@@ -7,7 +7,7 @@ const addFood = async (req, res) => {
       sku, name, description, price, category,
       nameVI, nameEN, nameSK,
       isPromotion, promotionPrice,
-      soldCount, quantity, slug, options
+      soldCount, quantity, slug, options, disableBoxFee
       // slug có thể để trống để model tự tạo
     } = req.body;
 
@@ -25,6 +25,17 @@ const addFood = async (req, res) => {
 
     const isPromotionBool =
       isPromotion === true || isPromotion === "true" || isPromotion === 1 || isPromotion === "1";
+    
+    // Handle disableBoxFee - default to false if not provided
+    // Xử lý nhiều trường hợp: undefined, null, false, "false", "", 0, hoặc bất kỳ falsy value nào
+    let disableBoxFeeBool = false;
+    if (disableBoxFee !== undefined && disableBoxFee !== null) {
+      disableBoxFeeBool = disableBoxFee === true || 
+                         disableBoxFee === "true" || 
+                         disableBoxFee === 1 || 
+                         disableBoxFee === "1" ||
+                         (typeof disableBoxFee === 'string' && disableBoxFee.toLowerCase() === 'true');
+    }
 
     const doc = new foodModel({
       sku: sku.trim(),
@@ -43,7 +54,8 @@ const addFood = async (req, res) => {
       // originalPrice removed - using regular price as base
       promotionPrice: isPromotionBool ? Number(promotionPrice) : undefined,
       soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
-      status: "active"
+      status: "active",
+      disableBoxFee: disableBoxFeeBool
     });
 
     // Add options if provided
@@ -242,7 +254,7 @@ const updateFood = async (req, res) => {
       sku, name, description, price, category,
       nameVI, nameEN, nameSK,
       isPromotion, promotionPrice,
-      soldCount, quantity, slug, options
+      soldCount, quantity, slug, options, disableBoxFee
     } = req.body
 
     // Validate required fields
@@ -256,6 +268,29 @@ const updateFood = async (req, res) => {
       return res.status(400).json({ success: false, message: "Valid quantity is required (must be >= 0)" })
 
     // Handle image update
+    const isPromotionBool = isPromotion === true || isPromotion === "true" || isPromotion === 1 || isPromotion === "1";
+    // Handle disableBoxFee - default to false if not provided
+    // FormData sends boolean as string "true" or "false"
+    // Xử lý nhiều trường hợp: undefined, null, false, "false", "", 0, hoặc bất kỳ falsy value nào
+    let disableBoxFeeBool = false;
+    if (disableBoxFee !== undefined && disableBoxFee !== null) {
+      disableBoxFeeBool = disableBoxFee === true || 
+                         disableBoxFee === "true" || 
+                         disableBoxFee === 1 || 
+                         disableBoxFee === "1" ||
+                         (typeof disableBoxFee === 'string' && disableBoxFee.toLowerCase() === 'true');
+    }
+    
+    // Debug log
+    console.log('🔍 Update Food - disableBoxFee:', {
+      received: disableBoxFee,
+      type: typeof disableBoxFee,
+      stringValue: String(disableBoxFee),
+      parsed: disableBoxFeeBool,
+      finalBoolean: Boolean(disableBoxFeeBool),
+      allBodyFields: Object.keys(req.body)
+    });
+    
     let updateData = {
       sku: sku.trim(),
       name: name.trim(),
@@ -268,10 +303,11 @@ const updateFood = async (req, res) => {
       price: Number(price),
       category: category.trim(),
       quantity: Number(quantity),
-      isPromotion: isPromotion === true || isPromotion === "true" || isPromotion === 1 || isPromotion === "1",
+      isPromotion: isPromotionBool,
       // originalPrice removed - using regular price as base
-      promotionPrice: isPromotion ? Number(promotionPrice) : undefined,
-      soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0
+      promotionPrice: isPromotionBool ? Number(promotionPrice) : undefined,
+      soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
+      disableBoxFee: Boolean(disableBoxFeeBool) // Ensure it's always a boolean, explicitly set
     }
 
     // If new image uploaded, update image field with Cloudinary URL or local filename

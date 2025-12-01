@@ -111,8 +111,23 @@ const ProductDetail = ({ product, onClose }) => {
     setSelectedOptions(defaultSelections);
     
     // Set initial price and image
-    const initialPrice = computeVariantPrice(product, defaultSelections);
+    const basePrice = computeVariantPrice(product, defaultSelections);
+    // Thêm tiền hộp 0.3€ nếu không tắt
+    // Check rõ ràng: chỉ tắt khi disableBoxFee === true (explicitly true)
+    // Xử lý nhiều trường hợp: boolean true, string "true", number 1, hoặc bất kỳ truthy value nào
+    const isBoxFeeDisabled = product.disableBoxFee === true || 
+                             product.disableBoxFee === "true" || 
+                             product.disableBoxFee === 1 || 
+                             product.disableBoxFee === "1" ||
+                             (typeof product.disableBoxFee === 'string' && product.disableBoxFee.toLowerCase() === 'true');
+    const boxFee = isBoxFeeDisabled ? 0 : 0.3;
+    const initialPrice = basePrice + boxFee;
     setCurrentPrice(initialPrice);
+    
+    // Debug log
+    if (isBoxFeeDisabled) {
+        console.log('🔍 ProductDetail - Box fee disabled for:', product.name, 'disableBoxFee:', product.disableBoxFee);
+    }
     
     const initialImage = pickImageFromSelections(product, defaultSelections);
     setCurrentImage(initialImage);
@@ -185,7 +200,17 @@ const ProductDetail = ({ product, onClose }) => {
     setSelectedOptions(newSelectedOptions);
     
     // Update price and image based on new selections
-    const newPrice = computeVariantPrice(product, newSelectedOptions);
+    const basePrice = computeVariantPrice(product, newSelectedOptions);
+    // Thêm tiền hộp 0.3€ nếu không tắt
+    // Check rõ ràng: chỉ tắt khi disableBoxFee === true (explicitly true)
+    // Xử lý nhiều trường hợp: boolean true, string "true", number 1, hoặc bất kỳ truthy value nào
+    const isBoxFeeDisabled = product.disableBoxFee === true || 
+                             product.disableBoxFee === "true" || 
+                             product.disableBoxFee === 1 || 
+                             product.disableBoxFee === "1" ||
+                             (typeof product.disableBoxFee === 'string' && product.disableBoxFee.toLowerCase() === 'true');
+    const boxFee = isBoxFeeDisabled ? 0 : 0.3;
+    const newPrice = basePrice + boxFee;
     setCurrentPrice(newPrice);
     
     const newImage = pickImageFromSelections(product, newSelectedOptions);
@@ -257,7 +282,7 @@ const ProductDetail = ({ product, onClose }) => {
     <div className="product-detail-overlay" onClick={handleOverlayClick}>
       <div className="product-detail-modal">
         <button className="close-btn" onClick={onClose}>
-          <img src={assets.cross_icon} alt="Close" />
+          <img src={assets.cross_icon} alt={t('productDetail.close')} />
         </button>
 
         <div className="product-detail-content">
@@ -291,7 +316,7 @@ const ProductDetail = ({ product, onClose }) => {
             <div className="product-header">
               <h2>{getLocalizedName()}</h2>
               <div className="product-sku">
-                SKU: <span className="sku">{product.sku || 'N/A'}</span>
+                {t('productDetail.sku')}: <span className="sku">{product.sku || t('productDetail.notAvailable')}</span>
               </div>
             </div>
 

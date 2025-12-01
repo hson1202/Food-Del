@@ -17,6 +17,7 @@ const foodSchema = new mongoose.Schema({
   promotionPrice: { type: Number },
   soldCount: { type: Number, default: 0, min: 0 },
   status: { type: String, enum: ["active", "inactive"], default: "active" },
+  disableBoxFee: { type: Boolean, default: false }, // Tắt tiền hộp (0.3E) cho sản phẩm này
   // Variant Options
   options: [{
     name: { type: String, required: true, trim: true },

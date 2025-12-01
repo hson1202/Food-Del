@@ -114,6 +114,15 @@ const CartPopup = ({ onClose }) => {
     return formatted.replace(/\.00$/, '');
   };
 
+  // Helper function to check if box fee is disabled for an item
+  const isBoxFeeDisabled = (item) => {
+    return item.disableBoxFee === true || 
+           item.disableBoxFee === "true" || 
+           item.disableBoxFee === 1 || 
+           item.disableBoxFee === "1" ||
+           (typeof item.disableBoxFee === 'string' && item.disableBoxFee.toLowerCase() === 'true');
+  }
+
   // Get cart items with details including options
   const getCartItems = () => {
     const items = []
@@ -139,6 +148,12 @@ const CartPopup = ({ onClose }) => {
     return items
   }
 
+  // Check if any item in cart requires box fee
+  const hasItemsWithBoxFee = () => {
+    const items = getCartItems();
+    return items.some(item => !isBoxFeeDisabled(item));
+  }
+
   // Format selected options for display
   const formatSelectedOptions = (item) => {
     if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
@@ -149,9 +164,19 @@ const CartPopup = ({ onClose }) => {
     Object.entries(item.selectedOptions).forEach(([optionName, choiceCode]) => {
       const option = item.options?.find(opt => opt.name === optionName);
       if (option) {
+        // Get localized option name
+        const currentLang = i18n.language;
+        const localizedOptionName = currentLang === 'vi' ? (option.nameVI || option.name) :
+                                   currentLang === 'en' ? (option.nameEN || option.name) :
+                                   (option.nameSK || option.name);
+        
         const choice = option.choices.find(c => c.code === choiceCode);
         if (choice) {
-          optionTexts.push(`${optionName}: ${choice.label}`);
+          // Get localized choice label
+          const localizedChoiceLabel = currentLang === 'vi' ? (choice.labelVI || choice.label) :
+                                      currentLang === 'en' ? (choice.labelEN || choice.label) :
+                                      (choice.labelSK || choice.label);
+          optionTexts.push(`${localizedOptionName}${t('cartPopup.optionSeparator')}${localizedChoiceLabel}`);
         }
       }
     });
@@ -224,7 +249,7 @@ const CartPopup = ({ onClose }) => {
             {getTotalItems() > 0 && <span className="cart-badge">{getTotalItems()}</span>}
           </h2>
           <button className="close-btn" onClick={onClose}>
-            <img src={assets.cross_icon} alt="Close" />
+            <img src={assets.cross_icon} alt={t('productDetail.close')} />
           </button>
         </div>
 
@@ -281,9 +306,16 @@ const CartPopup = ({ onClose }) => {
                           </div>
                           <div className="cart-item-total">
                             {(() => {
-                              const unitPrice = (item.currentPrice != null)
-                                ? Number(item.currentPrice)
-                                : computeVariantPrice(item, item.selectedOptions);
+                              // Tính giá gốc (chưa bao gồm box fee)
+                              let basePrice = 0;
+                              if (item.options && item.options.length > 0 && item.selectedOptions) {
+                                basePrice = computeVariantPrice(item, item.selectedOptions);
+                              } else {
+                                basePrice = item.isPromotion && item.promotionPrice ? item.promotionPrice : (item.price || 0);
+                              }
+                              // Thêm tiền hộp 0.3€ nếu không tắt
+                              const boxFee = isBoxFeeDisabled(item) ? 0 : 0.3;
+                              const unitPrice = basePrice + boxFee;
                               return formatPrice(unitPrice * item.quantity);
                             })()}
                           </div>
@@ -358,6 +390,11 @@ const CartPopup = ({ onClose }) => {
                 <span>{t('cart.subtotal')}</span>
                 <span>{formatPrice(getTotalCartAmount())}</span>
               </div>
+              {hasItemsWithBoxFee() && (
+                <div className="summary-row box-fee-note">
+                  <span className="box-fee-text">{t('cartPopup.boxFeeNote')}</span>
+                </div>
+              )}
               <div className="summary-row total">
                 <span>{t('cart.total')}</span>
                 <span>{formatPrice(getTotalCartAmount())}</span>

@@ -43,6 +43,16 @@
     justify-content: space-between;
     color: #555;
 }
+.cart-total-details.box-fee-note {
+    justify-content: flex-start;
+    margin-bottom: 8px;
+    margin-top: 4px;
+}
+.cart-total-details.box-fee-note .box-fee-text {
+    font-size: 0.85rem;
+    color: #888;
+    font-style: italic;
+}
 .cart-total hr{
     margin: 10px 0px;
 

@@ -72,38 +72,54 @@ const StoreContextProvider =(props)=>{
                 }
                 
                 if (itemInfo) {
-                    // Use currentPrice if available (from options), otherwise use promotion or regular price
-                    let itemPrice = itemInfo.currentPrice;
+                    // Tính giá gốc (chưa bao gồm box fee)
+                    let basePrice = 0;
                     
-                    if (!itemPrice) {
-                        // Calculate price from options if available
-                        if (itemInfo.options && itemInfo.options.length > 0 && itemInfo.selectedOptions) {
-                            itemPrice = itemInfo.price || 0;
-                            
-                            Object.entries(itemInfo.selectedOptions).forEach(([optionName, choiceCode]) => {
-                                const option = itemInfo.options.find(opt => opt.name === optionName);
-                                if (option) {
-                                    const choice = option.choices.find(c => c.code === choiceCode);
-                                    if (choice) {
-                                        if (option.pricingMode === 'override') {
-                                            itemPrice = choice.price;
-                                        } else if (option.pricingMode === 'add') {
-                                            itemPrice += choice.price;
-                                        }
+                    // Nếu có currentPrice, kiểm tra xem đã bao gồm box fee chưa
+                    // currentPrice từ ProductDetail đã bao gồm box fee, nên ta cần tính lại từ giá gốc
+                    if (itemInfo.options && itemInfo.options.length > 0 && itemInfo.selectedOptions) {
+                        basePrice = itemInfo.price || 0;
+                        
+                        Object.entries(itemInfo.selectedOptions).forEach(([optionName, choiceCode]) => {
+                            const option = itemInfo.options.find(opt => opt.name === optionName);
+                            if (option) {
+                                const choice = option.choices.find(c => c.code === choiceCode);
+                                if (choice) {
+                                    if (option.pricingMode === 'override') {
+                                        basePrice = choice.price;
+                                    } else if (option.pricingMode === 'add') {
+                                        basePrice += choice.price;
                                     }
                                 }
-                            });
-                        } else {
-                            itemPrice = itemInfo.isPromotion && itemInfo.promotionPrice ? itemInfo.promotionPrice : itemInfo.price;
-                        }
+                            }
+                        });
+                    } else {
+                        // Nếu không có options, dùng promotion price hoặc regular price
+                        basePrice = itemInfo.isPromotion && itemInfo.promotionPrice ? itemInfo.promotionPrice : (itemInfo.price || 0);
                     }
                     
                     // Kiểm tra giá có hợp lệ không
-                    if (!itemPrice || isNaN(Number(itemPrice)) || Number(itemPrice) <= 0) {
-                        itemPrice = 0;
+                    if (isNaN(Number(basePrice)) || Number(basePrice) < 0) {
+                        basePrice = 0;
                     }
                     
-                    totalAmount += Number(itemPrice) * cartItems[itemId];
+                    // Thêm tiền hộp 0.3€ nếu không tắt
+                    // Check rõ ràng: chỉ tắt khi disableBoxFee === true (explicitly true)
+                    // Xử lý nhiều trường hợp: boolean true, string "true", number 1, hoặc bất kỳ truthy value nào
+                    const isBoxFeeDisabled = itemInfo.disableBoxFee === true || 
+                                           itemInfo.disableBoxFee === "true" || 
+                                           itemInfo.disableBoxFee === 1 || 
+                                           itemInfo.disableBoxFee === "1" ||
+                                           (typeof itemInfo.disableBoxFee === 'string' && itemInfo.disableBoxFee.toLowerCase() === 'true');
+                    const boxFee = isBoxFeeDisabled ? 0 : 0.3;
+                    const finalPrice = Number(basePrice) + boxFee;
+                    
+                    // Debug log
+                    if (isBoxFeeDisabled) {
+                        console.log('🔍 Box fee disabled for item:', itemId, itemInfo.name, 'disableBoxFee:', itemInfo.disableBoxFee);
+                    }
+                    
+                    totalAmount += finalPrice * cartItems[itemId];
                 }
                 }
             }

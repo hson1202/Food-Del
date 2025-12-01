@@ -39,6 +39,40 @@ const PlaceOrder = () => {
     return formatted.replace(/\.00$/, '');
   }
 
+  // Helper function to check if box fee is disabled for an item
+  const isBoxFeeDisabled = (item) => {
+    return item.disableBoxFee === true || 
+           item.disableBoxFee === "true" || 
+           item.disableBoxFee === 1 || 
+           item.disableBoxFee === "1" ||
+           (typeof item.disableBoxFee === 'string' && item.disableBoxFee.toLowerCase() === 'true');
+  }
+
+  // Get cart items to check for box fee
+  const getCartItemsForCheck = () => {
+    const items = [];
+    Object.entries(cartItems).forEach(([cartKey, quantity]) => {
+      if (quantity > 0) {
+        const actualProductId = cartKey.split('_')[0];
+        const baseProduct = food_list.find(p => p._id === actualProductId);
+        if (baseProduct) {
+          const itemData = cartItemsData[cartKey] || {};
+          items.push({
+            ...baseProduct,
+            ...itemData
+          });
+        }
+      }
+    });
+    return items;
+  }
+
+  // Check if any item in cart requires box fee
+  const hasItemsWithBoxFee = () => {
+    const items = getCartItemsForCheck();
+    return items.some(item => !isBoxFeeDisabled(item));
+  }
+
   const onChangeHandler = (event) => {
     const name = event.target.name;
     const value = event.target.value;
@@ -518,6 +552,11 @@ const PlaceOrder = () => {
                 <p>{t('placeOrder.cart.subtotal')}</p>
                 <p>€{formatPrice(getTotalCartAmount())}</p>
               </div>
+              {hasItemsWithBoxFee() && (
+                <div className='cart-total-details box-fee-note'>
+                  <p className="box-fee-text">{t('placeOrder.cart.boxFeeNote')}</p>
+                </div>
+              )}
               <hr />
               <div className='cart-total-details'>
                 <p>{t('placeOrder.cart.deliveryFee')}</p>

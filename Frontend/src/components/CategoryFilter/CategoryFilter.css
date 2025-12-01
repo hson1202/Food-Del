@@ -100,7 +100,7 @@
   min-width: auto;
   padding: 6px 14px;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: 10px;
   background: transparent;
   color: #1f2937;
   text-align: center;
@@ -187,7 +187,8 @@
   }
 
   .category-carousel-container {
-    padding: 0 4px;
+    gap: 0px;
+    padding: 0px 0px;
   }
 
   .category-filter-meta {

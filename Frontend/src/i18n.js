@@ -352,6 +352,9 @@ const resources = {
       'placeOrder.errors.serverError': 'Lỗi máy chủ: {{status}}',
       'placeOrder.errors.unknownError': 'Đã xảy ra lỗi không xác định',
       'placeOrder.cart.minOrderWarning': 'Đơn tối thiểu: €{{minOrder}} (Thêm €{{needed}} nữa)',
+      'placeOrder.cart.boxFeeNote': 'Lưu ý: + €0.3 phí hộp cho mỗi món',
+      'cart.boxFeeNote': 'Lưu ý: + €0.3 phí hộp cho mỗi món',
+      'cartPopup.boxFeeNote': 'Lưu ý: + €0.3 phí hộp cho mỗi món',
 
       // Success Popup
       'successPopup.title': 'Đặt hàng thành công!',
@@ -363,7 +366,20 @@ const resources = {
       'successPopup.amount': 'Tổng tiền',
       'successPopup.items': 'Sản phẩm trong đơn hàng',
       'successPopup.trackOrder': 'Dò đơn hàng',
-      'successPopup.goHome': 'Về trang chủ'
+      'successPopup.goHome': 'Về trang chủ',
+
+      // Food Item
+      'food.decrease': 'Giảm số lượng',
+      'food.increase': 'Tăng số lượng',
+      'food.sold': 'đã bán',
+
+      // Product Detail
+      'productDetail.sku': 'SKU',
+      'productDetail.notAvailable': 'N/A',
+      'productDetail.close': 'Đóng',
+
+      // Cart Popup
+      'cartPopup.optionSeparator': ': '
     }
   },
   en: {
@@ -717,6 +733,9 @@ const resources = {
       'placeOrder.errors.serverError': 'Server error: {{status}}',
       'placeOrder.errors.unknownError': 'Unknown error occurred',
       'placeOrder.cart.minOrderWarning': 'Min. order: €{{minOrder}} (Add €{{needed}} more)',
+      'placeOrder.cart.boxFeeNote': 'Note: + €0.3 box fee per item',
+      'cart.boxFeeNote': 'Note: + €0.3 box fee per item',
+      'cartPopup.boxFeeNote': 'Note: + €0.3 box fee per item',
 
       // Success Popup
       'successPopup.title': 'Order Placed Successfully!',
@@ -728,7 +747,20 @@ const resources = {
       'successPopup.amount': 'Total Amount',
       'successPopup.items': 'Items in your order',
       'successPopup.trackOrder': 'Track Order',
-      'successPopup.goHome': 'Go Home'
+      'successPopup.goHome': 'Go Home',
+
+      // Food Item
+      'food.decrease': 'Decrease quantity',
+      'food.increase': 'Increase quantity',
+      'food.sold': 'sold',
+
+      // Product Detail
+      'productDetail.sku': 'SKU',
+      'productDetail.notAvailable': 'N/A',
+      'productDetail.close': 'Close',
+
+      // Cart Popup
+      'cartPopup.optionSeparator': ': '
     }
   },
   sk: {
@@ -1083,6 +1115,9 @@ const resources = {
       'placeOrder.errors.serverError': 'Chyba servera: {{status}}',
       'placeOrder.errors.unknownError': 'Vyskytla sa neznáma chyba',
       'placeOrder.cart.minOrderWarning': 'Min. objednávka: €{{minOrder}} (Pridajte €{{needed}} viac)',
+      'placeOrder.cart.boxFeeNote': 'Poznámka: + €0.3 poplatok za krabicu za každú položku',
+      'cart.boxFeeNote': 'Poznámka: + €0.3 poplatok za krabicu za každú položku',
+      'cartPopup.boxFeeNote': 'Poznámka: + €0.3 poplatok za krabicu za každú položku',
 
       // Success Popup
       'successPopup.title': 'Objednávka úspešne odoslaná!',
@@ -1094,7 +1129,20 @@ const resources = {
       'successPopup.amount': 'Celková suma',
       'successPopup.items': 'Položky vo vašej objednávke',
       'successPopup.trackOrder': 'Sledovať objednávku',
-      'successPopup.goHome': 'Ísť domov'
+      'successPopup.goHome': 'Ísť domov',
+
+      // Food Item
+      'food.decrease': 'Znížiť množstvo',
+      'food.increase': 'Zvýšiť množstvo',
+      'food.sold': 'predané',
+
+      // Product Detail
+      'productDetail.sku': 'SKU',
+      'productDetail.notAvailable': 'N/A',
+      'productDetail.close': 'Zavrieť',
+
+      // Cart Popup
+      'cartPopup.optionSeparator': ': '
     }
   }
 };

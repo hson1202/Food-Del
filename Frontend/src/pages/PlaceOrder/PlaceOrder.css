@@ -86,6 +86,18 @@
     font-size: 1.05rem;
 }
 
+.place-order .cart-total-details.box-fee-note {
+    justify-content: flex-start;
+    margin-bottom: 8px;
+    margin-top: 4px;
+}
+
+.place-order .cart-total-details.box-fee-note .box-fee-text {
+    font-size: 0.85rem;
+    color: #888;
+    font-style: italic;
+}
+
 .place-order .cart-total hr {
     border: none;
     border-top: 1px solid #e8e8e8;
