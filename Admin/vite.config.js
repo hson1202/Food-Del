@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    // Bảo mật: không generate sourcemap cho production build
+    sourcemap: false,
     outDir: 'dist',
     rollupOptions: {
       output: {

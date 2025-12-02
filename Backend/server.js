@@ -2,6 +2,8 @@
 import express from "express"
 import cors from "cors"
 import mongoose from "mongoose"
+import helmet from "helmet"
+import rateLimit from "express-rate-limit"
 import "dotenv/config"
 import { connectDB } from "./config/db.js"
 import foodRouter from "./routes/foodRoute.js"
@@ -20,11 +22,58 @@ import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 import emailTestRouter from "./routes/emailTestRoute.js"
 import deliveryRouter from "./routes/deliveryRoute.js"
 import eventBus from "./services/eventBus.js"
+import authMiddleware, { verifyAdmin } from "./middleware/auth.js"
 
 const app = express()
 
-// Middleware
-app.use(cors())
+// --- HTTP security headers ---
+app.use(helmet())
+
+// --- CORS cấu hình an toàn hơn ---
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL
+].filter(Boolean)
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Cho phép request từ server nội bộ / tool (origin === undefined)
+      if (!origin) return callback(null, true)
+
+      if (!allowedOrigins.length || allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+
+      return callback(new Error("Not allowed by CORS"))
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true
+  })
+)
+
+// --- Rate limiting cho các route nhạy cảm ---
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 100, // tối đa 100 request / 15 phút / IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Too many login attempts, please try again later." }
+})
+
+const writeLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 phút
+  max: 60, // tối đa 60 request write / phút / IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Too many requests, please slow down." }
+})
+
+// Áp dụng rate limit cho login & các hành động ghi dữ liệu
+app.use("/api/user/login", authLimiter)
+app.use("/api/admin/login", authLimiter)
+app.use("/api/order", writeLimiter)
+app.use("/api/contact", writeLimiter)
 app.use(express.json({ limit: "50mb" }))
 app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 //db connection
@@ -65,14 +114,15 @@ ensureDbConnection().catch(error => {
 //   }
 // })
 
-// Debug middleware to track all requests
-app.use((req, res, next) => {
-  console.log(`=== REQUEST DEBUG ===`)
-  console.log(`${req.method} ${req.path}`)
-  console.log(`Original URL: ${req.originalUrl}`)
-  console.log(`Headers:`, req.headers)
-  next()
-})
+// Debug middleware to track all requests - chỉ bật khi không phải production
+if (process.env.NODE_ENV !== "production") {
+  app.use((req, res, next) => {
+    console.log(`=== REQUEST DEBUG ===`)
+    console.log(`${req.method} ${req.path}`)
+    console.log(`Original URL: ${req.originalUrl}`)
+    next()
+  })
+}
 
 // API Routes
 app.use("/api/food", foodRouter)
@@ -94,7 +144,8 @@ app.use("/api/delivery", deliveryRouter)
 // --- Server-Sent Events (SSE) for realtime notifications ---
 const sseClients = []
 
-app.get('/api/events', (req, res) => {
+// Bảo vệ SSE: chỉ cho phép admin authenticated
+app.get('/api/events', authMiddleware, verifyAdmin, (req, res) => {
   // Optional channel filter
   const channel = req.query.channel || 'all'
 
@@ -223,6 +274,8 @@ app.get("/test-food", async (req, res) => {
   }
 })
 
+// Các route debug chỉ bật khi không phải production
+if (process.env.NODE_ENV !== "production") {
 app.get("/debug", async (req, res) => {
   try {
     // Test actual database connectivity instead of connection state
@@ -363,6 +416,7 @@ app.post("/test-upload", async (req, res) => {
     })
   }
 })
+}
 
 // 404 handler - phải để cuối cùng
 app.use("*", (req, res) => {
@@ -387,10 +441,14 @@ app.use("*", (req, res) => {
 // Error handling middleware
 app.use((error, req, res, next) => {
   console.error("Global error handler:", error)
+
+  const isProduction = process.env.NODE_ENV === "production"
+
   res.status(500).json({
     success: false,
     error: "Internal server error",
-    message: error.message
+    // Ẩn chi tiết lỗi trên production để tránh lộ thông tin nội bộ
+    ...(isProduction ? {} : { message: error.message })
   })
 })
 
