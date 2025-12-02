@@ -99,20 +99,9 @@ const ProductDetail = ({ product, onClose }) => {
     }
     setSelectedOptions(defaultSelections);
 
-    // Giá base theo option
+    // Giá base theo option - KHÔNG cộng box fee ở đây, chỉ hiển thị giá gốc
     const basePrice = computeVariantPrice(product, defaultSelections);
-
-    // Box fee
-    const isBoxFeeDisabled =
-      product.disableBoxFee === true ||
-      product.disableBoxFee === 'true' ||
-      product.disableBoxFee === 1 ||
-      product.disableBoxFee === '1' ||
-      (typeof product.disableBoxFee === 'string' &&
-        product.disableBoxFee.toLowerCase() === 'true');
-
-    const boxFee = isBoxFeeDisabled ? 0 : 0.3;
-    setCurrentPrice(basePrice + boxFee);
+    setCurrentPrice(basePrice);
 
     // Ảnh ban đầu
     const initialImage = pickImageFromSelections(product, defaultSelections);
@@ -186,18 +175,9 @@ const ProductDetail = ({ product, onClose }) => {
     setSelectedOptions(newSelectedOptions);
     
     // Update price and image based on new selections
+    // CHỈ hiển thị giá gốc, KHÔNG cộng box fee ở đây
     const basePrice = computeVariantPrice(product, newSelectedOptions);
-    // Thêm tiền hộp 0.3€ nếu không tắt
-    // Check rõ ràng: chỉ tắt khi disableBoxFee === true (explicitly true)
-    // Xử lý nhiều trường hợp: boolean true, string "true", number 1, hoặc bất kỳ truthy value nào
-    const isBoxFeeDisabled = product.disableBoxFee === true || 
-                             product.disableBoxFee === "true" || 
-                             product.disableBoxFee === 1 || 
-                             product.disableBoxFee === "1" ||
-                             (typeof product.disableBoxFee === 'string' && product.disableBoxFee.toLowerCase() === 'true');
-    const boxFee = isBoxFeeDisabled ? 0 : 0.3;
-    const newPrice = basePrice + boxFee;
-    setCurrentPrice(newPrice);
+    setCurrentPrice(basePrice);
     
     const newImage = pickImageFromSelections(product, newSelectedOptions);
     setCurrentImage(newImage);
@@ -209,11 +189,12 @@ const ProductDetail = ({ product, onClose }) => {
       ? `${product._id}_${JSON.stringify(selectedOptions)}`
       : product._id
     
-    // Add to cart with options
+    // Add to cart with options - StoreContext sẽ tự động tính box fee khi tính tổng
+    // Ta chỉ lưu giá gốc (chưa có box fee) vào currentPrice
     addToCart(cartKey, {
       ...product,
       selectedOptions,
-      currentPrice,
+      currentPrice: currentPrice, // Giá gốc (chưa có box fee)
       currentImage
     })
   }
@@ -251,11 +232,11 @@ const ProductDetail = ({ product, onClose }) => {
       : product._id
     
     if (cartItems[cartKey] && cartItems[cartKey] > 0) {
-      // Item exists, just add one more
+      // Item exists, just add one more - StoreContext sẽ tự tính box fee
       addToCart(cartKey, {
         ...product,
         selectedOptions,
-        currentPrice,
+        currentPrice: currentPrice, // Giá gốc (chưa có box fee)
         currentImage
       })
     } else {
