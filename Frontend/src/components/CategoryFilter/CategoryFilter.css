@@ -81,7 +81,7 @@
 
 .category-carousel-container {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
@@ -98,9 +98,9 @@
 .category-chip {
   flex: 0 0 auto;
   min-width: auto;
-  padding: 6px 14px;
+  padding: 8px 12px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 8px;
   background: transparent;
   color: #1f2937;
   text-align: center;
@@ -110,8 +110,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 .category-chip:hover {
@@ -119,9 +119,10 @@
 }
 
 .category-chip.active {
-  border-color: rgba(0, 0, 0, 0.85);
-  background: #1f1d1a;
-  color: #ffffff;
+  border-color: #af470a;
+  background: transparent;
+  color: #1f1d1a;
+  font-weight: 600;
 }
 
 .category-chip-label {
@@ -200,7 +201,7 @@
   }
 
   .category-chip {
-    padding: 7px 12px;
+    padding: 8px 12px;
     font-size: 0.8rem;
   }
 }

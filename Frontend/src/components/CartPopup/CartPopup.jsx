@@ -154,6 +154,18 @@ const CartPopup = ({ onClose }) => {
     return items.some(item => !isBoxFeeDisabled(item));
   }
 
+  // Calculate total box fee
+  const getTotalBoxFee = () => {
+    const items = getCartItems();
+    let totalBoxFee = 0;
+    items.forEach(item => {
+      if (!isBoxFeeDisabled(item)) {
+        totalBoxFee += 0.3 * item.quantity;
+      }
+    });
+    return totalBoxFee;
+  }
+
   // Format selected options for display
   const formatSelectedOptions = (item) => {
     if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
@@ -184,39 +196,65 @@ const CartPopup = ({ onClose }) => {
     return optionTexts.join(', ');
   };
 
-  // Smart upsale algorithm
+  // Smart upsale algorithm - Option 4: Mix & Match (Manual + Smart)
   const generateRecommendations = () => {
     const cartItems = getCartItems()
     if (cartItems.length === 0) return []
 
-    const cartCategories = [...new Set(cartItems.map(item => item.category))]
     const cartItemIds = cartItems.map(item => item._id)
+    const cartCategories = [...new Set(cartItems.map(item => item.category))]
     
-    // Find complementary items
-    const recommendations = food_list.filter(item => {
-      // Don't recommend items already in cart
-      if (cartItemIds.includes(item._id)) return false
+    // 1. Lấy manual recommendations trước (priority cao)
+    const manualRecs = food_list
+      .filter(item => !cartItemIds.includes(item._id))
+      .filter(item => item.isRecommended === true)
+      .filter(item => item.status === 'active')
+      .sort((a, b) => {
+        // Sort by priority (số nhỏ hơn = ưu tiên cao hơn)
+        const priorityA = a.recommendPriority || 999
+        const priorityB = b.recommendPriority || 999
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB
+        }
+        // Nếu cùng priority, ưu tiên promotion và soldCount
+        if (a.isPromotion && !b.isPromotion) return -1
+        if (!a.isPromotion && b.isPromotion) return 1
+        return (b.soldCount || 0) - (a.soldCount || 0)
+      })
+    
+    // 2. Nếu không đủ 12, dùng thuật toán smart fill thêm
+    const targetCount = 12
+    if (manualRecs.length < targetCount) {
+      const remainingCount = targetCount - manualRecs.length
+      const manualRecIds = manualRecs.map(r => r._id)
       
-      // Recommend from same categories
-      if (cartCategories.includes(item.category)) return true
+      const smartRecs = food_list
+        .filter(item => !cartItemIds.includes(item._id))
+        .filter(item => !manualRecIds.includes(item._id))
+        .filter(item => {
+          // Smart logic: recommend từ cùng category hoặc complementary categories
+          if (cartCategories.includes(item.category)) return true
+          
+          // Smart pairing logic
+          if (cartCategories.includes('Noodles') && ['Drinks', 'Appetizers'].includes(item.category)) return true
+          if (cartCategories.includes('Main Course') && ['Drinks', 'Desserts'].includes(item.category)) return true
+          if (cartCategories.includes('Pizza') && ['Drinks', 'Sides'].includes(item.category)) return true
+          
+          return false
+        })
+        .filter(item => item.status === 'active')
+        .sort((a, b) => {
+          // Prioritize promoted items and popular items
+          if (a.isPromotion && !b.isPromotion) return -1
+          if (!a.isPromotion && b.isPromotion) return 1
+          return (b.soldCount || 0) - (a.soldCount || 0)
+        })
+        .slice(0, remainingCount)
       
-      // Smart pairing logic
-      if (cartCategories.includes('Noodles') && ['Drinks', 'Appetizers'].includes(item.category)) return true
-      if (cartCategories.includes('Main Course') && ['Drinks', 'Desserts'].includes(item.category)) return true
-      if (cartCategories.includes('Pizza') && ['Drinks', 'Sides'].includes(item.category)) return true
-      
-      return false
-    })
-    .filter(item => item.status === 'active')
-    .sort((a, b) => {
-      // Prioritize promoted items and popular items
-      if (a.isPromotion && !b.isPromotion) return -1
-      if (!a.isPromotion && b.isPromotion) return 1
-      return (b.soldCount || 0) - (a.soldCount || 0)
-    })
-    .slice(0, 3) // Limit to 3 recommendations
-
-    return recommendations
+      return [...manualRecs, ...smartRecs].slice(0, targetCount)
+    }
+    
+    return manualRecs.slice(0, targetCount)
   }
 
   useEffect(() => {
@@ -327,57 +365,91 @@ const CartPopup = ({ onClose }) => {
 
                 {/* Recommended Items */}
                 {recommendedItems.length > 0 && (
-                  <div className="recommendations-section">
-                    <h3>{t('cartPopup.recommendedForYou')}</h3>
-                    <p className="recommendations-subtitle">{t('cartPopup.perfectWith')}</p>
-                    <div className="recommended-items">
-                      {recommendedItems.map((item) => (
-                        <div key={item._id} className="recommended-item">
-                          <div className="recommended-image">
-                            <img src={(item.image && item.image.startsWith('http')) ? item.image : (url + "/images/" + item.image)} alt={getLocalizedName(item)} />
-                            {item.isPromotion && !hasOverrideOpt(item) && (
-                              <div className="promo-badge">-{Math.round(((item.originalPrice - item.promotionPrice) / item.originalPrice) * 100)}%</div>
-                            )}
-                          </div>
-                          <div className="recommended-info">
-                            <h5>{getLocalizedName(item)}</h5>
-                            <div className="recommended-price">
-                              {(() => {
-                                const r = variantPriceRange(item);
-                                return r.min === r.max ? (
-                                  <span className="price">{formatPrice(r.min)}</span>
+                  <section className="cart-section cart-section--recommend">
+                    <div className="cart-section-header">
+                      <h3>{t('cartPopup.recommendedForYou')}</h3>
+                      <p className="cart-section-subtitle">
+                        {t('cartPopup.perfectWith')}
+                      </p>
+                    </div>
+
+                    <div className="recommend-list">
+                      {recommendedItems.map((item) => {
+                        const range = variantPriceRange(item);
+                        const isSinglePrice = range.min === range.max;
+
+                        const handleAdd = () => {
+                          const selected = buildDefaultSelections(item);
+                          const price = computeVariantPrice(item, selected);
+                          const img = pickImageFromSelections(item, selected);
+                          const cartKey = item.options?.length
+                            ? `${item._id}_${JSON.stringify(selected)}`
+                            : item._id;
+
+                          addToCart(cartKey, {
+                            ...item,
+                            selectedOptions: selected,
+                            currentPrice: price,
+                            currentImage: img,
+                          });
+                        };
+
+                        return (
+                          <div key={item._id} className="recommend-card">
+                            <div className="recommend-card-image">
+                              <img
+                                src={
+                                  item.image && item.image.startsWith('http')
+                                    ? item.image
+                                    : `${url}/images/${item.image}`
+                                }
+                                alt={getLocalizedName(item)}
+                              />
+                              {item.isPromotion && !hasOverrideOpt(item) && (
+                                <span className="recommend-badge">
+                                  -{Math.round(
+                                    ((item.originalPrice - item.promotionPrice) /
+                                      item.originalPrice) *
+                                      100
+                                  )}
+                                  %
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="recommend-card-body">
+                              <h5 className="recommend-title">{getLocalizedName(item)}</h5>
+
+                              <div className="recommend-price">
+                                {isSinglePrice ? (
+                                  <span className="recommend-price-main">
+                                    {formatPrice(range.min)}
+                                  </span>
                                 ) : (
                                   <>
-                                    <span className="price">{formatPrice(r.min)}</span>
-                                    <span className="price"> – {formatPrice(r.max)}</span>
+                                    <span className="recommend-price-main">
+                                      {formatPrice(range.min)}
+                                    </span>
+                                    <span className="recommend-price-range">
+                                      &nbsp;– {formatPrice(range.max)}
+                                    </span>
                                   </>
-                                );
-                              })()}
+                                )}
+                              </div>
                             </div>
+
+                            <button
+                              type="button"
+                              className="recommend-add-btn"
+                              onClick={handleAdd}
+                            >
+                              <span>{t('common.add')}</span>
+                            </button>
                           </div>
-                          <button 
-                            className="add-recommended-btn"
-                            onClick={() => {
-                              const selected = buildDefaultSelections(item);
-                              const price = computeVariantPrice(item, selected);
-                              const img = pickImageFromSelections(item, selected);
-                              const cartKey = item.options?.length
-                                ? `${item._id}_${JSON.stringify(selected)}`
-                                : item._id;
-                              addToCart(cartKey, {
-                                ...item,
-                                selectedOptions: selected,
-                                currentPrice: price,
-                                currentImage: img
-                              });
-                            }}
-                          >
-                            <img src={assets.add_icon_green} alt="" />
-                          </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                  </div>
+                  </section>
                 )}
               </>
             )}
@@ -388,7 +460,7 @@ const CartPopup = ({ onClose }) => {
             <div className="cart-summary">
               <div className="summary-row">
                 <span>{t('cart.subtotal')}</span>
-                <span>{formatPrice(getTotalCartAmount())}</span>
+                <span>{formatPrice(getTotalBoxFee())}</span>
               </div>
               {hasItemsWithBoxFee() && (
                 <div className="summary-row box-fee-note">

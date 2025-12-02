@@ -357,9 +357,9 @@ const resources = {
       'placeOrder.errors.serverError': 'Lỗi máy chủ: {{status}}',
       'placeOrder.errors.unknownError': 'Đã xảy ra lỗi không xác định',
       'placeOrder.cart.minOrderWarning': 'Đơn tối thiểu: €{{minOrder}} (Thêm €{{needed}} nữa)',
-      'placeOrder.cart.boxFeeNote': 'Lưu ý: + €0.3 phí hộp cho mỗi món',
-      'cart.boxFeeNote': 'Lưu ý: + €0.3 phí hộp cho mỗi món',
-      'cartPopup.boxFeeNote': 'Lưu ý: + €0.3 phí hộp cho mỗi món',
+      'placeOrder.cart.boxFeeNote': '+0.3€ tiền hộp cho các món chính',
+      'cart.boxFeeNote': '+0.3€ tiền hộp cho các món chính',
+      'cartPopup.boxFeeNote': '+0.3€ tiền hộp cho các món chính',
 
       // Success Popup
       'successPopup.title': 'Đặt hàng thành công!',
@@ -743,9 +743,9 @@ const resources = {
       'placeOrder.errors.serverError': 'Server error: {{status}}',
       'placeOrder.errors.unknownError': 'Unknown error occurred',
       'placeOrder.cart.minOrderWarning': 'Min. order: €{{minOrder}} (Add €{{needed}} more)',
-      'placeOrder.cart.boxFeeNote': 'Note: + €0.3 box fee per item',
-      'cart.boxFeeNote': 'Note: + €0.3 box fee per item',
-      'cartPopup.boxFeeNote': 'Note: + €0.3 box fee per item',
+      'placeOrder.cart.boxFeeNote': '+€0.3 box fee for main dishes',
+      'cart.boxFeeNote': '+€0.3 box fee for main dishes',
+      'cartPopup.boxFeeNote': '+€0.3 box fee for main dishes',
 
       // Success Popup
       'successPopup.title': 'Order Placed Successfully!',
@@ -1130,9 +1130,9 @@ const resources = {
       'placeOrder.errors.serverError': 'Chyba servera: {{status}}',
       'placeOrder.errors.unknownError': 'Vyskytla sa neznáma chyba',
       'placeOrder.cart.minOrderWarning': 'Min. objednávka: €{{minOrder}} (Pridajte €{{needed}} viac)',
-      'placeOrder.cart.boxFeeNote': 'Poznámka: + €0.3 poplatok za krabicu za každú položku',
-      'cart.boxFeeNote': 'Poznámka: + €0.3 poplatok za krabicu za každú položku',
-      'cartPopup.boxFeeNote': 'Poznámka: + €0.3 poplatok za krabicu za každú položku',
+      'placeOrder.cart.boxFeeNote': '+€0.3 poplatok za krabicu pre hlavné jedlá',
+      'cart.boxFeeNote': '+€0.3 poplatok za krabicu pre hlavné jedlá',
+      'cartPopup.boxFeeNote': '+€0.3 poplatok za krabicu pre hlavné jedlá',
 
       // Success Popup
       'successPopup.title': 'Objednávka úspešne odoslaná!',

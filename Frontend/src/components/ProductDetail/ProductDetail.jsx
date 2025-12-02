@@ -1,4 +1,5 @@
-import React, { useContext, useState, useEffect } from 'react'
+import { useContext, useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import './ProductDetail.css'
 import { assets } from '../../assets/assets'
 import { StoreContext } from '../../Context/StoreContext'
@@ -34,50 +35,38 @@ const computeVariantPrice = (product, selectedOptions = {}) => {
   return price;
 };
 
-const variantPriceRange = (product) => {
-  const opts = Array.isArray(product?.options) ? product.options : [];
-  const base = Number(product?.price) || 0;
-
-  if (opts.length === 0) return { min: base, max: base };
-
-  const overrideOpts = opts.filter(o => o.pricingMode === 'override');
-  const addOpts = opts.filter(o => o.pricingMode === 'add');
-
-  const addMin = addOpts.reduce((s, o) => {
-    const arr = (o.choices || []).map(c => Number(c.price) || 0);
-    return s + (arr.length ? Math.min(...arr) : 0);
-  }, 0);
-  const addMax = addOpts.reduce((s, o) => {
-    const arr = (o.choices || []).map(c => Number(c.price) || 0);
-    return s + (arr.length ? Math.max(...arr) : 0);
-  }, 0);
-
-  if (overrideOpts.length > 0) {
-    const overAll = overrideOpts.flatMap(o => (o.choices || []).map(c => Number(c.price) || 0));
-    if (overAll.length === 0) return { min: addMin, max: addMax };
-    const minOver = Math.min(...overAll);
-    const maxOver = Math.max(...overAll);
-    return { min: minOver + addMin, max: maxOver + addMax };
-  }
-
-  return { min: base + addMin, max: base + addMax };
-};
-
-const buildDefaultSelections = (product) => {
-  const selected = {};
-  (product?.options || []).forEach(o => {
-    if (o.defaultChoiceCode) selected[o.name] = o.defaultChoiceCode;
-  });
-  return selected;
-};
-
 const pickImageFromSelections = (product, selectedOptions = {}) => {
-  for (const o of (product?.options || [])) {
+  const opts = Array.isArray(product?.options) ? product.options : [];
+
+  // 1. Ưu tiên ảnh theo lựa chọn hiện tại (selectedOptions hoặc defaultChoiceCode)
+  for (const o of opts) {
     const code = selectedOptions[o.name] || o.defaultChoiceCode;
+    if (!code) continue;
     const ch = (o.choices || []).find(c => c.code === code);
     if (ch?.image) return ch.image;
   }
-  return product?.image || '';
+
+  // 2. Nếu product.image có thì dùng
+  if (product?.image) {
+    return product.image;
+  }
+
+  // 3. Fallback: lấy ảnh đầu tiên có trong các choices
+  for (const o of opts) {
+    const withImage = (o.choices || []).find(c => c.image);
+    if (withImage?.image) return withImage.image;
+  }
+
+  // 4. Cuối cùng bó tay, trả về chuỗi rỗng
+  return '';
+};
+
+// Helper để resolve image URL
+const resolveImageUrl = (raw, baseUrl) => {
+  if (!raw) return '';
+  if (raw.startsWith('http')) return raw;
+  if (raw.startsWith('/')) return baseUrl + raw;
+  return baseUrl + '/images/' + raw;
 };
 
 const ProductDetail = ({ product, onClose }) => {
@@ -89,19 +78,19 @@ const ProductDetail = ({ product, onClose }) => {
   const [currentImage, setCurrentImage] = useState('')
   const [currentPrice, setCurrentPrice] = useState(0)
 
-  if (!product) return null
-
   // Debug: Log product data
-  console.log('🔍 ProductDetail - Product data:', product)
-  console.log('🔍 ProductDetail - Options:', product.options)
+  if (product) {
+    console.log('🔍 ProductDetail - Product data:', product)
+    console.log('🔍 ProductDetail - Options:', product.options)
+  }
 
   // Initialize options, price and image when product changes
   useEffect(() => {
     if (!product) return;
-    
-    // Initialize selected options with defaults
+
+    // Init selected options
     const defaultSelections = {};
-    if (product.options && product.options.length > 0) {
+    if (Array.isArray(product.options)) {
       product.options.forEach(option => {
         if (option.defaultChoiceCode) {
           defaultSelections[option.name] = option.defaultChoiceCode;
@@ -109,26 +98,23 @@ const ProductDetail = ({ product, onClose }) => {
       });
     }
     setSelectedOptions(defaultSelections);
-    
-    // Set initial price and image
+
+    // Giá base theo option
     const basePrice = computeVariantPrice(product, defaultSelections);
-    // Thêm tiền hộp 0.3€ nếu không tắt
-    // Check rõ ràng: chỉ tắt khi disableBoxFee === true (explicitly true)
-    // Xử lý nhiều trường hợp: boolean true, string "true", number 1, hoặc bất kỳ truthy value nào
-    const isBoxFeeDisabled = product.disableBoxFee === true || 
-                             product.disableBoxFee === "true" || 
-                             product.disableBoxFee === 1 || 
-                             product.disableBoxFee === "1" ||
-                             (typeof product.disableBoxFee === 'string' && product.disableBoxFee.toLowerCase() === 'true');
+
+    // Box fee
+    const isBoxFeeDisabled =
+      product.disableBoxFee === true ||
+      product.disableBoxFee === 'true' ||
+      product.disableBoxFee === 1 ||
+      product.disableBoxFee === '1' ||
+      (typeof product.disableBoxFee === 'string' &&
+        product.disableBoxFee.toLowerCase() === 'true');
+
     const boxFee = isBoxFeeDisabled ? 0 : 0.3;
-    const initialPrice = basePrice + boxFee;
-    setCurrentPrice(initialPrice);
-    
-    // Debug log
-    if (isBoxFeeDisabled) {
-        console.log('🔍 ProductDetail - Box fee disabled for:', product.name, 'disableBoxFee:', product.disableBoxFee);
-    }
-    
+    setCurrentPrice(basePrice + boxFee);
+
+    // Ảnh ban đầu
     const initialImage = pickImageFromSelections(product, defaultSelections);
     setCurrentImage(initialImage);
   }, [product]);
@@ -278,6 +264,8 @@ const ProductDetail = ({ product, onClose }) => {
     }
   }
 
+  if (!product) return null
+
   return (
     <div className="product-detail-overlay" onClick={handleOverlayClick}>
       <div className="product-detail-modal">
@@ -285,20 +273,15 @@ const ProductDetail = ({ product, onClose }) => {
           <img src={assets.cross_icon} alt={t('productDetail.close')} />
         </button>
 
+        {/* PHẦN SCROLL */}
         <div className="product-detail-content">
           <div className="product-detail-image">
             <img 
-              src={
-                currentImage && currentImage.startsWith('http') 
-                  ? currentImage 
-                  : currentImage 
-                    ? (url + "/images/" + currentImage) 
-                    : product.image && product.image.startsWith('http') 
-                      ? product.image 
-                      : product.image 
-                        ? (url + "/images/" + product.image) 
-                        : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn42dIE5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='
-              }
+              src={(() => {
+                const candidate = currentImage || product.image;
+                const resolved = resolveImageUrl(candidate, url);
+                return resolved || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn42dIE5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+              })()}
               alt={getLocalizedName()}
               onError={(e) => {
                 e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn5qrIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
@@ -400,33 +383,9 @@ const ProductDetail = ({ product, onClose }) => {
               )}
             </div>
 
+            {/* BỎ PHẦN NÀY - ĐÃ CHUYỂN XUỐNG FOOTER */}
             <div className="product-actions">
-              <div className="quantity-control">
-                {getCartQuantity() === 0 ? (
-                  <button 
-                    className="add-to-cart-btn"
-                    onClick={handleAddToCart}
-                  >
-                    {t('food.addToCart')}
-                  </button>
-                ) : (
-                  <div className="quantity-controls">
-                    <button 
-                      className="qty-btn decrease"
-                      onClick={handleRemoveFromCart}
-                    >
-                      <img src={assets.remove_icon_red} alt="" />
-                    </button>
-                    <span className="quantity">{getCartQuantity()}</span>
-                    <button 
-                      className="qty-btn increase"
-                      onClick={handleIncreaseQuantity}
-                    >
-                      <img src={assets.add_icon_green} alt="" />
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* Hidden - moved to footer */}
             </div>
 
             {/* Additional product information */}
@@ -445,9 +404,87 @@ const ProductDetail = ({ product, onClose }) => {
             </div>
           </div>
         </div>
+
+        {/* FOOTER CỐ ĐỊNH LUÔN THẤY */}
+        <div className="product-detail-footer">
+          <div className="footer-price">
+            <span className="footer-price-label">{t('common.price')}</span>
+            <span className="footer-price-value">{formatPrice(currentPrice)}</span>
+          </div>
+
+          <div className="footer-actions">
+            {getCartQuantity() === 0 ? (
+              <button 
+                className="footer-add-to-cart-btn"
+                onClick={handleAddToCart}
+              >
+                {t('food.addToCart')}
+              </button>
+            ) : (
+              <div className="footer-quantity-controls">
+                <button 
+                  className="qty-btn decrease"
+                  onClick={handleRemoveFromCart}
+                >
+                  <img src={assets.remove_icon_red} alt="" />
+                </button>
+                <span className="quantity">{getCartQuantity()}</span>
+                <button 
+                  className="qty-btn increase"
+                  onClick={handleIncreaseQuantity}
+                >
+                  <img src={assets.add_icon_green} alt="" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
+}
+
+ProductDetail.propTypes = {
+  product: PropTypes.shape({
+    _id: PropTypes.string,
+    name: PropTypes.string,
+    nameVI: PropTypes.string,
+    nameEN: PropTypes.string,
+    nameSK: PropTypes.string,
+    description: PropTypes.string,
+    image: PropTypes.string,
+    price: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    promotionPrice: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    originalPrice: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    isPromotion: PropTypes.bool,
+    disableBoxFee: PropTypes.oneOfType([PropTypes.bool, PropTypes.string, PropTypes.number]),
+    sku: PropTypes.string,
+    status: PropTypes.string,
+    likes: PropTypes.number,
+    soldCount: PropTypes.number,
+    options: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string,
+        nameVI: PropTypes.string,
+        nameEN: PropTypes.string,
+        nameSK: PropTypes.string,
+        pricingMode: PropTypes.string,
+        defaultChoiceCode: PropTypes.string,
+        choices: PropTypes.arrayOf(
+          PropTypes.shape({
+            code: PropTypes.string,
+            label: PropTypes.string,
+            labelVI: PropTypes.string,
+            labelEN: PropTypes.string,
+            labelSK: PropTypes.string,
+            price: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            image: PropTypes.string,
+          })
+        ),
+      })
+    ),
+  }),
+  onClose: PropTypes.func.isRequired,
 }
 
 export default ProductDetail

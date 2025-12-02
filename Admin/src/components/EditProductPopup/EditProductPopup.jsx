@@ -822,6 +822,52 @@ const EditProductPopup = ({
                 </div>
               )}
             </div>
+
+            {/* Recommendations Section */}
+            <div className="form-section">
+              <h3 className="section-title">{t('editProduct.recommendations')}</h3>
+              <p className="section-description">
+                {t('editProduct.recommendationsDescription')}
+              </p>
+              
+              <div className="form-group checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={editForm.isRecommended || false}
+                    onChange={(e) => onInputChange({
+                      target: {
+                        name: 'isRecommended',
+                        type: 'checkbox',
+                        checked: e.target.checked
+                      }
+                    })}
+                  />
+                  {t('editProduct.showInRecommendations')}
+                </label>
+                <small className="form-help">
+                  {t('editProduct.showInRecommendationsHelp')}
+                </small>
+              </div>
+              
+              {editForm.isRecommended && (
+                <div className="form-group">
+                  <label>{t('editProduct.recommendPriority')}</label>
+                  <input
+                    type="number"
+                    name="recommendPriority"
+                    value={editForm.recommendPriority !== undefined ? editForm.recommendPriority : 999}
+                    onChange={onInputChange}
+                    min="1"
+                    max="999"
+                    placeholder="999"
+                  />
+                  <small className="form-help">
+                    {t('editProduct.recommendPriorityHelp')}
+                  </small>
+                </div>
+              )}
+            </div>
             
             {/* Form Actions */}
             <div className="form-actions">

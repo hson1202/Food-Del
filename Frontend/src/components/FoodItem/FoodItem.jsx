@@ -164,8 +164,8 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
             {description && (
               <div className="title-description">{description}</div>
             )}
+            <div className="price-now">{getPriceDisplay()}</div>
           </div>
-          <div className="price-now">{formatPrice(currentPrice)}</div>
           <div className="compact-controls" onClick={(e) => e.stopPropagation()}>
             {!cartItems[id] ? (
               <button 
@@ -187,17 +187,6 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
               </div>
             )}
           </div>
-        </div>
-
-        <div className="price-block">
-          {isPromotion && promotionPrice ? (
-            <>
-              <div className="price-old">{formatPrice(originalPrice || price)}</div>
-              <div className="price-new">{formatPrice(promotionPrice)}</div>
-            </>
-          ) : (
-            <div className="price">{formatPrice(price)}</div>
-          )}
         </div>
       </div>
     )

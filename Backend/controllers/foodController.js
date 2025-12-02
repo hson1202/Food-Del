@@ -7,7 +7,8 @@ const addFood = async (req, res) => {
       sku, name, description, price, category,
       nameVI, nameEN, nameSK,
       isPromotion, promotionPrice,
-      soldCount, quantity, slug, options, disableBoxFee
+      soldCount, quantity, slug, options, disableBoxFee,
+      isRecommended, recommendPriority
       // slug có thể để trống để model tự tạo
     } = req.body;
 
@@ -37,6 +38,31 @@ const addFood = async (req, res) => {
                          (typeof disableBoxFee === 'string' && disableBoxFee.toLowerCase() === 'true');
     }
 
+    // Handle isRecommended - default to false if not provided
+    let isRecommendedBool = false;
+    if (isRecommended !== undefined && isRecommended !== null) {
+      isRecommendedBool = isRecommended === true || 
+                         isRecommended === "true" || 
+                         isRecommended === 1 || 
+                         isRecommended === "1" ||
+                         (typeof isRecommended === 'string' && isRecommended.toLowerCase() === 'true');
+    }
+
+    // Handle recommendPriority - default to 999 if not provided
+    let recommendPriorityNum = 999;
+    if (recommendPriority !== undefined && recommendPriority !== null) {
+      const parsed = Number(recommendPriority);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 999) {
+        recommendPriorityNum = parsed;
+      }
+    }
+
+    // Debug log
+    console.log('🔍 Add Food - Recommendations:', {
+      received: { isRecommended, recommendPriority },
+      parsed: { isRecommendedBool, recommendPriorityNum }
+    });
+
     const doc = new foodModel({
       sku: sku.trim(),
       name: name.trim(),
@@ -55,7 +81,9 @@ const addFood = async (req, res) => {
       promotionPrice: isPromotionBool ? Number(promotionPrice) : undefined,
       soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
       status: "active",
-      disableBoxFee: disableBoxFeeBool
+      disableBoxFee: disableBoxFeeBool,
+      isRecommended: isRecommendedBool,
+      recommendPriority: recommendPriorityNum
     });
 
     // Add options if provided
@@ -87,6 +115,12 @@ const addFood = async (req, res) => {
     }
 
     await doc.save();
+    console.log('✅ Food Added Successfully:', {
+      _id: doc._id,
+      name: doc.name,
+      isRecommended: doc.isRecommended,
+      recommendPriority: doc.recommendPriority
+    });
     return res.json({ success: true, message: "Food Added", data: doc });
 
   } catch (error) {
@@ -254,7 +288,8 @@ const updateFood = async (req, res) => {
       sku, name, description, price, category,
       nameVI, nameEN, nameSK,
       isPromotion, promotionPrice,
-      soldCount, quantity, slug, options, disableBoxFee
+      soldCount, quantity, slug, options, disableBoxFee,
+      isRecommended, recommendPriority
     } = req.body
 
     // Validate required fields
@@ -280,16 +315,25 @@ const updateFood = async (req, res) => {
                          disableBoxFee === "1" ||
                          (typeof disableBoxFee === 'string' && disableBoxFee.toLowerCase() === 'true');
     }
-    
-    // Debug log
-    console.log('🔍 Update Food - disableBoxFee:', {
-      received: disableBoxFee,
-      type: typeof disableBoxFee,
-      stringValue: String(disableBoxFee),
-      parsed: disableBoxFeeBool,
-      finalBoolean: Boolean(disableBoxFeeBool),
-      allBodyFields: Object.keys(req.body)
-    });
+
+    // Handle isRecommended - default to false if not provided
+    let isRecommendedBool = false;
+    if (isRecommended !== undefined && isRecommended !== null) {
+      isRecommendedBool = isRecommended === true || 
+                         isRecommended === "true" || 
+                         isRecommended === 1 || 
+                         isRecommended === "1" ||
+                         (typeof isRecommended === 'string' && isRecommended.toLowerCase() === 'true');
+    }
+
+    // Handle recommendPriority - default to 999 if not provided
+    let recommendPriorityNum = 999;
+    if (recommendPriority !== undefined && recommendPriority !== null) {
+      const parsed = Number(recommendPriority);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 999) {
+        recommendPriorityNum = parsed;
+      }
+    }
     
     let updateData = {
       sku: sku.trim(),
@@ -307,7 +351,9 @@ const updateFood = async (req, res) => {
       // originalPrice removed - using regular price as base
       promotionPrice: isPromotionBool ? Number(promotionPrice) : undefined,
       soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
-      disableBoxFee: Boolean(disableBoxFeeBool) // Ensure it's always a boolean, explicitly set
+      disableBoxFee: Boolean(disableBoxFeeBool), // Ensure it's always a boolean, explicitly set
+      isRecommended: Boolean(isRecommendedBool),
+      recommendPriority: recommendPriorityNum
     }
 
     // If new image uploaded, update image field with Cloudinary URL or local filename

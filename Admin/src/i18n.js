@@ -530,7 +530,13 @@ const resources = {
       'editProduct.optionDeleted': 'Tùy chọn đã được xóa thành công',
       'editProduct.choiceUpdated': 'Lựa chọn đã được cập nhật thành công',
       'editProduct.choiceAdded': 'Lựa chọn đã được thêm thành công',
-      'editProduct.choiceDeleted': 'Lựa chọn đã được xóa thành công'
+      'editProduct.choiceDeleted': 'Lựa chọn đã được xóa thành công',
+      'editProduct.recommendations': 'Đề xuất sản phẩm',
+      'editProduct.recommendationsDescription': 'Đánh dấu sản phẩm này để hiển thị trong phần đề xuất khi khách hàng thêm sản phẩm vào giỏ hàng',
+      'editProduct.showInRecommendations': 'Hiển thị trong đề xuất',
+      'editProduct.showInRecommendationsHelp': 'Sản phẩm này sẽ xuất hiện trong phần đề xuất khi khách hàng thêm sản phẩm vào giỏ hàng',
+      'editProduct.recommendPriority': 'Độ ưu tiên đề xuất',
+      'editProduct.recommendPriorityHelp': 'Số nhỏ hơn = ưu tiên cao hơn. Sản phẩm có số ưu tiên thấp hơn sẽ xuất hiện trước trong đề xuất (mặc định: 999)'
     }
   },
   en: {
@@ -1083,7 +1089,13 @@ const resources = {
       'editProduct.optionDeleted': 'Option deleted successfully',
       'editProduct.choiceUpdated': 'Choice updated successfully',
       'editProduct.choiceAdded': 'Choice added successfully',
-      'editProduct.choiceDeleted': 'Choice deleted successfully'
+      'editProduct.choiceDeleted': 'Choice deleted successfully',
+      'editProduct.recommendations': 'Recommendations',
+      'editProduct.recommendationsDescription': 'Mark this product to show in cart recommendations section when customers add items to cart',
+      'editProduct.showInRecommendations': 'Show in recommendations',
+      'editProduct.showInRecommendationsHelp': 'This product will appear in the cart recommendations section when customers add items to cart',
+      'editProduct.recommendPriority': 'Recommendation Priority',
+      'editProduct.recommendPriorityHelp': 'Lower number = higher priority. Products with lower priority numbers will appear first in recommendations (default: 999)'
 
     }
   },
@@ -1600,7 +1612,13 @@ const resources = {
       'editProduct.optionDeleted': 'Možnosť úspešne vymazaná',
       'editProduct.choiceUpdated': 'Voľba úspešne aktualizovaná',
       'editProduct.choiceAdded': 'Voľba úspešne pridaná',
-      'editProduct.choiceDeleted': 'Voľba úspešne vymazaná'
+      'editProduct.choiceDeleted': 'Voľba úspešne vymazaná',
+      'editProduct.recommendations': 'Odporúčania',
+      'editProduct.recommendationsDescription': 'Označte tento produkt, aby sa zobrazoval v sekcii odporúčaní, keď zákazníci pridávajú položky do košíka',
+      'editProduct.showInRecommendations': 'Zobraziť v odporúčaniach',
+      'editProduct.showInRecommendationsHelp': 'Tento produkt sa zobrazí v sekcii odporúčaní košíka, keď zákazníci pridávajú položky do košíka',
+      'editProduct.recommendPriority': 'Priorita odporúčania',
+      'editProduct.recommendPriorityHelp': 'Nižšie číslo = vyššia priorita. Produkty s nižšími prioritnými číslami sa zobrazia ako prvé v odporúčaniach (predvolené: 999)'
     }
   }
 };

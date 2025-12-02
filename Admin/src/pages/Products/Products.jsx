@@ -43,6 +43,8 @@ const Products = ({ url }) => {
     promotionPrice: '',
     soldCount: 0,
     disableBoxFee: false,
+    isRecommended: false,
+    recommendPriority: 999,
     image: null,
     imagePreview: null,
     options: []
@@ -65,6 +67,8 @@ const Products = ({ url }) => {
     promotionPrice: '',
     soldCount: 0,
     disableBoxFee: false,
+    isRecommended: false,
+    recommendPriority: 999,
     options: [] // Thêm options array
   })
 
@@ -220,6 +224,8 @@ const fetchCategories = async (signal) => {
       promotionPrice: product.promotionPrice || '',
       soldCount: product.soldCount || 0,
       disableBoxFee: product.disableBoxFee || false,
+      isRecommended: product.isRecommended || false,
+      recommendPriority: product.recommendPriority !== undefined ? product.recommendPriority : 999,
       options: product.options || [] // Ensure options are included
     });
   };
@@ -376,6 +382,8 @@ const fetchCategories = async (signal) => {
       formData.set('promotionPrice', String(Number(editForm.promotionPrice) || 0));
       formData.set('isPromotion', String(!!editForm.isPromotion));    // boolean -> "true"/"false"
       formData.set('disableBoxFee', String(!!editForm.disableBoxFee));    // boolean -> "true"/"false"
+      formData.set('isRecommended', String(!!editForm.isRecommended));    // boolean -> "true"/"false"
+      formData.set('recommendPriority', String(Number(editForm.recommendPriority) || 999));
       
       // Debug: Log formData values
       console.log('🔍 Edit Form Data:', {
@@ -530,6 +538,15 @@ const fetchCategories = async (signal) => {
             formData.append('quantity', String(Number(newProduct.quantity) || 0));
             formData.append('isPromotion', String(!!newProduct.isPromotion));
             formData.append('disableBoxFee', String(!!newProduct.disableBoxFee));
+            formData.append('isRecommended', String(!!newProduct.isRecommended));
+            formData.append('recommendPriority', String(Number(newProduct.recommendPriority) || 999));
+            
+            // Debug log
+            console.log('🔍 Add Product - Recommendations:', {
+              isRecommended: newProduct.isRecommended,
+              recommendPriority: newProduct.recommendPriority,
+              formDataValue: String(!!newProduct.isRecommended)
+            });
             if (newProduct.isPromotion) {
               formData.append('promotionPrice', String(Number(newProduct.promotionPrice) || 0));
             }
@@ -585,6 +602,8 @@ const fetchCategories = async (signal) => {
           promotionPrice: '',
           soldCount: 0,
           disableBoxFee: false,
+          isRecommended: false,
+          recommendPriority: 999,
           options: [] // Reset options
         })
         setShowAddForm(false)
@@ -1133,6 +1152,46 @@ const fetchCategories = async (signal) => {
                       </span>
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* Recommendations Section */}
+            <div className="form-section">
+              <h3>⭐ {t('editProduct.recommendations')}</h3>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>
+                {t('editProduct.recommendationsDescription')}
+              </p>
+              
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={newProduct.isRecommended || false}
+                    onChange={(e) => setNewProduct({ ...newProduct, isRecommended: e.target.checked })}
+                  />
+                  {t('editProduct.showInRecommendations')}
+                </label>
+                <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                  {t('editProduct.showInRecommendationsHelp')}
+                </small>
+              </div>
+              
+              {newProduct.isRecommended && (
+                <div className="form-group">
+                  <label htmlFor="recommendPriority">{t('editProduct.recommendPriority')}</label>
+                  <input
+                    type="number"
+                    id="recommendPriority"
+                    value={newProduct.recommendPriority !== undefined ? newProduct.recommendPriority : 999}
+                    onChange={(e) => setNewProduct({ ...newProduct, recommendPriority: parseInt(e.target.value) || 999 })}
+                    min="1"
+                    max="999"
+                    placeholder="999"
+                  />
+                  <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                    {t('editProduct.recommendPriorityHelp')}
+                  </small>
                 </div>
               )}
             </div>
