@@ -27,8 +27,11 @@ const LanguageSwitcher = () => {
     <div className="language-switcher">
       <button 
         className="language-button"
-        onClick={() => setIsOpen(!isOpen)}
-        onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
       >
         <span className={currentLang.flag}></span>
         <span className="language-code">{currentLang.code}</span>
@@ -36,31 +39,68 @@ const LanguageSwitcher = () => {
       
       {isOpen && (
         <div className="language-dropdown">
-          <button
-            className={`language-option ${i18n.language === 'vi' ? 'active' : ''}`}
-            onClick={() => changeLanguage('vi')}
-          >
-            <span className="fi fi-vn"></span>
-            <span className="language-name">{t('language.vietnamese')}</span>
-          </button>
-          <button
-            className={`language-option ${i18n.language === 'en' ? 'active' : ''}`}
-            onClick={() => changeLanguage('en')}
-          >
-            <span className="fi fi-us"></span>
-            <span className="language-name">{t('language.english')}</span>
-          </button>
-          <button
-            className={`language-option ${i18n.language === 'sk' ? 'active' : ''}`}
-            onClick={() => changeLanguage('sk')}
-          >
-            <span className="fi fi-sk"></span>
-            <span className="language-name">{t('language.slovak')}</span>
-          </button>
+          <div className="language-dropdown-inner">
+            <div className="language-dropdown-header">
+              <span className="language-dropdown-title">Language</span>
+              <span className="language-dropdown-subtitle">Choose display language</span>
+            </div>
+
+            <div className="language-dropdown-divider" />
+
+            <div className="language-options-list">
+              <button
+                className={`language-option ${i18n.language === 'vi' ? 'active' : ''}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  changeLanguage('vi');
+                }}
+              >
+                <span className="fi fi-vn"></span>
+                <span className="language-option-text">
+                  <span className="language-name">{t('language.vietnamese')}</span>
+                  <span className="language-meta">Tiếng Việt</span>
+                </span>
+                {i18n.language === 'vi' && <span className="language-current-dot" />}
+              </button>
+
+              <button
+                className={`language-option ${i18n.language === 'en' ? 'active' : ''}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  changeLanguage('en');
+                }}
+              >
+                <span className="fi fi-us"></span>
+                <span className="language-option-text">
+                  <span className="language-name">{t('language.english')}</span>
+                  <span className="language-meta">English</span>
+                </span>
+                {i18n.language === 'en' && <span className="language-current-dot" />}
+              </button>
+
+              <button
+                className={`language-option ${i18n.language === 'sk' ? 'active' : ''}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  changeLanguage('sk');
+                }}
+              >
+                <span className="fi fi-sk"></span>
+                <span className="language-option-text">
+                  <span className="language-name">{t('language.slovak')}</span>
+                  <span className="language-meta">Slovenčina</span>
+                </span>
+                {i18n.language === 'sk' && <span className="language-current-dot" />}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-export default LanguageSwitcher; 
+export default LanguageSwitcher;
