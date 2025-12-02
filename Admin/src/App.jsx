@@ -18,7 +18,7 @@ import Login from './pages/Login/Login'
 import DeliveryZones from './pages/DeliveryZones/DeliveryZones'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './i18n';
+import i18n from './i18n';
 import config from './config/config';
 
 const App = () => {
@@ -70,6 +70,36 @@ const App = () => {
       window.removeEventListener('keydown', handleKeyboard);
     };
   }, [sidebarOpen]);
+
+  // Sync HTML language class for font switching (e.g., Montserrat for Vietnamese)
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const root = document.documentElement;
+
+    const handleLanguageChange = (lng) => {
+      if (!root || !lng) return;
+
+      // Handle 'vi' and variants like 'vi-VN'
+      const isVietnamese = lng === 'vi' || lng.startsWith('vi-');
+
+      if (isVietnamese) {
+        root.classList.add('lang-vi');
+      } else {
+        root.classList.remove('lang-vi');
+      }
+    };
+
+    // Initialize on first load
+    handleLanguageChange(i18n.language || i18n.resolvedLanguage);
+
+    // Listen to language changes
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') {

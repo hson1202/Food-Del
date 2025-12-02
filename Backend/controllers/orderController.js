@@ -269,12 +269,11 @@ const trackOrder = async (req,res) => {
     try {
         const {trackingCode, phone} = req.body;
         
-        if (!trackingCode || !phone) {
-            return res.json({success:false,message:"Tracking code and phone number are required"})
-        }
-        
         // Nếu có trackingCode, tìm order cụ thể
         if (trackingCode) {
+            if (!phone) {
+                return res.json({success:false,message:"Tracking code and phone number are required"})
+            }
             const order = await orderModel.findOne({
                 trackingCode: trackingCode,
                 'customerInfo.phone': phone

@@ -2,176 +2,74 @@ import { useContext, useEffect, useState } from 'react'
 import { StoreContext } from '../../Context/StoreContext.jsx';
 import axios from 'axios';
 import { assets } from '../../assets/assets';
+import { useTranslation } from 'react-i18next';
 import './MyOrders.css'
 
 const MyOrders = () => {
-    const [data, setData] = useState([]);
+    const { t, i18n } = useTranslation();
+    const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [showGuestForm, setShowGuestForm] = useState(false);
-    const [guestForm, setGuestForm] = useState({
-        trackingCode: '',
-        phone: ''
-    });
-    const [lastOrderItems, setLastOrderItems] = useState([]);
+    const [expandedId, setExpandedId] = useState(null);
     const { url, token, setToken } = useContext(StoreContext);
     
     // Refresh token from localStorage if context token is empty
     const refreshToken = () => {
         const localToken = localStorage.getItem("token");
         if (localToken && !token) {
-            console.log('🔄 Refreshing token from localStorage:', localToken);
             setToken(localToken);
             return localToken;
         }
         return token;
     }
 
-    // Load last order snapshot for quick review
-    useEffect(() => {
-        try {
-            const tc = localStorage.getItem('lastTrackingCode') || '';
-            const ph = localStorage.getItem('lastPhone') || '';
-            const itemsRaw = localStorage.getItem('lastOrderItems');
-            const items = itemsRaw ? JSON.parse(itemsRaw) : [];
-            if (tc || ph) {
-                setGuestForm(prev => ({ ...prev, trackingCode: tc, phone: ph }));
-            }
-            if (Array.isArray(items)) setLastOrderItems(items);
-        } catch (error) {
-            console.error('Error loading last order:', error);
-        }
-    }, []);
-
-    // Fetch orders for registered users
+    // Fetch orders for logged-in users
     const fetchUserOrders = async () => {
         try {
             setLoading(true);
             const currentToken = refreshToken();
-            console.log('🔍 Fetching user orders with token:', currentToken);
-            console.log('🔍 Request URL:', url + "/api/order/userorders");
-            
-            const response = await axios.post(url + "/api/order/userorders", {}, { 
-                headers: { token: currentToken } 
-            });
-            
-            console.log('✅ User orders response:', response.data);
+            if (!currentToken) {
+                setOrders([]);
+                return;
+            }
+
+            const response = await axios.post(
+                url + "/api/order/userorders",
+                {},
+                { headers: { token: currentToken } }
+            );
             
             if (response.data.success) {
-                setData(response.data.data);
-                console.log('✅ User orders data set:', response.data.data);
+                setOrders(response.data.data || []);
             } else {
-                console.log('❌ User orders failed:', response.data.message);
-                setData([]);
+                setOrders([]);
             }
         } catch (error) {
-            console.error('❌ Error fetching user orders:', error);
-            console.error('❌ Error response:', error.response?.data);
-            setData([]);
+            console.error('Error fetching user orders:', error);
+            setOrders([]);
         } finally {
             setLoading(false);
         }
-    }
-
-    // Fetch orders for guest users
-    const fetchGuestOrders = async () => {
-        try {
-            setLoading(true);
-            
-            // Nếu có tracking code, tìm order cụ thể
-            if (guestForm.trackingCode) {
-                const response = await axios.post(url + "/api/order/track", {
-                    trackingCode: guestForm.trackingCode,
-                    phone: guestForm.phone
-                });
-                
-                if (response.data.success && response.data.data) {
-                    // Convert single order to array format
-                    setData([response.data.data]);
-                    console.log('Guest order by tracking code:', response.data.data);
-                } else {
-                    setData([]);
-                    alert('Không tìm thấy đơn hàng với mã tracking và số điện thoại này');
-                }
-            } else {
-                // Nếu không có tracking code, tìm tất cả orders của phone number
-                const response = await axios.post(url + "/api/order/track", {
-                    phone: guestForm.phone
-                });
-                
-                if (response.data.success && response.data.data) {
-                    setData(response.data.data);
-                    console.log('Guest orders by phone:', response.data.data);
-                } else {
-                    setData([]);
-                    alert('Không tìm thấy đơn hàng nào với số điện thoại này');
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching guest order:', error);
-            setData([]);
-            alert('Có lỗi xảy ra khi tìm kiếm đơn hàng');
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    // Handle guest form submission
-    const handleGuestSubmit = (e) => {
-        e.preventDefault();
-        if (!guestForm.phone) {
-            alert('Vui lòng nhập số điện thoại để tìm kiếm đơn hàng');
-            return;
-        }
-        fetchGuestOrders();
-    }
-
-    // Handle guest form input changes
-    const handleGuestFormChange = (e) => {
-        setGuestForm({
-            ...guestForm,
-            [e.target.name]: e.target.value
-        });
     }
 
     useEffect(() => {
-        console.log('🔄 MyOrders useEffect triggered');
-        console.log('🔄 Token exists:', !!token);
-        console.log('🔄 Token value:', token);
-        
-        // Try to refresh token if context token is empty
-        const currentToken = refreshToken();
-        console.log('🔄 Current token after refresh:', currentToken);
-        
-        if (currentToken) {
-            // Registered user - fetch their orders
-            console.log('👤 Registered user detected, fetching orders...');
-            fetchUserOrders();
-        } else {
-            // Guest user - show form to search orders
-            console.log('👥 Guest user detected, showing search form...');
-            setShowGuestForm(true);
-        }
+        fetchUserOrders();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token])
+    }, [token]);
 
-    // Additional useEffect to monitor localStorage changes
+    // Keep token in sync with localStorage
     useEffect(() => {
         const handleStorageChange = () => {
             const localToken = localStorage.getItem("token");
-            console.log('🔄 localStorage changed, new token:', localToken);
             if (localToken && localToken !== token) {
-                console.log('🔄 Updating token from localStorage change');
                 setToken(localToken);
             }
         };
 
         window.addEventListener('storage', handleStorageChange);
         
-        // Also check periodically for token changes
         const interval = setInterval(() => {
             const localToken = localStorage.getItem("token");
             if (localToken && localToken !== token) {
-                console.log('🔄 Token updated from localStorage check');
                 setToken(localToken);
             }
         }, 1000);
@@ -182,140 +80,193 @@ const MyOrders = () => {
         };
     }, [token, setToken]);
 
+    const toggleExpand = (id) => {
+        setExpandedId(prev => (prev === id ? null : id));
+    };
+
+    const formatOptionText = (options) => {
+        if (!Array.isArray(options) || options.length === 0) return '';
+
+        const lang = (i18n.language || 'sk').split('-')[0];
+        
+        const pickLabel = (obj = {}) => {
+            if (!obj) return '';
+            if (lang === 'vi') return obj.labelVI || obj.nameVI || obj.label || obj.name || '';
+            if (lang === 'en') return obj.labelEN || obj.nameEN || obj.label || obj.name || '';
+            if (lang === 'sk') return obj.labelSK || obj.nameSK || obj.label || obj.name || '';
+            return obj.label || obj.name || '';
+        };
+
+        const parts = options.map(opt => {
+            const optName = pickLabel(opt);
+            let choiceLabel = '';
+
+            if (Array.isArray(opt.choices) && opt.defaultChoiceCode) {
+                const choice = opt.choices.find(c => c.code === opt.defaultChoiceCode);
+                if (choice) {
+                    choiceLabel = pickLabel(choice);
+                }
+            }
+
+            if (optName && choiceLabel) return `${optName}: ${choiceLabel}`;
+            if (choiceLabel) return choiceLabel;
+            return null;
+        }).filter(Boolean);
+
+        return parts.join(' · ');
+    };
+
+    const getStatusLabel = (status) => {
+        if (status === 'Delivered') return t('myOrders.status.delivered');
+        if (status === 'Cancelled') return t('myOrders.status.cancelled');
+        return t('myOrders.status.notDelivered');
+    };
+
+    const getStatusClass = (status) => {
+        if (status === 'Delivered') return 'status-chip delivered';
+        if (status === 'Cancelled') return 'status-chip cancelled';
+        return 'status-chip pending';
+    };
+
     return (
         <div className='my-orders'>
-            {(guestForm.trackingCode || lastOrderItems.length > 0) && (
-                <div className="last-order-review">
-                    <h3>Đơn gần nhất</h3>
-                    <div className="last-order-meta">
-                        <div>
-                            <strong>Mã theo dõi:</strong> <span className="tracking-code">{guestForm.trackingCode || 'N/A'}</span>
-                        </div>
-                        <div>
-                            <strong>SĐT:</strong> <span>{guestForm.phone || 'N/A'}</span>
-                        </div>
-                        <button onClick={() => window.location.href = '/track-order'} className="track-now-btn">Theo dõi đơn</button>
-                    </div>
-                    {lastOrderItems.length > 0 && (
-                        <div className="last-order-items">
-                            <div className="items-title">Sản phẩm đã đặt</div>
-                            <div className="items-list">
-                                {lastOrderItems.map((it, idx) => (
-                                    <div key={idx} className="item-row">
-                                        <div className="item-main">
-                                            <div className="item-name">{it.name || 'Item'}</div>
-                                            {it.options && <small className="item-options">{JSON.stringify(it.options)}</small>}
-                                        </div>
-                                        <div className="item-meta">
-                                            <span className="item-qty">x{it.quantity || 1}</span>
-                                            <span className="item-price">€{(((it.price || 0) * (it.quantity || 1))).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+            <div className="my-orders-header">
+                <div>
+                    <h1>{t('myOrders.title')}</h1>
+                    <p>{t('myOrders.subtitle')}</p>
                 </div>
-            )}
-            <h2>My Orders</h2>
-            
-            {/* Debug Button */}
-           
-            
-            {/* Guest User Form */}
-            {!token && showGuestForm && (
-                <div className="guest-order-form">
-                    <h3>Tra cứu đơn hàng của bạn</h3>
-                    <p>Nhập số điện thoại để xem tất cả đơn hàng, hoặc thêm mã tracking để tìm đơn hàng cụ thể</p>
-                    <form onSubmit={handleGuestSubmit}>
-                        <div className="form-group">
-                            <input
-                                type="text"
-                                name="trackingCode"
-                                placeholder="Mã tracking (VD: AB123456) - Không bắt buộc"
-                                value={guestForm.trackingCode}
-                                onChange={handleGuestFormChange}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <input
-                                type="tel"
-                                name="phone"
-                                placeholder="Số điện thoại"
-                                value={guestForm.phone}
-                                onChange={handleGuestFormChange}
-                                required
-                            />
-                        </div>
-                        <button type="submit" disabled={loading}>
-                            {loading ? 'Đang tìm...' : 'Tìm đơn hàng'}
-                        </button>
-                    </form>
-                </div>
-            )}
+            </div>
 
-            {/* Loading State */}
             {loading && (
                 <div className="loading-state">
                     <div className="loading-spinner"></div>
-                    <p>Đang tải đơn hàng...</p>
+                    <p>{t('myOrders.loading')}</p>
                 </div>
             )}
 
-            {/* Orders Display */}
-            <div className="container">
-                {data.length > 0 ? (
-                    data.map((order, index) => (
-                        <div key={index} className='my-orders-order'>
-                            <img src={assets.parcel_icon} alt="" />
-                            <div className="order-info">
-                                <p className="order-items">
-                                    {order.items.map((item, idx) => (
-                                        <span key={idx}>
-                                            {item.name} x {item.quantity}
-                                            {idx < order.items.length - 1 ? ', ' : ''}
-                                        </span>
-                                    ))}
-                                </p>
-                                <p className="order-amount">€{order.amount}.00</p>
-                                <p className="order-items-count">Items: {order.items.length}</p>
-                                <p className="order-status">
-                                    <span>&#x25cf;</span> <b>{order.status}</b>
-                                </p>
-                                <p className="order-date">
-                                    Ngày đặt: {new Date(order.createdAt).toLocaleDateString('vi-VN')}
-                                </p>
-                                {order.trackingCode && (
-                                    <p className="tracking-code">
-                                        Mã tracking: <strong>{order.trackingCode}</strong>
-                                    </p>
-                                )}
-                            </div>
-                            <div className="order-actions">
-                                <button onClick={() => window.location.href = '/track-order'}>
-                                    Track Order
-                                </button>
-                                {!token && (
-                                    <button onClick={() => setShowGuestForm(true)}>
-                                        Tìm đơn hàng khác
-                                    </button>
-                                )}
-                            </div>
+            {!loading && !token && (
+                <div className="orders-card">
+                    <div className="no-orders">
+                        <h3>{t('myOrders.loginRequired.title')}</h3>
+                        <p>{t('myOrders.loginRequired.subtitle')}</p>
+                    </div>
+                </div>
+            )}
+
+            {!!token && (
+                <div className="orders-card">
+                    <div className="orders-card-header">
+                        <h3>{t('myOrders.list.title')}</h3>
+                        <span className="orders-count">
+                            {t('myOrders.list.count', { count: orders.length })}
+                        </span>
+                    </div>
+
+                    {orders.length > 0 ? (
+                        <div className="orders-list">
+                            {orders.map((order) => (
+                                <div
+                                    key={order._id}
+                                    className={`my-orders-order ${expandedId === order._id ? 'expanded' : ''}`}
+                                    onClick={() => toggleExpand(order._id)}
+                                >
+                                    <div className="order-main">
+                                        <div className="order-icon">
+                                            <img src={assets.parcel_icon} alt="" />
+                                        </div>
+                                        <div className="order-info">
+                                            <div className="order-top-row">
+                                                <p className="order-amount">€{order.amount}.00</p>
+                                                <div className="order-status">
+                                                    <span className={getStatusClass(order.status)}>
+                                                        {getStatusLabel(order.status)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <p className="order-items">
+                                                {order.items.map((item, idx) => (
+                                                    <span key={idx}>
+                                                        {item.name} × {item.quantity}
+                                                        {idx < order.items.length - 1 ? ', ' : ''}
+                                                    </span>
+                                                ))}
+                                            </p>
+                                            <div className="order-meta-row">
+                                                <span className="order-date">
+                                                    {t('myOrders.order.dateLabel')}{' '}
+                                                    {new Date(order.createdAt || order.date).toLocaleDateString()}
+                                                </span>
+                                                {order.trackingCode && (
+                                                    <span className="order-tracking">
+                                                        {t('myOrders.order.trackingLabel')}{' '}
+                                                        <strong>{order.trackingCode}</strong>
+                                                    </span>
+                                                )}
+                                                <span className="order-items-count">
+                                                    {t('myOrders.order.itemsCount', { count: order.items.length })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {expandedId === order._id && (
+                                        <div className="order-details">
+                                            <div className="order-details-section">
+                                                <h4>{t('myOrders.details.itemsTitle')}</h4>
+                                                <div className="details-items-list">
+                                                    {order.items.map((item, idx) => (
+                                                        <div key={idx} className="details-item-row">
+                                                            <div className="details-item-main">
+                                                                <span className="details-item-name">{item.name}</span>
+                                                                {Array.isArray(item.options) && item.options.length > 0 && (
+                                                                    <span className="details-item-options">
+                                                                        {formatOptionText(item.options)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="details-item-meta">
+                                                                <span>×{item.quantity}</span>
+                                                                <span>€{item.price}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="order-details-section">
+                                                <h4>{t('myOrders.details.deliveryTitle')}</h4>
+                                                <p className="details-address">
+                                                    {order.address?.street}, {order.address?.city}{' '}
+                                                    {order.address?.postalCode}
+                                                </p>
+                                                {order.preferredDeliveryTime && (
+                                                    <p className="details-note">
+                                                        {t('myOrders.details.preferredTime')}{' '}
+                                                        <span>{order.preferredDeliveryTime}</span>
+                                                    </p>
+                                                )}
+                                                {order.note && (
+                                                    <p className="details-note">
+                                                        {t('myOrders.details.note')}{' '}
+                                                        <span>{order.note}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
-                    ))
-                ) : (
-                    !loading && (
-                        <div className="no-orders">
-                            <p>Không có đơn hàng nào</p>
-                            {!token && (
-                                <button onClick={() => setShowGuestForm(true)}>
-                                    Tìm đơn hàng khác
-                                </button>
-                            )}
-                        </div>
-                    )
-                )}
-            </div>
+                    ) : (
+                        !loading && (
+                            <div className="no-orders">
+                                <h3>{t('myOrders.empty.title')}</h3>
+                                <p>{t('myOrders.empty.subtitle')}</p>
+                            </div>
+                        )
+                    )}
+                </div>
+            )}
         </div>
     )
 }

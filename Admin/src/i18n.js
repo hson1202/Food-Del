@@ -1628,7 +1628,9 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en', // Force default language to English
+    // Do NOT force a fixed language here so that LanguageDetector
+    // can read the last chosen language from localStorage.
+    // First-time users will fall back to English.
     fallbackLng: 'en',
     debug: false,
     interpolation: {

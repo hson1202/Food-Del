@@ -26,7 +26,7 @@ const TrackOrder = () => {
     setOrder(null)
 
     try {
-      const response = await axios.post(`${config.BACKEND_URL}/api/orders/track`, {
+      const response = await axios.post(`${config.BACKEND_URL}/api/order/track`, {
         trackingCode: trackingCode.toUpperCase(),
         phone: phone
       })

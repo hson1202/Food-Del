@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
 
 /* Performance Optimized - Focus on User Experience */
 /* - Reduced animation durations for better performance
@@ -11,6 +12,13 @@
   margin: 0;
   box-sizing: border-box;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Use Montserrat when the UI is in Vietnamese */
+html.lang-vi,
+html.lang-vi body,
+html.lang-vi * {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
 body {
