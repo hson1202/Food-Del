@@ -95,14 +95,58 @@ const placeOrder = async (req,res) => {
             console.log('⚠️ Failed to emit order:created event', emitErr?.message)
         }
         
-        // Nếu có userId hợp lệ (đăng nhập), xóa giỏ hàng
+        // Nếu có userId hợp lệ (đăng nhập), xóa giỏ hàng và kiểm tra auto-save address
         if (validUserId) {
             try {
-                await userModel.findByIdAndUpdate(validUserId, { cartData: {} });
-                console.log(`🛒 Cart cleared for user: ${validUserId}`);
+                // Load user to check addresses
+                const user = await userModel.findById(validUserId);
+                
+                if (user) {
+                    // Clear cart
+                    user.cartData = {};
+                    
+                    // Auto-create address from first order if user has zero addresses
+                    if (!user.addresses || user.addresses.length === 0) {
+                        console.log(`📍 User has zero addresses. Auto-creating address from order for user: ${validUserId}`);
+                        
+                        // Map order address fields to user address schema
+                        const newAddress = {
+                            label: 'Home', // Default label for first address
+                            fullName: customerInfo.name || '',
+                            phone: customerInfo.phone || '',
+                            street: address.street || '',
+                            houseNumber: address.houseNumber || '',
+                            city: address.city || '',
+                            state: address.state || '',
+                            zipcode: address.zipcode || '',
+                            country: address.country || 'Slovakia',
+                            coordinates: address.coordinates || null,
+                            isDefault: true // First address is always default
+                        };
+                        
+                        // Add address to user's addresses array
+                        user.addresses.push(newAddress);
+                        
+                        // Set defaultAddressId to the newly created address
+                        // Note: We need to save first to get the _id, then update defaultAddressId
+                        await user.save();
+                        
+                        // Get the newly added address (last in array) and set as default
+                        const addedAddress = user.addresses[user.addresses.length - 1];
+                        user.defaultAddressId = addedAddress._id;
+                        await user.save();
+                        
+                        console.log(`✅ Auto-created default address for user: ${validUserId}`);
+                    } else {
+                        // User already has addresses, just save cartData
+                        await user.save();
+                    }
+                    
+                    console.log(`🛒 Cart cleared for user: ${validUserId}`);
+                }
             } catch (cartError) {
-                console.log('Error clearing cart:', cartError);
-                // Không fail order nếu chỉ lỗi xóa cart
+                console.log('Error clearing cart or auto-creating address:', cartError);
+                // Không fail order nếu chỉ lỗi xóa cart hoặc tạo address
             }
         }
 

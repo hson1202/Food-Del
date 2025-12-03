@@ -3,21 +3,25 @@ import './Navbar.css'
 import {assets} from '../../assets/assets'
 import {Link, useNavigate, useLocation} from 'react-router-dom'
 import { StoreContext } from '../../Context/StoreContext'
+import { useAuth } from '../../Context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import LanguageSwitcher from '../../components/LanguageSwitcher/LanguageSwitcher'
+import config from '../../config/config'
+import { getOptimizedImageUrl } from '../../utils/imageUtils'
 
 
 const Navbar = ({setShowLogin}) => {
     
     const { t } = useTranslation();
     const [menu,setMenu]=useState("home");
-    const {token,setToken, isMobileMenuOpen, setIsMobileMenuOpen}=useContext(StoreContext);
+    const { isMobileMenuOpen, setIsMobileMenuOpen } = useContext(StoreContext);
+    const { token, user, logout: authLogout, isAuthenticated } = useAuth();
     const location = useLocation();
     
     const navigate = useNavigate();
-    const logout =()=>{
-        localStorage.removeItem("token");
-        setToken("");
+    const url = config.BACKEND_URL;
+    const logout = () => {
+        authLogout();
         navigate("/");
         setIsMobileMenuOpen(false);
     }
@@ -80,7 +84,15 @@ const Navbar = ({setShowLogin}) => {
                 {/* <Link to='/blog' onClick={()=>setMenu("blog")} className={menu==="blog"?"active":""}>{t('nav.blog')}</Link> */}
                 <Link to='/contact' onClick={()=>setMenu("contact")} className={menu==="contact"?"active":""}>{t('nav.contact')}</Link>
                 <Link to='/reservation' onClick={()=>setMenu("reservation")} className={menu==="reservation"?"active":""}>{t('nav.booking')}</Link>
-                {token && <Link to='/admin' onClick={()=>setMenu("admin")} className={menu==="admin"?"active":""}>Admin</Link>}
+                {isAuthenticated && user?.role === 'admin' && (
+                    <Link
+                        to='/admin'
+                        onClick={() => setMenu("admin")}
+                        className={menu === "admin" ? "active" : ""}
+                    >
+                        {t('nav.admin') || 'Admin'}
+                    </Link>
+                )}
             </ul>
             
             {/* Mobile Menu Overlay */}
@@ -97,12 +109,22 @@ const Navbar = ({setShowLogin}) => {
                         <div className="mobile-account-divider"></div>
                         <div className="mobile-account-title">{t('nav.account')}</div>
                         
-                        {!token ? (
+                        {!isAuthenticated ? (
                             <button onClick={handleLoginClick} className="mobile-login-btn">
                                 {t('common.login')}
                             </button>
                         ) : (
                             <div className="mobile-account-options">
+                                <button 
+                                    onClick={() => {
+                                        navigate('/account');
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className="mobile-account-btn"
+                                >
+                                    <img src={assets.profile_icon} alt="" />
+                                    <span>{t('nav.myAccount') || 'My Account'}</span>
+                                </button>
                                 <button 
                                     onClick={() => {
                                         navigate('/myorders');
@@ -127,15 +149,34 @@ const Navbar = ({setShowLogin}) => {
                 {/* Desktop language switcher */}
                 <LanguageSwitcher />
                 {/* Desktop Login Button - Hidden on Mobile */}
-                {!token ? (
+                {!isAuthenticated ? (
                     <button onClick={()=>setShowLogin(true)} className="login-btn desktop-login-btn">
                         {t('common.login')}
                     </button>
                 ) : (
                     <div className="navbar-profile desktop-profile">
-                        <img src={assets.profile_icon} alt=''></img>
+                        {user?.avatarUrl ? (
+                            <img
+                                src={getOptimizedImageUrl(user.avatarUrl, url, { width: 40, height: 40, crop: 'fill', gravity: 'face' })}
+                                alt={user.name}
+                                className="navbar-avatar"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = assets.profile_icon;
+                                }}
+                            />
+                        ) : (
+                            <img src={assets.profile_icon} alt='' />
+                        )}
+                        <span className="navbar-user-name">
+                            {user?.name || t('account.profile.user') || 'User'}
+                        </span>
                         <ul className="nav-profile-dropdown">
-                            <li onClick={()=>{navigate('/myorders'); setIsMobileMenuOpen(false);}}>
+                            <li onClick={()=>{navigate('/account'); setIsMobileMenuOpen(false);}}>
+                                <img src={assets.profile_icon} alt="" />
+                                <p>{t('nav.myAccount') || 'My Account'}</p>
+                            </li>
+                            <li onClick={()=>{navigate('/account/orders'); setIsMobileMenuOpen(false);}}>
                                 <img src={assets.bag_icon} alt="" />
                                 <p>{t('nav.myOrders')}</p>
                             </li>
@@ -152,7 +193,7 @@ const Navbar = ({setShowLogin}) => {
                 <button 
                     className={`hamburger-menu ${isMobileMenuOpen ? 'active' : ''}`}
                     onClick={toggleMobileMenu}
-                    aria-label="Toggle menu"
+                    aria-label={t('nav.toggleMenu') || 'Toggle menu'}
                 >
                     <span></span>
                     <span></span>

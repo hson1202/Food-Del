@@ -16,6 +16,236 @@
     padding: 0 24px 40px;
     background: #ffffff;
 }
+
+/* Saved Address Card Styles */
+.saved-address-card {
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.address-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.address-card-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.address-card-info h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.default-badge {
+    background: #ff6347;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.change-address-btn {
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.change-address-btn:hover {
+    background: #333;
+}
+
+.address-card-content {
+    color: #555;
+}
+
+.address-card-content .address-name {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 4px 0;
+    color: #1a1a1a;
+}
+
+.address-card-content .address-phone {
+    margin: 0 0 8px 0;
+    color: #666;
+}
+
+.address-card-content .address-full {
+    margin: 0;
+    line-height: 1.6;
+    color: #555;
+}
+
+/* Address Selection Modal Styles */
+.address-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.address-modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.address-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.address-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.close-modal-btn:hover {
+    background: #f0f0f0;
+}
+
+.address-modal-body {
+    padding: 20px 24px;
+}
+
+.address-option-card {
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.address-option-card:hover {
+    border-color: #ff6347;
+    background: #fff;
+}
+
+.address-option-card.selected {
+    border-color: #ff6347;
+    background: #fff5f5;
+}
+
+.address-option-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.address-option-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.address-option-content {
+    color: #555;
+}
+
+.address-option-content .address-name {
+    font-weight: 600;
+    font-size: 15px;
+    margin: 0 0 4px 0;
+    color: #1a1a1a;
+}
+
+.address-option-content .address-phone {
+    margin: 0 0 8px 0;
+    color: #666;
+}
+
+.address-option-content .address-full {
+    margin: 0;
+    line-height: 1.6;
+    color: #555;
+}
+
+.selected-indicator {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #ff6347;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.add-new-address-btn {
+    width: 100%;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 8px;
+}
+
+.add-new-address-btn:hover {
+    background: #333;
+}
 .place-order-left{
     width: 100%;
     max-width: max(10%,500px);

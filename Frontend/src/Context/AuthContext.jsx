@@ -113,6 +113,20 @@ const AuthProvider = ({ children }) => {
         }
     };
 
+    // Refresh user data from backend
+    const refreshUser = async () => {
+        if (!token) return;
+        
+        try {
+            const verification = await verifyToken(token);
+            if (verification.isValid) {
+                setUser(verification.user);
+            }
+        } catch (error) {
+            console.error("Error refreshing user data:", error);
+        }
+    };
+
     // Logout function
     const logout = () => {
         localStorage.removeItem("token");
@@ -196,6 +210,7 @@ const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        refreshUser,
         setAuthError
     };
 

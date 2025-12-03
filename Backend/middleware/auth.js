@@ -17,7 +17,9 @@ const authMiddleware = async (req, res, next) => {
     if (!secret) throw new Error("JWT_SECRET is not set");
 
     const token_decode = jwt.verify(token, secret);
+    // Ensure req.body exists and preserve existing body data
     if (!req.body) req.body = {};
+    // Set userId and isAdmin, preserving any existing body properties
     req.body.userId = token_decode.id;
     req.body.isAdmin = token_decode.role === "admin";
     next();

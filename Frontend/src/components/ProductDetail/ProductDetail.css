@@ -21,6 +21,8 @@
   max-width: 900px;
   width: 100%;
   max-height: 90vh;
+  /* Đảm bảo luôn nằm giữa màn hình, không dính sát mép dưới */
+  margin: auto;
   /* ĐỂ FOOTER CỐ ĐỊNH, CHO FLEX COLUMN & ẨN SCROLL Ở MODAL */
   display: flex;
   flex-direction: column;

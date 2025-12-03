@@ -2,12 +2,13 @@ import React, { useContext, useState } from 'react'
 import './LoginPopup.css'
 import {assets} from '../../assets/assets'
 import { StoreContext } from '../../Context/StoreContext'
-import axios from "axios"
+import { useAuth } from '../../Context/AuthContext'
 
 
 const LoginPopup = ({setShowLogin}) => {
 
-    const {url,setToken}=useContext(StoreContext)
+    const {url} = useContext(StoreContext)
+    const { login, register, authError, setAuthError } = useAuth()
 
     const [currState,setCurrState]=useState("Sign-Up")
     const [data,setData] =useState({
@@ -15,37 +16,44 @@ const LoginPopup = ({setShowLogin}) => {
         email:"",
         password:""
     })
+    const [loading, setLoading] = useState(false)
 
     const onChangeHandler=(event) =>{
         const name = event.target.name;
         const value = event.target.value;
         setData(data =>({...data,[name]:value}))
+        // Clear error when user types
+        if (authError) {
+            setAuthError(null);
+        }
     }
 
     const OnLogin = async (event)=>{
         event.preventDefault()
-        let newUrl= url;
-        if (currState==="Login") {
-            newUrl +="/api/user/login"
-        }
-        else{
-            newUrl +="/api/user/register"
-        }
+        setLoading(true)
+        setAuthError(null)
 
         try {
-            const response = await axios.post(newUrl,data);
-            console.log("Response:", response.data);
-            if (response.data.success) {
-                setToken(response.data.token);
-                localStorage.setItem("token",response.data.token)
-                setShowLogin(false)
+            let result;
+            if (currState==="Login") {
+                result = await login(data.email, data.password);
+            } else {
+                result = await register(data.name, data.email, data.password);
             }
-            else{
-                alert(response.data.message || "An error occurred")
+
+            if (result.success) {
+                setShowLogin(false)
+                // Reset form
+                setData({ name: "", email: "", password: "" });
+            } else {
+                // Error is already set in AuthContext via setAuthError
+                // It will be displayed below
             }
         } catch (error) {
             console.error("Login error:", error);
-            alert(error.response?.data?.message || "Network error occurred")
+            setAuthError(error.message || "An error occurred");
+        } finally {
+            setLoading(false)
         }
     }
   return (
@@ -55,13 +63,20 @@ const LoginPopup = ({setShowLogin}) => {
                 <h2>{currState}</h2>
                 <img onClick={()=>setShowLogin(false)} src={assets.cross_icon} alt=''></img>
             </div>
+            {authError && (
+                <div className="login-popup-error">
+                    {authError}
+                </div>
+            )}
             <div className="login-popup-inputs">
                 {currState==="Login"?<></>:<input name='name' onChange={onChangeHandler}  value={data.name} type='text' placeholder='Your Name' required/>}     
                 <input name='email' onChange={onChangeHandler} value={data.email} type='email' placeholder='Your Email' required/>
                 <input name='password' onChange={onChangeHandler} value={data.password} type='password' placeholder='Password' required/>
 
             </div>
-            <button type='submit'>{currState==="Sign-Up"?"Create Account":"Login"}</button>
+            <button type='submit' disabled={loading}>
+                {loading ? 'Please wait...' : (currState==="Sign-Up"?"Create Account":"Login")}
+            </button>
            <div className="login-popup-condition">
             <input type='checkbox' required></input>
             <p>By continuing,I agree to the terms of use & privacy policy.</p>

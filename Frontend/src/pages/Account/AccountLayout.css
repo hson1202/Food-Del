@@ -1,0 +1,130 @@
+.account-layout {
+    min-height: calc(100vh - 200px);
+    padding: 2rem 1rem;
+    background-color: #f5f5f5;
+}
+
+.account-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 2rem;
+}
+
+.account-sidebar {
+    width: 280px;
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+.account-sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 1.5rem;
+}
+
+.account-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+}
+
+.account-user-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.account-user-info p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.account-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #666;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.account-nav-item img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+}
+
+.account-nav-item:hover {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.account-nav-item.active {
+    background-color: #ff6b35;
+    color: white;
+}
+
+.account-nav-item.active img {
+    opacity: 1;
+    filter: brightness(0) invert(1);
+}
+
+.account-content {
+    flex: 1;
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 500px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .account-container {
+        flex-direction: column;
+    }
+
+    .account-sidebar {
+        width: 100%;
+        position: static;
+    }
+
+    .account-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    .account-nav-item {
+        white-space: nowrap;
+        min-width: fit-content;
+    }
+
+    .account-content {
+        padding: 1.5rem;
+    }
+}
+
+

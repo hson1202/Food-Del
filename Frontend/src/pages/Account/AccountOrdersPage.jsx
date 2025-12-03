@@ -1,0 +1,206 @@
+import { useEffect, useState } from 'react';
+import { useAuth } from '../../Context/AuthContext';
+import axios from 'axios';
+import config from '../../config/config';
+import { assets } from '../../assets/assets';
+import { useTranslation } from 'react-i18next';
+import '../MyOrders/MyOrders.css';
+
+const AccountOrdersPage = () => {
+    const { t, i18n } = useTranslation();
+    const { token, isAuthenticated } = useAuth();
+    const url = config.BACKEND_URL;
+    
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [expandedId, setExpandedId] = useState(null);
+
+    // Fetch orders for logged-in users using new GET endpoint
+    const fetchUserOrders = async () => {
+        if (!token || !isAuthenticated) {
+            setOrders([]);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await axios.get(
+                url + "/api/user/orders",
+                { headers: { token } }
+            );
+            
+            if (response.data.success) {
+                setOrders(response.data.data || []);
+            } else {
+                setOrders([]);
+            }
+        } catch (error) {
+            console.error('Error fetching user orders:', error);
+            setOrders([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (isAuthenticated && token) {
+            fetchUserOrders();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, isAuthenticated]);
+
+    const toggleExpand = (id) => {
+        setExpandedId(prev => (prev === id ? null : id));
+    };
+
+    const formatOptionText = (options) => {
+        if (!options || Object.keys(options).length === 0) return '';
+        return Object.entries(options)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', ');
+    };
+
+    const getStatusLabel = (status) => {
+        const statusMap = {
+            'Pending': t('myOrders.status.pending') || 'Pending',
+            'Out for delivery': t('myOrders.status.outForDelivery') || 'Out for delivery',
+            'Delivered': t('myOrders.status.delivered') || 'Delivered',
+            'Cancelled': t('myOrders.status.cancelled') || 'Cancelled'
+        };
+        return statusMap[status] || status;
+    };
+
+    const getStatusClass = (status) => {
+        if (status === 'Delivered') return 'status-chip delivered';
+        if (status === 'Out for delivery') return 'status-chip out-for-delivery';
+        if (status === 'Cancelled') return 'status-chip cancelled';
+        return 'status-chip pending';
+    };
+
+    return (
+        <div className='my-orders'>
+            <div className="my-orders-header">
+                <div>
+                    <h1>{t('account.orders.title') || t('myOrders.title') || 'My Orders'}</h1>
+                    <p>{t('account.orders.subtitle') || t('myOrders.subtitle') || 'View your order history'}</p>
+                </div>
+            </div>
+
+            {loading && (
+                <div className="loading-state">
+                    <div className="loading-spinner"></div>
+                    <p>{t('myOrders.loading') || 'Loading orders...'}</p>
+                </div>
+            )}
+
+            {!loading && orders.length === 0 && (
+                <div className="orders-card">
+                    <div className="no-orders">
+                        <h3>{t('myOrders.empty.title') || 'No orders yet'}</h3>
+                        <p>{t('myOrders.empty.subtitle') || 'You haven\'t placed any orders yet.'}</p>
+                    </div>
+                </div>
+            )}
+
+            {!loading && orders.length > 0 && (
+                <div className="orders-card">
+                    <div className="orders-card-header">
+                        <h3>{t('myOrders.list.title') || 'Order History'}</h3>
+                        <span className="orders-count">
+                            {t('myOrders.list.count', { count: orders.length }) || `${orders.length} order${orders.length !== 1 ? 's' : ''}`}
+                        </span>
+                    </div>
+
+                    <div className="orders-list">
+                        {orders.map((order) => (
+                            <div
+                                key={order._id}
+                                className={`my-orders-order ${expandedId === order._id ? 'expanded' : ''}`}
+                                onClick={() => toggleExpand(order._id)}
+                            >
+                                <div className="order-main">
+                                    <div className="order-icon">
+                                        <img src={assets.parcel_icon} alt="" />
+                                    </div>
+                                    <div className="order-info">
+                                        <div className="order-top-row">
+                                            <p className="order-amount">€{order.amount}.00</p>
+                                            <div className="order-status">
+                                                <span className={getStatusClass(order.status)}>
+                                                    {getStatusLabel(order.status)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p className="order-items">
+                                            {order.items.map((item, idx) => (
+                                                <span key={idx}>
+                                                    {item.name} × {item.quantity}
+                                                    {item.options && formatOptionText(item.options) && (
+                                                        <span className="item-options"> ({formatOptionText(item.options)})</span>
+                                                    )}
+                                                    {idx < order.items.length - 1 ? ', ' : ''}
+                                                </span>
+                                            ))}
+                                        </p>
+                                        <div className="order-meta-row">
+                                            <p className="order-date">
+                                                {new Date(order.createdAt || order.date).toLocaleDateString()}
+                                            </p>
+                                            {order.trackingCode && (
+                                                <p className="order-tracking">
+                                                    {t('myOrders.order.trackingLabel')}: {order.trackingCode}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {expandedId === order._id && (
+                                    <div className="order-details">
+                                        <div className="order-details-section">
+                                            <h4>{t('myOrders.details.itemsTitle') || 'Items'}</h4>
+                                            <div className="order-items-list">
+                                                {order.items.map((item, idx) => (
+                                                    <div key={idx} className="order-item-detail">
+                                                        <span className="item-name">{item.name} × {item.quantity}</span>
+                                                        <span className="item-price">€{(item.price * item.quantity).toFixed(2)}</span>
+                                                        {item.options && formatOptionText(item.options) && (
+                                                            <p className="item-options">{formatOptionText(item.options)}</p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="order-details-section">
+                                            <h4>{t('myOrders.details.deliveryTitle') || 'Delivery Address'}</h4>
+                                            <p className="details-address">
+                                                {order.address?.street}, {order.address?.city}{' '}
+                                                {order.address?.postalCode}
+                                            </p>
+                                            {order.preferredDeliveryTime && (
+                                                <p className="details-note">
+                                                    {t('myOrders.details.preferredTime') || 'Preferred time'}{' '}
+                                                    <span>{order.preferredDeliveryTime}</span>
+                                                </p>
+                                            )}
+                                            {order.note && (
+                                                <p className="details-note">
+                                                    {t('myOrders.details.note') || 'Note'}{' '}
+                                                    <span>{order.note}</span>
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default AccountOrdersPage;
+

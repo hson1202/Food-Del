@@ -1,29 +1,32 @@
-import { useContext, useEffect, useState } from 'react'
-import { StoreContext } from '../../Context/StoreContext.jsx';
+import { useEffect, useState } from 'react'
+import { useAuth } from '../../Context/AuthContext';
 import axios from 'axios';
+import config from '../../config/config';
 import { assets } from '../../assets/assets';
 import { useTranslation } from 'react-i18next';
 import './MyOrders.css'
 
 const MyOrders = () => {
     const { t, i18n } = useTranslation();
+    const { token, isAuthenticated } = useAuth();
+    const url = config.BACKEND_URL;
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [expandedId, setExpandedId] = useState(null);
-    const { url, token } = useContext(StoreContext);
+    const [error, setError] = useState(null);
 
     // Fetch orders for logged-in users
     const fetchUserOrders = async () => {
-        if (!token) {
+        if (!token || !isAuthenticated) {
             setOrders([]);
             return;
         }
 
         try {
             setLoading(true);
-            const response = await axios.post(
-                url + "/api/order/userorders",
-                {},
+            setError(null);
+            const response = await axios.get(
+                url + "/api/user/orders",
                 { headers: { token } }
             );
             
@@ -31,19 +34,23 @@ const MyOrders = () => {
                 setOrders(response.data.data || []);
             } else {
                 setOrders([]);
+                setError(response.data.message || 'Failed to load orders');
             }
         } catch (error) {
             console.error('Error fetching user orders:', error);
             setOrders([]);
+            setError(error.response?.data?.message || 'Failed to load orders. Please try again.');
         } finally {
             setLoading(false);
         }
     }
 
     useEffect(() => {
-        fetchUserOrders();
+        if (isAuthenticated && token) {
+            fetchUserOrders();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token]);
+    }, [token, isAuthenticated]);
 
     const toggleExpand = (id) => {
         setExpandedId(prev => (prev === id ? null : id));
@@ -109,7 +116,7 @@ const MyOrders = () => {
                 </div>
             )}
 
-            {!loading && !token && (
+            {!loading && !isAuthenticated && (
                 <div className="orders-card">
                     <div className="no-orders">
                         <h3>{t('myOrders.loginRequired.title')}</h3>
@@ -118,7 +125,16 @@ const MyOrders = () => {
                 </div>
             )}
 
-            {!!token && (
+            {error && (
+                <div className="orders-card">
+                    <div className="no-orders">
+                        <h3 style={{ color: '#dc3545' }}>Error</h3>
+                        <p>{error}</p>
+                    </div>
+                </div>
+            )}
+
+            {!loading && isAuthenticated && !error && (
                 <div className="orders-card">
                     <div className="orders-card-header">
                         <h3>{t('myOrders.list.title')}</h3>

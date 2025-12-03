@@ -109,6 +109,40 @@
     position: relative;
     cursor: pointer;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.navbar-profile img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.navbar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+}
+
+.navbar-user-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .navbar-user-name {
+        display: none;
+    }
 }
 
 .nav-profile-dropdown{
@@ -251,12 +285,6 @@
 
 .mobile-menu a:last-child {
     border-bottom: none;
-}
-
-/* Mobile Account Section */
-.mobile-account-section {
-    margin-top: auto;
-    padding-top: 20px;
 }
 
 .mobile-account-divider {

@@ -1,6 +1,6 @@
 import React , { useState, useEffect }from 'react'
 import Navbar from './pages/Navbar/Navbar';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import Home from './pages/Home/Home'
 import Menu from './pages/Menu/Menu'
 import AboutUs from './pages/AboutUs/AboutUs'
@@ -16,6 +16,12 @@ import MyOrders from './pages/MyOrders/MyOrders'
 import TrackOrder from './pages/TrackOrder/TrackOrder'
 import Admin from './pages/Admin/Admin'
 import FloatingCartBtn from './components/FloatingCartBtn/FloatingCartBtn'
+import RequireAuth from './components/RequireAuth/RequireAuth'
+import AccountLayout from './pages/Account/AccountLayout'
+import ProfilePage from './pages/Account/ProfilePage'
+import ChangePasswordPage from './pages/Account/ChangePasswordPage'
+import AddressBookPage from './pages/Account/AddressBookPage'
+import AccountOrdersPage from './pages/Account/AccountOrdersPage'
 import i18n from './i18n';
 
 const App = () => {
@@ -71,6 +77,22 @@ const App = () => {
         <Route path='/myorders' element={<MyOrders />} />
         <Route path='/track-order' element={<TrackOrder />} />
         <Route path='/admin' element={<Admin />} />
+        
+        {/* Account routes - protected */}
+        <Route 
+          path='/account' 
+          element={
+            <RequireAuth setShowLogin={setShowLogin}>
+              <AccountLayout />
+            </RequireAuth>
+          }
+        >
+          <Route index element={<Navigate to="/account/profile" replace />} />
+          <Route path='profile' element={<ProfilePage />} />
+          <Route path='password' element={<ChangePasswordPage />} />
+          <Route path='addresses' element={<AddressBookPage />} />
+          <Route path='orders' element={<AccountOrdersPage />} />
+        </Route>
 
       </Routes>
     </div>

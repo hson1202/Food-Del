@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import './PlaceOrder.css'
 import { StoreContext } from '../../Context/StoreContext'
+import { useAuth } from '../../Context/AuthContext'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -11,7 +12,8 @@ import '../../i18n'
 
 const PlaceOrder = () => {
   const { t, i18n } = useTranslation();
-  const { getTotalCartAmount, token, food_list, cartItems, cartItemsData, url, setCartItems, setToken } = useContext(StoreContext);
+  const { getTotalCartAmount, food_list, cartItems, cartItemsData, url, setCartItems } = useContext(StoreContext);
+  const { token, isAuthenticated, user } = useAuth();
   const [data, setData] = useState({
     firstName: "",
     lastName: "",
@@ -20,7 +22,7 @@ const PlaceOrder = () => {
     note: "",
     preferredDeliveryTime: ""
   })
-  const [orderType, setOrderType] = useState(token ? 'registered' : 'guest'); // Tự động set 'registered' nếu đã login
+  const [orderType, setOrderType] = useState(isAuthenticated ? 'registered' : 'guest');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [orderSuccessData, setOrderSuccessData] = useState({});
@@ -30,6 +32,13 @@ const PlaceOrder = () => {
   const [restaurantLocation, setRestaurantLocation] = useState(null);
   const [deliveryAddress, setDeliveryAddress] = useState(null);
   const [timeSlots, setTimeSlots] = useState([]);
+  
+  // User addresses state (for authenticated users)
+  const [userAddresses, setUserAddresses] = useState([]);
+  const [defaultAddressId, setDefaultAddressId] = useState(null);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [useManualAddress, setUseManualAddress] = useState(false); // Track if user wants to enter address manually
 
   const formatPrice = (price) => {
     const n = Number(price);
@@ -103,6 +112,120 @@ const PlaceOrder = () => {
       setData(prev => ({ ...prev, preferredDeliveryTime: slots[0] }));
     }
   }, []);
+
+  // Pre-fill user data if authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Split name into first and last name if available
+      const nameParts = user.name ? user.name.split(' ') : [];
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      setData(prev => ({
+        ...prev,
+        firstName: prev.firstName || firstName,
+        lastName: prev.lastName || lastName,
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || ''
+      }));
+    }
+  }, [isAuthenticated, user]);
+
+  // Fetch user addresses if authenticated
+  useEffect(() => {
+    const fetchUserAddresses = async () => {
+      if (isAuthenticated && token) {
+        try {
+          const response = await axios.get(url + '/api/user/addresses', {
+            headers: { token }
+          });
+          
+          if (response.data.success) {
+            const addresses = response.data.data || [];
+            setUserAddresses(addresses);
+            setDefaultAddressId(response.data.defaultAddressId || null);
+            
+            // If user has addresses, set selected address to default
+            if (addresses.length > 0) {
+              const defaultAddr = addresses.find(addr => 
+                addr._id === response.data.defaultAddressId || addr.isDefault
+              ) || addresses[0];
+              
+              if (defaultAddr) {
+                setSelectedAddressId(defaultAddr._id);
+                // Set delivery address from default address for order submission
+                setDeliveryAddress({
+                  address: defaultAddr.street || '',
+                  houseNumber: defaultAddr.houseNumber || '',
+                  city: defaultAddr.city || '',
+                  state: defaultAddr.state || '',
+                  zipcode: defaultAddr.zipcode || '',
+                  country: defaultAddr.country || '',
+                  coordinates: defaultAddr.coordinates || null
+                });
+                
+                // Pre-fill contact info from default address
+                if (defaultAddr.fullName) {
+                  const nameParts = defaultAddr.fullName.split(' ');
+                  setData(prev => ({
+                    ...prev,
+                    firstName: prev.firstName || nameParts[0] || '',
+                    lastName: prev.lastName || nameParts.slice(1).join(' ') || '',
+                    phone: prev.phone || defaultAddr.phone || ''
+                  }));
+                }
+                
+                // Auto-calculate delivery fee for default address using full address string
+                try {
+                  const fullAddress = defaultAddr.street; // street is stored as full address
+                  const calcResponse = await axios.post(url + '/api/delivery/calculate', {
+                    address: fullAddress
+                  });
+                  
+                  if (calcResponse.data.success) {
+                    handleDeliveryCalculated(calcResponse.data.data);
+                  } else {
+                    setDeliveryInfo(null);
+                  }
+                } catch (error) {
+                  console.error('Error calculating delivery for default address:', error);
+                  setDeliveryInfo(null);
+                }
+                /* OLD IMPLEMENTATION – required coordinates, so it never ran for address-book addresses (no coords)
+                if (defaultAddr.coordinates && restaurantLocation) {
+                  try {
+                    // Dùng đúng 1 dòng địa chỉ đã lưu (street đang đóng vai trò full address)
+                    const fullAddress = defaultAddr.street;
+                    const calcResponse = await axios.post(url + '/api/delivery/calculate', {
+                      address: fullAddress,
+                      latitude: defaultAddr.coordinates.lat || defaultAddr.coordinates.latitude,
+                      longitude: defaultAddr.coordinates.lng || defaultAddr.coordinates.longitude
+                    });
+                    
+                    if (calcResponse.data.success) {
+                      handleDeliveryCalculated(calcResponse.data.data);
+                    } else {
+                      setDeliveryInfo(null);
+                    }
+                  } catch (error) {
+                    console.error('Error calculating delivery for default address:', error);
+                    setDeliveryInfo(null);
+                  }
+                }
+                */
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user addresses:', error);
+          // Don't show error to user, just log it
+          // User can still proceed with manual address entry
+        }
+      }
+    };
+    
+    fetchUserAddresses();
+  }, [isAuthenticated, token, url, restaurantLocation]);
 
   // Simple retry helper for transient errors (e.g., 502/503/network)
   const postWithRetry = async (endpoint, data, options, retries = 2, delayMs = 800) => {
@@ -189,10 +312,6 @@ const PlaceOrder = () => {
       email: data.email || undefined
     };
 
-    // Lấy token từ context (ưu tiên), chỉ fallback localStorage nếu context chưa có
-    // Phase 2: sẽ bỏ localStorage fallback, chỉ dùng token từ context
-    const currentToken = token || (typeof window !== 'undefined' ? localStorage.getItem("token") : null);
-    
     const deliveryFee = getDeliveryFee();
     
     let orderData = {
@@ -208,7 +327,7 @@ const PlaceOrder = () => {
       items: orderItems,
       amount: getTotalCartAmount() + deliveryFee,
       customerInfo: customerInfo,
-      orderType: currentToken ? 'registered' : 'guest',
+      orderType: isAuthenticated ? 'registered' : 'guest',
       language: i18n.language || 'vi', // Lưu ngôn ngữ khách hàng đang dùng
       note: data.note || '',
       preferredDeliveryTime: data.preferredDeliveryTime || '',
@@ -224,12 +343,12 @@ const PlaceOrder = () => {
 
     try {
       console.log('Sending order data:', orderData);
-      console.log('Token available:', !!currentToken);
+      console.log('Token available:', !!token);
       
       let response = await postWithRetry(
         url + "/api/order/place",
         orderData,
-        { headers: currentToken ? { token: currentToken } : {} },
+        { headers: token ? { token } : {} },
         2,
         700
       )
@@ -274,13 +393,9 @@ const PlaceOrder = () => {
       
       // Nếu lỗi 401 (Unauthorized) và có token, có thể token đã hết hạn
       // Thử lại như guest order
-      if (error.response?.status === 401 && currentToken) {
+      if (error.response?.status === 401 && token) {
         console.log('⚠️ Token invalid or expired, retrying as guest order...');
         try {
-          // Xóa token khỏi localStorage nếu invalid
-          localStorage.removeItem("token");
-          setToken("");
-          
           // Thử lại như guest order
           const guestOrderData = {
             ...orderData,
@@ -394,6 +509,88 @@ const PlaceOrder = () => {
     }));
   };
 
+  // Handle address selection from modal
+  const handleSelectAddress = async (address) => {
+    setSelectedAddressId(address._id);
+    const newDeliveryAddress = {
+      address: address.street || '',
+      houseNumber: address.houseNumber || '',
+      city: address.city || '',
+      state: address.state || '',
+      zipcode: address.zipcode || '',
+      country: address.country || '',
+      coordinates: address.coordinates || null
+    };
+    setDeliveryAddress(newDeliveryAddress);
+    
+    // Update contact info from selected address
+    if (address.fullName) {
+      const nameParts = address.fullName.split(' ');
+      setData(prev => ({
+        ...prev,
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        phone: address.phone || prev.phone
+      }));
+    }
+    
+    // Manually trigger delivery calculation using full address string
+    try {
+      const fullAddress = address.street; // street is stored as full address
+      const response = await axios.post(url + '/api/delivery/calculate', {
+        address: fullAddress
+      });
+      
+      if (response.data.success) {
+        handleDeliveryCalculated(response.data.data);
+      } else {
+        setDeliveryInfo(null);
+      }
+    } catch (error) {
+      console.error('Error calculating delivery for selected address:', error);
+      setDeliveryInfo(null);
+    }
+
+    /* OLD IMPLEMENTATION – required coordinates so it never ran for normal saved addresses
+    if (address.coordinates && restaurantLocation) {
+      try {
+        // Dùng đúng 1 dòng địa chỉ đã lưu (street đang đóng vai trò full address)
+        const fullAddress = address.street;
+        const response = await axios.post(url + '/api/delivery/calculate', {
+          address: fullAddress,
+          latitude: address.coordinates.lat || address.coordinates.latitude,
+          longitude: address.coordinates.lng || address.coordinates.longitude
+        });
+        
+        if (response.data.success) {
+          handleDeliveryCalculated(response.data.data);
+        } else {
+          setDeliveryInfo(null);
+        }
+      } catch (error) {
+        console.error('Error calculating delivery for selected address:', error);
+        setDeliveryInfo(null);
+      }
+    } else {
+      // Reset delivery info if no coordinates
+      setDeliveryInfo(null);
+    }
+    */
+    
+    setShowAddressModal(false);
+  };
+
+  // Determine if we should show full form or address card
+  const shouldShowAddressCard = isAuthenticated && userAddresses.length > 0 && !useManualAddress;
+  
+  // Get currently selected address for display
+  const selectedAddress = shouldShowAddressCard 
+    ? userAddresses.find(addr => addr._id === selectedAddressId) || userAddresses[0]
+    : null;
+  
+  // Helper to check if any address has been selected (for warning condition)
+  const hasAnyAddressSelected = !!deliveryAddress?.address || !!selectedAddressId;
+
   useEffect(() => {
     if (getTotalCartAmount() === 0 && !showSuccessPopup) {
       navigate('/')
@@ -421,7 +618,7 @@ const PlaceOrder = () => {
           <p className="title">{t('placeOrder.title')}</p>
           
           {/* Order Type Selection - Chỉ hiển thị khi chưa login */}
-          {!token && (
+          {!isAuthenticated && (
             <div className="order-type-section">
               <h3>{t('placeOrder.orderType.title')}</h3>
               <div className="order-type-options">
@@ -440,31 +637,93 @@ const PlaceOrder = () => {
           )}
 
           {/* Delivery Address with Mapbox - Đặt lên đầu vì quan trọng nhất */}
-          <div className="delivery-address-section">
-            <label className="delivery-label">{t('placeOrder.form.addressLabel')}</label>
-            <DeliveryAddressInput
-              value={deliveryAddress?.address || ''}
-              onChange={handleDeliveryAddressChange}
-              onDeliveryCalculated={handleDeliveryCalculated}
-              url={url}
-              restaurantLocation={restaurantLocation}
-            />
-            <div className="house-number-field">
-              <label>{t('placeOrder.form.houseNumberLabel')}</label>
-              <input
-                type="text"
-                placeholder={t('placeOrder.form.houseNumberPlaceholder')}
-                value={deliveryAddress?.houseNumber || ''}
-                onChange={handleHouseNumberChange}
-              />
-              <p className="house-helper">{t('placeOrder.form.houseNumberHint')}</p>
-              {!deliveryAddress?.houseNumber && deliveryAddress?.address && !/\d/.test(deliveryAddress.address) && (
-                <div className="house-warning">
-                  ⚠️ {t('placeOrder.form.houseNumberMapboxMissing')}
+          {/* Delivery Address Section */}
+          {shouldShowAddressCard && selectedAddress ? (
+            /* Show address card for authenticated users with saved addresses */
+            <div className="delivery-address-section">
+              <label className="delivery-label">{t('placeOrder.form.addressLabel')}</label>
+              <div className="saved-address-card">
+                <div className="address-card-header">
+                  <div className="address-card-info">
+                    <h4>{selectedAddress.label}</h4>
+                    {selectedAddress.isDefault && (
+                      <span className="default-badge">{t('placeOrder.address.default')}</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="change-address-btn"
+                    onClick={() => setShowAddressModal(true)}
+                  >
+                    {t('placeOrder.address.change')}
+                  </button>
+                </div>
+                <div className="address-card-content">
+                  <p className="address-name">{selectedAddress.fullName}</p>
+                  <p className="address-phone">{selectedAddress.phone}</p>
+                  <p className="address-full">
+                    {selectedAddress.street}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Show full address form for guests OR authenticated users with zero addresses OR manual entry */
+            <div className="delivery-address-section">
+              <label className="delivery-label">{t('placeOrder.form.addressLabel')}</label>
+              {isAuthenticated && userAddresses.length > 0 && useManualAddress && (
+                <div className="manual-address-header">
+                  <button
+                    type="button"
+                    className="use-saved-address-btn"
+                    onClick={() => {
+                      setUseManualAddress(false);
+                      // Reset to default address
+                      const defaultAddr = userAddresses.find(addr => 
+                        addr._id === defaultAddressId || addr.isDefault
+                      ) || userAddresses[0];
+                      if (defaultAddr) {
+                        setSelectedAddressId(defaultAddr._id);
+                        setDeliveryAddress({
+                          address: defaultAddr.street || '',
+                          houseNumber: defaultAddr.houseNumber || '',
+                          city: defaultAddr.city || '',
+                          state: defaultAddr.state || '',
+                          zipcode: defaultAddr.zipcode || '',
+                          country: defaultAddr.country || '',
+                          coordinates: defaultAddr.coordinates || null
+                        });
+                      }
+                    }}
+                  >
+                    ← {t('placeOrder.address.useSaved')}
+                  </button>
                 </div>
               )}
+              <DeliveryAddressInput
+                value={deliveryAddress?.address || ''}
+                onChange={handleDeliveryAddressChange}
+                onDeliveryCalculated={handleDeliveryCalculated}
+                url={url}
+                restaurantLocation={restaurantLocation}
+              />
+              <div className="house-number-field">
+                <label>{t('placeOrder.form.houseNumberLabel')}</label>
+                <input
+                  type="text"
+                  placeholder={t('placeOrder.form.houseNumberPlaceholder')}
+                  value={deliveryAddress?.houseNumber || ''}
+                  onChange={handleHouseNumberChange}
+                />
+                <p className="house-helper">{t('placeOrder.form.houseNumberHint')}</p>
+                {!deliveryAddress?.houseNumber && deliveryAddress?.address && !/\d/.test(deliveryAddress.address) && (
+                  <div className="house-warning">
+                    ⚠️ {t('placeOrder.form.houseNumberMapboxMissing')}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Contact Information Section */}
           <div className="contact-info-section">
@@ -504,7 +763,7 @@ const PlaceOrder = () => {
               value={data.phone} 
               type="tel" 
               placeholder={t('placeOrder.form.phone')}
-              title="Phone number"
+              title={t('placeOrder.form.phone')}
               autoComplete="tel"
               maxLength="25"
             />
@@ -568,7 +827,7 @@ const PlaceOrder = () => {
                     : '--'}
                 </p>
               </div>
-              {!deliveryInfo && (
+              {!deliveryInfo && !hasAnyAddressSelected && (
                 <div className="min-order-warning">
                   {t('placeOrder.cart.deliveryFeePrompt')}
                 </div>
@@ -619,6 +878,61 @@ const PlaceOrder = () => {
         <DeliveryZoneDisplay url={url} />
       </div>
       
+      {/* Address Selection Modal */}
+      {showAddressModal && (
+        <div className="address-modal-overlay" onClick={() => setShowAddressModal(false)}>
+          <div className="address-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="address-modal-header">
+              <h3>{t('placeOrder.address.selectTitle')}</h3>
+              <button 
+                className="close-modal-btn"
+                onClick={() => setShowAddressModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="address-modal-body">
+              {userAddresses.map((address) => (
+                <div
+                  key={address._id}
+                  className={`address-option-card ${selectedAddressId === address._id ? 'selected' : ''}`}
+                  onClick={() => handleSelectAddress(address)}
+                >
+                  <div className="address-option-header">
+                    <h4>{address.label}</h4>
+                    {address.isDefault && <span className="default-badge">{t('placeOrder.address.default')}</span>}
+                  </div>
+                  <div className="address-option-content">
+                    <p className="address-name">{address.fullName}</p>
+                    <p className="address-phone">{address.phone}</p>
+                    <p className="address-full">
+                      {address.street}
+                    </p>
+                  </div>
+                  {selectedAddressId === address._id && (
+                    <div className="selected-indicator">{t('placeOrder.address.selected')}</div>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                className="add-new-address-btn"
+                onClick={() => {
+                  setShowAddressModal(false);
+                  setUseManualAddress(true);
+                  // Clear selected address to allow new entry
+                  setSelectedAddressId(null);
+                  setDeliveryAddress(null);
+                  setDeliveryInfo(null);
+                }}
+              >
+                + {t('placeOrder.address.addNew')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Success Popup */}
       <SuccessPopup
         isOpen={showSuccessPopup}
