@@ -10,7 +10,7 @@ import DeliveryZoneDisplay from '../../components/DeliveryZoneDisplay/DeliveryZo
 import '../../i18n'
 
 const PlaceOrder = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { getTotalCartAmount, token, food_list, cartItems, cartItemsData, url, setCartItems, setToken } = useContext(StoreContext);
   const [data, setData] = useState({
     firstName: "",
@@ -209,6 +209,7 @@ const PlaceOrder = () => {
       amount: getTotalCartAmount() + deliveryFee,
       customerInfo: customerInfo,
       orderType: currentToken ? 'registered' : 'guest',
+      language: i18n.language || 'vi', // Lưu ngôn ngữ khách hàng đang dùng
       note: data.note || '',
       preferredDeliveryTime: data.preferredDeliveryTime || '',
       deliveryInfo: deliveryInfo ? {

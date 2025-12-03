@@ -24,6 +24,7 @@ const orderSchema = new mongoose.Schema({
     // Thông tin bổ sung
     orderType: { type: String, enum: ['guest', 'registered'], default: 'guest' },
     trackingCode: { type: String, unique: true, sparse: true }, // Mã dò đơn hàng
+    language: { type: String, default: 'vi' }, // Ngôn ngữ khách hàng dùng khi đặt đơn (vi, en, sk)
     notes: { type: String, default: "" },
     note: { type: String, default: "" }, // Customer note for delivery
     preferredDeliveryTime: { type: String, default: "" }, // Preferred delivery time slot

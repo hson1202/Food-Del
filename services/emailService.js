@@ -389,10 +389,20 @@ export const sendOrderConfirmation = async (order) => {
       }
     }
     
+    const lang = order.language || 'vi';
+    const t = getEmailTranslations(lang);
+    const subjectMap = {
+      vi: `Cảm ơn bạn đã đặt hàng #${order.trackingCode} - VIET BOWLS`,
+      en: `Thanks for your order #${order.trackingCode} - VIET BOWLS`,
+      sk: `Ďakujeme za objednávku #${order.trackingCode} - VIET BOWLS`
+    };
+    const langCode = lang?.split('-')[0] || 'vi';
+    const subject = subjectMap[langCode] || subjectMap['vi'];
+    
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: order.customerInfo.email,
-      subject: `Order Confirmation #${order.trackingCode} - VIET BOWLS`,
+      subject: subject,
       html: generateOrderConfirmationEmailHTML(order),
       text: generateOrderConfirmationEmailText(order)
     }
@@ -442,7 +452,7 @@ export const sendAdminOrderNotification = async (order) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: adminEmail,
-      subject: `🚨 New Order #${order.trackingCode} - ${order.customerInfo.name} - VIET BOWLS`,
+      subject: `Đơn hàng mới #${order.trackingCode} - ${order.customerInfo.name}`,
       html: generateAdminOrderNotificationEmailHTML(order),
       text: generateAdminOrderNotificationEmailText(order)
     }
@@ -1098,24 +1108,180 @@ This is an automated notification email.
   `
 }
 
+// Email translations for customer order confirmation
+const getEmailTranslations = (lang) => {
+  const langCode = lang?.split('-')[0] || 'vi'; // Extract base language code (vi, en, sk)
+  
+  const translations = {
+    vi: {
+      title: 'Xác nhận đơn hàng',
+      greeting: 'Chào bạn',
+      thankYou: 'Cảm ơn bạn đã đặt hàng tại VIET BOWLS! Chúng tôi đã nhận được đơn hàng và đang chuẩn bị món ăn tươi ngon cho bạn.',
+      trackingCode: 'Mã theo dõi đơn hàng',
+      orderDetails: 'Thông tin đơn hàng',
+      orderDate: 'Ngày đặt',
+      orderType: 'Loại đơn',
+      orderTypeRegistered: 'Thành viên',
+      orderTypeGuest: 'Khách vãng lai',
+      paymentMethod: 'Thanh toán',
+      paymentCOD: 'Tiền mặt khi nhận hàng',
+      orderItems: 'Món đã đặt',
+      subtotal: 'Tạm tính',
+      deliveryFee: 'Phí giao hàng',
+      total: 'Tổng cộng',
+      deliveryAddress: 'Địa chỉ nhận hàng',
+      phone: 'Số điện thoại',
+      contactInfo: 'Liên hệ với chúng tôi',
+      importantNotes: 'Một vài lưu ý nhỏ',
+      note1: 'Bạn có thể theo dõi đơn hàng bằng mã',
+      note2: 'Thanh toán bằng tiền mặt khi nhận hàng nhé',
+      note3: 'Đơn hàng sẽ được giao trong vòng 30-60 phút',
+      note4: 'Nếu có thắc mắc gì, đừng ngại liên hệ với chúng tôi nhé!',
+      closing: 'Cảm ơn bạn đã tin tưởng VIET BOWLS. Chúc bạn ngon miệng! 🍜',
+      regards: 'Thân mến,',
+      team: 'Đội ngũ VIET BOWLS',
+      footer1: 'Email này được gửi tự động. Nếu cần hỗ trợ, vui lòng liên hệ trực tiếp với chúng tôi.',
+      footer2: '© 2024 VIET BOWLS'
+    },
+    en: {
+      title: 'Order Confirmation',
+      greeting: 'Hi there',
+      thankYou: 'Thank you for ordering from VIET BOWLS! We\'ve received your order and our kitchen is already preparing your delicious meal.',
+      trackingCode: 'Your Order Tracking Code',
+      orderDetails: 'Order Information',
+      orderDate: 'Order Date',
+      orderType: 'Order Type',
+      orderTypeRegistered: 'Member',
+      orderTypeGuest: 'Guest',
+      paymentMethod: 'Payment',
+      paymentCOD: 'Cash on Delivery',
+      orderItems: 'Your Order',
+      subtotal: 'Subtotal',
+      deliveryFee: 'Delivery Fee',
+      total: 'Total',
+      deliveryAddress: 'Delivery Address',
+      phone: 'Phone',
+      contactInfo: 'Get in Touch',
+      importantNotes: 'A Few Quick Notes',
+      note1: 'You can track your order using code',
+      note2: 'Please have cash ready for payment upon delivery',
+      note3: 'Your order will arrive within 30-60 minutes',
+      note4: 'If you have any questions, feel free to reach out to us anytime!',
+      closing: 'Thanks for choosing VIET BOWLS. Enjoy your meal! 🍜',
+      regards: 'Warm regards,',
+      team: 'The VIET BOWLS Team',
+      footer1: 'This is an automated email. For support, please contact us directly.',
+      footer2: '© 2024 VIET BOWLS'
+    },
+    sk: {
+      title: 'Potvrdenie objednávky',
+      greeting: 'Ahoj',
+      thankYou: 'Ďakujeme, že ste si objednali z VIET BOWLS! Vašu objednávku sme prijali a naša kuchyňa už pripravuje vaše chutné jedlo.',
+      trackingCode: 'Váš sledovací kód',
+      orderDetails: 'Informácie o objednávke',
+      orderDate: 'Dátum objednávky',
+      orderType: 'Typ objednávky',
+      orderTypeRegistered: 'Člen',
+      orderTypeGuest: 'Hosť',
+      paymentMethod: 'Platba',
+      paymentCOD: 'Platba na dobierku',
+      orderItems: 'Vaša objednávka',
+      subtotal: 'Medzisúčet',
+      deliveryFee: 'Poplatok za doručenie',
+      total: 'Celkom',
+      deliveryAddress: 'Dodacia adresa',
+      phone: 'Telefón',
+      contactInfo: 'Kontakt',
+      importantNotes: 'Niekoľko rýchlych poznámok',
+      note1: 'Svoju objednávku môžete sledovať pomocou kódu',
+      note2: 'Prosím, pripravte hotovosť na platbu pri doručení',
+      note3: 'Vaša objednávka dorazí do 30-60 minút',
+      note4: 'Ak máte akékoľvek otázky, neváhajte nás kontaktovať!',
+      closing: 'Ďakujeme, že ste si vybrali VIET BOWLS. Dobrú chuť! 🍜',
+      regards: 'S pozdravom,',
+      team: 'Tím VIET BOWLS',
+      footer1: 'Toto je automatický email. Pre podporu nás prosím kontaktujte priamo.',
+      footer2: '© 2024 VIET BOWLS'
+    }
+  };
+  
+  return translations[langCode] || translations['vi']; // Default to Vietnamese
+};
+
+// Calculate item price including box fee and options (same logic as frontend)
+const calculateItemPrice = (item) => {
+  // Tính giá gốc (chưa bao gồm box fee)
+  let basePrice = 0;
+  
+  // Nếu có options và selectedOptions
+  if (item.options && item.options.length > 0 && item.selectedOptions) {
+    basePrice = item.price || 0;
+    
+    Object.entries(item.selectedOptions).forEach(([optionName, choiceCode]) => {
+      const option = item.options.find(opt => opt.name === optionName);
+      if (option) {
+        const choice = option.choices.find(c => c.code === choiceCode);
+        if (choice) {
+          if (option.pricingMode === 'override') {
+            basePrice = choice.price;
+          } else if (option.pricingMode === 'add') {
+            basePrice += choice.price;
+          }
+        }
+      }
+    });
+  } else {
+    // Nếu không có options, dùng promotion price hoặc regular price
+    basePrice = item.isPromotion && item.promotionPrice ? item.promotionPrice : (item.price || 0);
+  }
+  
+  // Kiểm tra giá có hợp lệ không
+  if (isNaN(Number(basePrice)) || Number(basePrice) < 0) {
+    basePrice = 0;
+  }
+  
+  // Thêm tiền hộp 0.3€ nếu không tắt
+  const isBoxFeeDisabled = item.disableBoxFee === true || 
+                         item.disableBoxFee === "true" || 
+                         item.disableBoxFee === 1 || 
+                         item.disableBoxFee === "1" ||
+                         (typeof item.disableBoxFee === 'string' && item.disableBoxFee.toLowerCase() === 'true');
+  const boxFee = isBoxFeeDisabled ? 0 : 0.3;
+  const finalPrice = Number(basePrice) + boxFee;
+  
+  return finalPrice;
+};
+
 // Generate HTML email content for order confirmation
 const generateOrderConfirmationEmailHTML = (order) => {
+  const lang = order.language || 'vi';
+  const t = getEmailTranslations(lang);
+  
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
+    const localeMap = { vi: 'vi-VN', en: 'en-US', sk: 'sk-SK' };
+    const locale = localeMap[lang?.split('-')[0]] || 'vi-VN';
+    return new Date(date).toLocaleDateString(locale, {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     })
   }
   
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    const n = Number(amount);
+    if (isNaN(n) || n < 0) return '€0';
+    
+    // Luôn dùng EUR và format giống frontend
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'EUR'
-    }).format(amount)
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(n);
+    
+    return formatted.replace(/\.00$/, '');
   }
   
   // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
@@ -1127,7 +1293,7 @@ const generateOrderConfirmationEmailHTML = (order) => {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Order Confirmation - VIET BOWLS</title>
+      <title>${t.title} - VIET BOWLS</title>
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -1155,95 +1321,93 @@ const generateOrderConfirmationEmailHTML = (order) => {
       <div class="container">
         <div class="header">
           <h1>🍜 VIET BOWLS</h1>
-          <h2>Order Confirmation</h2>
+          <h2>${t.title}</h2>
         </div>
         
         <div class="content">
-          <p>Dear <strong>${order.customerInfo.name}</strong>,</p>
+          <p>${t.greeting} <strong>${order.customerInfo.name}</strong>,</p>
           
-          <p>Thank you for your order! We have received your order and are preparing it for you.</p>
+          <p>${t.thankYou}</p>
           
           <div class="tracking-code">
-            Tracking Code: ${order.trackingCode}
+            ${t.trackingCode}: ${order.trackingCode}
           </div>
           
           <div class="order-details">
-            <h3>📦 Order Details</h3>
+            <h3>📦 ${t.orderDetails}</h3>
             <div class="detail-row">
-              <span class="label">Order Date:</span>
+              <span class="label">${t.orderDate}:</span>
               <span class="value">${formatDate(order.createdAt || order.date)}</span>
             </div>
             <div class="detail-row">
-              <span class="label">Order Type:</span>
-              <span class="value">${order.orderType === 'registered' ? 'Registered User' : 'Guest Order'}</span>
+              <span class="label">${t.orderType}:</span>
+              <span class="value">${order.orderType === 'registered' ? t.orderTypeRegistered : t.orderTypeGuest}</span>
             </div>
             <div class="detail-row">
-              <span class="label">Payment Method:</span>
-              <span class="value">Cash on Delivery (COD)</span>
+              <span class="label">${t.paymentMethod}:</span>
+              <span class="value">${t.paymentCOD}</span>
             </div>
           </div>
           
           <div class="items-list">
-            <h3>🍽️ Order Items</h3>
             ${order.items.map(item => `
               <div class="item-row">
                 <div>
                   <span class="item-name">${item.name}</span>
-                  <span class="item-quantity"> x ${item.quantity}</span>
+                  <span class="item-quantity"> x ${item.quantity || 1}</span>
                 </div>
-                <span class="item-price">${formatCurrency(item.price * item.quantity)}</span>
               </div>
             `).join('')}
           </div>
           
           <div class="total-section">
             <div class="total-row">
-              <span>Subtotal:</span>
+              <span>${t.subtotal}:</span>
               <span>${formatCurrency(subtotal)}</span>
             </div>
             <div class="total-row">
-              <span>Delivery Fee:</span>
+              <span>${t.deliveryFee}:</span>
               <span>${formatCurrency(deliveryFee)}</span>
             </div>
             <div class="total-row total-final">
-              <span>Total:</span>
+              <span>${t.total}:</span>
               <span>${formatCurrency(order.amount)}</span>
             </div>
           </div>
           
           <div class="address-section">
-            <h3>📍 Delivery Address</h3>
+            <h3>📍 ${t.deliveryAddress}</h3>
             <p>
               <strong>${order.address.street}</strong><br>
               ${order.address.city}, ${order.address.state}<br>
               ${order.address.zipcode}, ${order.address.country}
             </p>
-            <p><strong>Phone:</strong> ${order.customerInfo.phone}</p>
+            <p><strong>${t.phone}:</strong> ${order.customerInfo.phone}</p>
           </div>
           
           <div class="contact-info">
-            <h4>📞 Contact Information</h4>
+            <h4>📞 ${t.contactInfo}</h4>
             <p><strong>Email:</strong> vietbowlssala666@gmail.com</p>
-            <p><strong>Address:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
+            <p><strong>${t.deliveryAddress}:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
           </div>
           
-          <p><strong>Important Notes:</strong></p>
+          <p><strong>${t.importantNotes}:</strong></p>
           <ul>
-            <li>You can track your order using the tracking code: <strong>${order.trackingCode}</strong></li>
-            <li>Payment will be collected upon delivery</li>
-            <li>Estimated delivery time: 30-60 minutes</li>
-            <li>If you have any questions, please contact us using the information above</li>
+            <li>${t.note1}: <strong>${order.trackingCode}</strong></li>
+            <li>${t.note2}</li>
+            <li>${t.note3}</li>
+            <li>${t.note4}</li>
           </ul>
           
-          <p>We appreciate your business and look forward to serving you!</p>
+          <p>${t.closing}</p>
           
-          <p>Best regards,<br>
-          <strong>The VIET BOWLS Team</strong></p>
+          <p>${t.regards}<br>
+          <strong>${t.team}</strong></p>
         </div>
         
         <div class="footer">
-          <p>This is an automated email. Please do not reply directly to this message.</p>
-          <p>© 2024 VIET BOWLS. All rights reserved.</p>
+          <p>${t.footer1}</p>
+          <p>${t.footer2}</p>
         </div>
       </div>
     </body>
@@ -1253,21 +1417,29 @@ const generateOrderConfirmationEmailHTML = (order) => {
 
 // Generate plain text email content for order confirmation
 const generateOrderConfirmationEmailText = (order) => {
+  const lang = order.language || 'vi';
+  const t = getEmailTranslations(lang);
+  
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
+    const localeMap = { vi: 'vi-VN', en: 'en-US', sk: 'sk-SK' };
+    const locale = localeMap[lang?.split('-')[0]] || 'vi-VN';
+    return new Date(date).toLocaleDateString(locale, {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     })
   }
   
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    const currencyMap = { vi: 'VND', en: 'EUR', sk: 'EUR' };
+    const currency = currencyMap[lang?.split('-')[0]] || 'VND';
+    const localeMap = { vi: 'vi-VN', en: 'en-US', sk: 'sk-SK' };
+    const locale = localeMap[lang?.split('-')[0]] || 'vi-VN';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: 'EUR'
+      currency: currency
     }).format(amount)
   }
   
@@ -1276,71 +1448,70 @@ const generateOrderConfirmationEmailText = (order) => {
   const subtotal = order.amount - deliveryFee;
   
   return `
-VIET BOWLS - Order Confirmation
+VIET BOWLS - ${t.title}
 
-Dear ${order.customerInfo.name},
+${t.greeting} ${order.customerInfo.name},
 
-Thank you for your order! We have received your order and are preparing it for you.
+${t.thankYou}
 
-TRACKING CODE: ${order.trackingCode}
+${t.trackingCode.toUpperCase()}: ${order.trackingCode}
 
-ORDER DETAILS:
-Order Date: ${formatDate(order.createdAt || order.date)}
-Order Type: ${order.orderType === 'registered' ? 'Registered User' : 'Guest Order'}
-Payment Method: Cash on Delivery (COD)
+${t.orderDetails.toUpperCase()}:
+${t.orderDate}: ${formatDate(order.createdAt || order.date)}
+${t.orderType}: ${order.orderType === 'registered' ? t.orderTypeRegistered : t.orderTypeGuest}
+${t.paymentMethod}: ${t.paymentCOD}
 
-ORDER ITEMS:
-${order.items.map(item => `- ${item.name} x ${item.quantity}: ${formatCurrency(item.price * item.quantity)}`).join('\n')}
+${t.orderItems.toUpperCase()}:
+${order.items.map(item => `- ${item.name} x ${item.quantity || 1}`).join('\n')}
 
-ORDER SUMMARY:
-Subtotal: ${formatCurrency(subtotal)}
-Delivery Fee: ${formatCurrency(deliveryFee)}
-Total: ${formatCurrency(order.amount)}
+${t.orderDetails.toUpperCase()}:
+${t.subtotal}: ${formatCurrency(subtotal)}
+${t.deliveryFee}: ${formatCurrency(deliveryFee)}
+${t.total}: ${formatCurrency(order.amount)}
 
-DELIVERY ADDRESS:
+${t.deliveryAddress.toUpperCase()}:
 ${order.address.street}
 ${order.address.city}, ${order.address.state}
 ${order.address.zipcode}, ${order.address.country}
-Phone: ${order.customerInfo.phone}
+${t.phone}: ${order.customerInfo.phone}
 
-CONTACT INFORMATION:
+${t.contactInfo.toUpperCase()}:
 Email: vietbowlssala666@gmail.com
-Address: Hlavná 33/36, 927 01 Šaľa, Slovakia
+${t.deliveryAddress}: Hlavná 33/36, 927 01 Šaľa, Slovakia
 
-IMPORTANT NOTES:
-- You can track your order using the tracking code: ${order.trackingCode}
-- Payment will be collected upon delivery
-- Estimated delivery time: 30-60 minutes
-- If you have any questions, please contact us using the information above
+${t.importantNotes.toUpperCase()}:
+- ${t.note1}: ${order.trackingCode}
+- ${t.note2}
+- ${t.note3}
+- ${t.note4}
 
-We appreciate your business and look forward to serving you!
+${t.closing}
 
-Best regards,
-The VIET BOWLS Team
+${t.regards}
+${t.team}
 
 ---
-This is an automated email. Please do not reply directly to this message.
-© 2024 VIET BOWLS. All rights reserved.
+${t.footer1}
+${t.footer2}
   `
 }
 
 // Generate HTML email content for admin order notification
 const generateAdminOrderNotificationEmailHTML = (order) => {
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
+    return new Date(date).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     })
   }
   
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'VND'
     }).format(amount)
   }
   
@@ -1348,149 +1519,105 @@ const generateAdminOrderNotificationEmailHTML = (order) => {
   const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
   const subtotal = order.amount - deliveryFee;
   
-  const getOrderTypeColor = (orderType) => {
-    return orderType === 'registered' ? '#27ae60' : '#3498db'
-  }
-  
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
-      <title>New Order Notification - VIET BOWLS</title>
+      <title>Đơn hàng mới #${order.trackingCode}</title>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #e74c3c; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .order-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #e74c3c; }
-        .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
-        .label { font-weight: bold; color: #555; }
-        .value { color: #333; }
-        .tracking-code { background: #e74c3c; color: white; padding: 15px; text-align: center; border-radius: 8px; font-size: 24px; font-weight: bold; margin: 20px 0; }
-        .items-list { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; }
-        .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .item-name { font-weight: bold; }
-        .item-quantity { color: #666; }
-        .item-price { color: #333; }
-        .total-section { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border: 2px solid #ffc107; }
-        .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 16px; }
-        .total-final { font-size: 22px; font-weight: bold; color: #e74c3c; }
-        .address-section { background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 20px 0; }
-        .customer-section { background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; color: white; font-size: 12px; font-weight: bold; }
-        .urgent-notice { background: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #2c3e50; margin: 0; padding: 0; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 20px auto; background: white; }
+        .header { background: #2c3e50; color: white; padding: 16px 20px; border-bottom: 3px solid #e74c3c; }
+        .header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+        .content { padding: 20px; }
+        .order-id { font-size: 20px; font-weight: 600; color: #e74c3c; margin: 0 0 16px 0; padding-bottom: 12px; border-bottom: 2px solid #ecf0f1; }
+        .section { margin: 16px 0; }
+        .section-title { font-size: 14px; font-weight: 600; color: #7f8c8d; text-transform: uppercase; margin-bottom: 8px; }
+        .info-grid { display: grid; grid-template-columns: 100px 1fr; gap: 8px 12px; font-size: 14px; }
+        .info-label { color: #7f8c8d; }
+        .info-value { color: #2c3e50; font-weight: 500; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+        .items-table td { padding: 8px 0; border-bottom: 1px solid #ecf0f1; }
+        .item-name { color: #2c3e50; }
+        .item-qty { color: #7f8c8d; margin-left: 8px; }
+        .item-price { text-align: right; color: #2c3e50; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+        .total-row.final { border-top: 2px solid #2c3e50; margin-top: 8px; padding-top: 12px; font-size: 16px; font-weight: 600; color: #e74c3c; }
+        .address-box { background: #f8f9fa; padding: 12px; border-left: 3px solid #3498db; margin: 12px 0; font-size: 14px; line-height: 1.6; }
+        .footer { text-align: center; padding: 16px; font-size: 12px; color: #95a5a6; border-top: 1px solid #ecf0f1; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>🚨 NEW ORDER ALERT</h1>
-          <h2>VIET BOWLS</h2>
+          <h1>Đơn hàng mới - VIET BOWLS</h1>
         </div>
         
         <div class="content">
-          <div class="urgent-notice">
-            <h2 style="margin: 0; color: #e74c3c;">⚡ ACTION REQUIRED - NEW ORDER RECEIVED</h2>
-            <p style="margin: 10px 0 0 0;">Please prepare this order immediately!</p>
-          </div>
+          <div class="order-id">Đơn hàng #${order.trackingCode}</div>
           
-          <div class="tracking-code">
-            Order #${order.trackingCode}
-          </div>
-          
-          <div class="customer-section">
-            <h3>👤 Customer Information</h3>
-            <div class="detail-row">
-              <span class="label">Name:</span>
-              <span class="value">${order.customerInfo.name}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Phone:</span>
-              <span class="value">${order.customerInfo.phone}</span>
-            </div>
-            ${order.customerInfo.email ? `
-            <div class="detail-row">
-              <span class="label">Email:</span>
-              <span class="value">${order.customerInfo.email}</span>
-            </div>
-            ` : ''}
-            <div class="detail-row">
-              <span class="label">Customer Type:</span>
-              <span class="value">
-                <span class="badge" style="background-color: ${getOrderTypeColor(order.orderType)};">
-                  ${order.orderType === 'registered' ? '✓ REGISTERED USER' : '👤 GUEST ORDER'}
-                </span>
-              </span>
+          <div class="section">
+            <div class="section-title">Thông tin khách hàng</div>
+            <div class="info-grid">
+              <div class="info-label">Tên:</div>
+              <div class="info-value">${order.customerInfo.name}</div>
+              <div class="info-label">SĐT:</div>
+              <div class="info-value">${order.customerInfo.phone}</div>
+              ${order.customerInfo.email ? `
+              <div class="info-label">Email:</div>
+              <div class="info-value">${order.customerInfo.email}</div>
+              ` : ''}
+              <div class="info-label">Loại:</div>
+              <div class="info-value">${order.orderType === 'registered' ? 'Thành viên' : 'Khách vãng lai'}</div>
             </div>
           </div>
           
-          <div class="order-details">
-            <h3>📦 Order Details</h3>
-            <div class="detail-row">
-              <span class="label">Order Date:</span>
-              <span class="value">${formatDate(order.createdAt || order.date)}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Payment Method:</span>
-              <span class="value">💵 Cash on Delivery (COD)</span>
-            </div>
-          </div>
-          
-          <div class="items-list">
-            <h3>🍽️ Order Items</h3>
-            ${order.items.map(item => `
-              <div class="item-row">
-                <div>
-                  <span class="item-name">${item.name}</span>
-                  <span class="item-quantity"> x ${item.quantity}</span>
-                </div>
-                <span class="item-price">${formatCurrency(item.price * item.quantity)}</span>
-              </div>
-            `).join('')}
-          </div>
-          
-          <div class="total-section">
+          <div class="section">
+            <div class="section-title">Món ăn</div>
+            <table class="items-table">
+              ${order.items.map(item => `
+                <tr>
+                  <td class="item-name">${item.name}<span class="item-qty">x${item.quantity}</span></td>
+                  <td class="item-price">${formatCurrency(item.price * item.quantity)}</td>
+                </tr>
+              `).join('')}
+            </table>
             <div class="total-row">
-              <span>Subtotal:</span>
+              <span>Tạm tính:</span>
               <span>${formatCurrency(subtotal)}</span>
             </div>
             <div class="total-row">
-              <span>Delivery Fee:</span>
+              <span>Phí giao hàng:</span>
               <span>${formatCurrency(deliveryFee)}</span>
             </div>
-            <div class="total-row total-final">
-              <span>TOTAL AMOUNT:</span>
+            <div class="total-row final">
+              <span>Tổng cộng:</span>
               <span>${formatCurrency(order.amount)}</span>
             </div>
           </div>
           
-          <div class="address-section">
-            <h3>📍 Delivery Address</h3>
-            <p>
-              <strong>${order.address.street}</strong><br>
+          <div class="section">
+            <div class="section-title">Địa chỉ giao hàng</div>
+            <div class="address-box">
+              ${order.address.street}<br>
               ${order.address.city}, ${order.address.state}<br>
               ${order.address.zipcode}, ${order.address.country}
-            </p>
-            <p><strong>📞 Contact:</strong> ${order.customerInfo.phone}</p>
+            </div>
           </div>
           
-          <div class="urgent-notice">
-            <p style="margin: 0; font-size: 16px; font-weight: bold;">
-              ⏰ Estimated Delivery: 30-60 minutes<br>
-              💰 Payment: Cash on Delivery (COD)
-            </p>
+          <div class="section">
+            <div class="info-grid">
+              <div class="info-label">Thời gian:</div>
+              <div class="info-value">${formatDate(order.createdAt || order.date)}</div>
+              <div class="info-label">Thanh toán:</div>
+              <div class="info-value">COD (Tiền mặt khi nhận)</div>
+            </div>
           </div>
-          
-          <p style="text-align: center; font-size: 14px; color: #666; margin-top: 20px;">
-            Please log in to the Admin Panel to manage this order and update its status.
-          </p>
         </div>
         
         <div class="footer">
-          <p>This is an automated admin notification email.</p>
-          <p>© 2024 VIET BOWLS. All rights reserved.</p>
+          <p>Email tự động từ hệ thống VIET BOWLS</p>
         </div>
       </div>
     </body>
@@ -1501,20 +1628,19 @@ const generateAdminOrderNotificationEmailHTML = (order) => {
 // Generate plain text email content for admin order notification
 const generateAdminOrderNotificationEmailText = (order) => {
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
+    return new Date(date).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     })
   }
   
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'VND'
     }).format(amount)
   }
   
@@ -1523,49 +1649,33 @@ const generateAdminOrderNotificationEmailText = (order) => {
   const subtotal = order.amount - deliveryFee;
   
   return `
-🚨 NEW ORDER ALERT - VIET BOWLS
+ĐƠN HÀNG MỚI - VIET BOWLS
 
-⚡ ACTION REQUIRED - NEW ORDER RECEIVED
-Please prepare this order immediately!
+Đơn hàng #${order.trackingCode}
 
-==================================================
-ORDER #${order.trackingCode}
-==================================================
-
-CUSTOMER INFORMATION:
-Name: ${order.customerInfo.name}
-Phone: ${order.customerInfo.phone}
+THÔNG TIN KHÁCH HÀNG:
+Tên: ${order.customerInfo.name}
+SĐT: ${order.customerInfo.phone}
 ${order.customerInfo.email ? `Email: ${order.customerInfo.email}` : ''}
-Customer Type: ${order.orderType === 'registered' ? '✓ REGISTERED USER' : '👤 GUEST ORDER'}
+Loại: ${order.orderType === 'registered' ? 'Thành viên' : 'Khách vãng lai'}
 
-ORDER DETAILS:
-Order Date: ${formatDate(order.createdAt || order.date)}
-Payment Method: 💵 Cash on Delivery (COD)
+MÓN ĂN:
+${order.items.map(item => `- ${item.name} x${item.quantity}: ${formatCurrency(item.price * item.quantity)}`).join('\n')}
 
-ORDER ITEMS:
-${order.items.map(item => `- ${item.name} x ${item.quantity}: ${formatCurrency(item.price * item.quantity)}`).join('\n')}
+TỔNG CỘNG:
+Tạm tính: ${formatCurrency(subtotal)}
+Phí giao hàng: ${formatCurrency(deliveryFee)}
+Tổng: ${formatCurrency(order.amount)}
 
-ORDER SUMMARY:
-Subtotal: ${formatCurrency(subtotal)}
-Delivery Fee: ${formatCurrency(deliveryFee)}
-==================================================
-TOTAL AMOUNT: ${formatCurrency(order.amount)}
-==================================================
-
-DELIVERY ADDRESS:
+ĐỊA CHỈ GIAO HÀNG:
 ${order.address.street}
 ${order.address.city}, ${order.address.state}
 ${order.address.zipcode}, ${order.address.country}
-📞 Contact: ${order.customerInfo.phone}
 
-IMPORTANT:
-⏰ Estimated Delivery: 30-60 minutes
-💰 Payment: Cash on Delivery (COD)
-
-Please log in to the Admin Panel to manage this order and update its status.
+Thời gian: ${formatDate(order.createdAt || order.date)}
+Thanh toán: COD (Tiền mặt khi nhận)
 
 ---
-This is an automated admin notification email.
-© 2024 VIET BOWLS. All rights reserved.
+Email tự động từ hệ thống VIET BOWLS
   `
 }

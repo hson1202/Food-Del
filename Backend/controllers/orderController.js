@@ -77,6 +77,7 @@ const placeOrder = async (req,res) => {
             address: address,
             customerInfo: customerInfo,
             orderType: validUserId ? 'registered' : 'guest', // Tự động set dựa trên userId
+            language: req.body.language || 'vi', // Lưu ngôn ngữ khách hàng dùng khi đặt đơn
             payment: true, // COD - thanh toán khi nhận hàng
             status: "Pending",
             deliveryInfo: deliveryInfo || null, // Lưu thông tin delivery (zone, distance, deliveryFee, estimatedTime)
