@@ -155,8 +155,27 @@ const StoreContextProvider =(props)=>{
         await fetchFoodList(foodPagination.page + 1, true);
     }
     const loadCartData = async (token) => {
-        const response = await axios.post(url+"/api/cart/get",{},{headers:{token}});
-        setCartItems(response.data.cartData);
+        try {
+            const response = await axios.post(url+"/api/cart/get",{},{headers:{token}});
+            setCartItems(response.data.cartData);
+        } catch (error) {
+            console.error('Error loading cart data:', error);
+            // If cart load fails, clear cart items
+            setCartItems({});
+        }
+    }
+
+    // Verify token with backend
+    const verifyToken = async (token) => {
+        try {
+            const response = await axios.get(url + "/api/user/verify", {
+                headers: { token }
+            });
+            return response.data.success === true;
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            return false;
+        }
     }
 
     // Debug function to check token status
@@ -170,14 +189,31 @@ const StoreContextProvider =(props)=>{
     useEffect(()=>{
         async function loadData(){
             await fetchFoodList();
-        if (localStorage.getItem("token")) {
+            
+            // Check for token in localStorage
             const localToken = localStorage.getItem("token");
-            console.log('🔄 Loading token from localStorage:', localToken);
-            setToken(localToken);
-            await loadCartData(localToken);
+            if (localToken) {
+                console.log('🔄 Found token in localStorage, verifying...');
+                
+                // Verify token with backend before using it
+                const isValid = await verifyToken(localToken);
+                
+                if (isValid) {
+                    console.log('✅ Token is valid, loading user data...');
+                    setToken(localToken);
+                    await loadCartData(localToken);
+                } else {
+                    console.log('❌ Token is invalid or expired, clearing...');
+                    // Token is invalid or expired, clear it
+                    localStorage.removeItem("token");
+                    setToken("");
+                    setCartItems({});
+                }
+            } else {
+                console.log('ℹ️ No token found in localStorage');
+            }
         }
-    }
-    loadData();
+        loadData();
     },[])
 
     const contextValue = {  

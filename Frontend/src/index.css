@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
 
 *{
   padding: 0;
@@ -6,6 +7,13 @@
   box-sizing: border-box;
   font-family: outfit;
   scroll-behavior: smooth;
+}
+
+/* Use Montserrat when the UI is in Vietnamese */
+html.lang-vi,
+html.lang-vi body,
+html.lang-vi * {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
 html {

@@ -4,35 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import '../../i18n';
 
-const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCartItems, items }) => {
-  const { t, i18n } = useTranslation();
+const SuccessPopup = ({ isOpen, onClose, setCartItems }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
-
-  // Format price to avoid floating point precision issues
-  const formatPrice = (price) => {
-    const n = Number(price);
-    if (isNaN(n) || n < 0) return '€0';
-    const formatted = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(n);
-    return formatted.replace(/\.00$/, '');
-  };
-
-  // Lấy items từ props hoặc từ localStorage (fallback)
-  let lastItems = Array.isArray(items) && items.length > 0 ? items : [];
-  if (lastItems.length === 0) {
-    try {
-      const raw = localStorage.getItem('lastOrderItems');
-      if (raw) {
-        lastItems = JSON.parse(raw) || [];
-      }
-    } catch (_) {}
-  }
 
   const handleClose = () => {
     // Xóa cart khi đóng popup
@@ -45,11 +21,6 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
   const handleGoHome = () => {
     handleClose();
     navigate('/');
-  };
-
-  const handleTrackOrder = () => {
-    handleClose();
-    navigate('/track-order');
   };
 
   return (
@@ -77,47 +48,8 @@ const SuccessPopup = ({ isOpen, onClose, trackingCode, phone, orderAmount, setCa
             </div>
           </div>
 
-          {/* Order Details */}
-          <div className="order-details">
-            <div className="detail-item">
-              <span className="detail-label">📋 {t('successPopup.trackingCode')}:</span>
-              <span className="detail-value">{trackingCode}</span>
-            </div>
-            <div className="detail-item">
-              <span className="detail-label">📱 {t('successPopup.phone')}:</span>
-              <span className="detail-value">{phone}</span>
-            </div>
-            <div className="detail-item">
-              <span className="detail-label">💰 {t('successPopup.amount')}:</span>
-              <span className="detail-value">{formatPrice(orderAmount)}</span>
-            </div>
-          </div>
-
-          {/* Items Summary */}
-          {lastItems && lastItems.length > 0 && (
-            <div className="order-items-summary">
-              <h3>{t('successPopup.items')}</h3>
-              <div className="items-list">
-                {lastItems.map((it, idx) => (
-                  <div key={idx} className="item-row">
-                    <div className="item-main">
-                      <span className="item-name">{it.name || 'Item'}</span>
-                    </div>
-                    <div className="item-meta">
-                      <span className="item-qty">x{it.quantity || 1}</span>
-                      <span className="item-price">{formatPrice((it.price || 0) * (it.quantity || 1))}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Action Buttons */}
           <div className="success-actions">
-            <button className="btn-track" onClick={handleTrackOrder}>
-              🔍 {t('successPopup.trackOrder')}
-            </button>
             <button className="btn-home" onClick={handleGoHome}>
               🏠 {t('successPopup.goHome')}
             </button>

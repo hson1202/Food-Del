@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useContext } from 'react'
 import './Admin.css'
 import config from '../../config/config'
+import { StoreContext } from '../../Context/StoreContext'
 
 const Admin = () => {
+  // Phase 2: Sẽ dùng useAuth() từ AuthContext thay vì StoreContext
+  const { token: contextToken } = useContext(StoreContext) || {}
   const [foods, setFoods] = useState([])
   const [editingFood, setEditingFood] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -135,7 +138,9 @@ const Admin = () => {
   const handleLocationSubmit = async (e) => {
     e.preventDefault()
 
-    const token = localStorage.getItem('token')
+    // Phase 1: Ưu tiên token từ context, fallback localStorage
+    // Phase 2: Chỉ dùng token từ AuthContext, bỏ localStorage
+    const token = contextToken || (typeof window !== 'undefined' ? localStorage.getItem('token') : null)
     if (!token) {
       setLocationStatus({
         type: 'error',

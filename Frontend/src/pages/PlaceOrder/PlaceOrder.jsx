@@ -189,8 +189,9 @@ const PlaceOrder = () => {
       email: data.email || undefined
     };
 
-    // Lấy token từ context hoặc localStorage
-    const currentToken = token || localStorage.getItem("token");
+    // Lấy token từ context (ưu tiên), chỉ fallback localStorage nếu context chưa có
+    // Phase 2: sẽ bỏ localStorage fallback, chỉ dùng token từ context
+    const currentToken = token || (typeof window !== 'undefined' ? localStorage.getItem("token") : null);
     
     const deliveryFee = getDeliveryFee();
     

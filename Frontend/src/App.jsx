@@ -1,4 +1,4 @@
-import React , { useState }from 'react'
+import React , { useState, useEffect }from 'react'
 import Navbar from './pages/Navbar/Navbar';
 import { Route, Routes } from 'react-router-dom';
 import Home from './pages/Home/Home'
@@ -16,11 +16,41 @@ import MyOrders from './pages/MyOrders/MyOrders'
 import TrackOrder from './pages/TrackOrder/TrackOrder'
 import Admin from './pages/Admin/Admin'
 import FloatingCartBtn from './components/FloatingCartBtn/FloatingCartBtn'
-import './i18n';
+import i18n from './i18n';
 
 const App = () => {
 
   const [showLogin,setShowLogin]=useState(false)
+
+  // Sync HTML language class for font switching (e.g., Montserrat for Vietnamese)
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const root = document.documentElement;
+
+    const handleLanguageChange = (lng) => {
+      if (!root || !lng) return;
+
+      // Handle 'vi' and variants like 'vi-VN'
+      const isVietnamese = lng === 'vi' || lng.startsWith('vi-');
+
+      if (isVietnamese) {
+        root.classList.add('lang-vi');
+      } else {
+        root.classList.remove('lang-vi');
+      }
+    };
+
+    // Initialize on first load
+    handleLanguageChange(i18n.language || i18n.resolvedLanguage);
+
+    // Listen to language changes
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
 
   return (
     <>

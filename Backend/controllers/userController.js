@@ -70,4 +70,54 @@ const registerUser = async (req,res)=>{
     }
 }
 
-export {loginUser,registerUser};
+//verify token
+const verifyToken = async (req, res) => {
+    try {
+        // Token được lấy từ authMiddleware (đã verify và decode)
+        const userId = req.body.userId;
+        
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid or expired token"
+            });
+        }
+
+        // Lấy thông tin user từ database
+        const user = await userModel.findById(userId).select('-password');
+        
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Kiểm tra user có active không
+        if (user.status !== 'active') {
+            return res.status(403).json({
+                success: false,
+                message: "User account is inactive"
+            });
+        }
+
+        // Trả về thông tin user (không bao gồm password)
+        res.json({
+            success: true,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role || 'user'
+            }
+        });
+    } catch (error) {
+        console.error("Verify token error:", error);
+        res.status(401).json({
+            success: false,
+            message: "Invalid or expired token"
+        });
+    }
+};
+
+export {loginUser, registerUser, verifyToken};

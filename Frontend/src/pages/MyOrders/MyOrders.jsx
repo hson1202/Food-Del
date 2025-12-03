@@ -10,32 +10,21 @@ const MyOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(false);
     const [expandedId, setExpandedId] = useState(null);
-    const { url, token, setToken } = useContext(StoreContext);
-    
-    // Refresh token from localStorage if context token is empty
-    const refreshToken = () => {
-        const localToken = localStorage.getItem("token");
-        if (localToken && !token) {
-            setToken(localToken);
-            return localToken;
-        }
-        return token;
-    }
+    const { url, token } = useContext(StoreContext);
 
     // Fetch orders for logged-in users
     const fetchUserOrders = async () => {
+        if (!token) {
+            setOrders([]);
+            return;
+        }
+
         try {
             setLoading(true);
-            const currentToken = refreshToken();
-            if (!currentToken) {
-                setOrders([]);
-                return;
-            }
-
             const response = await axios.post(
                 url + "/api/order/userorders",
                 {},
-                { headers: { token: currentToken } }
+                { headers: { token } }
             );
             
             if (response.data.success) {
@@ -55,30 +44,6 @@ const MyOrders = () => {
         fetchUserOrders();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
-
-    // Keep token in sync with localStorage
-    useEffect(() => {
-        const handleStorageChange = () => {
-            const localToken = localStorage.getItem("token");
-            if (localToken && localToken !== token) {
-                setToken(localToken);
-            }
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-        
-        const interval = setInterval(() => {
-            const localToken = localStorage.getItem("token");
-            if (localToken && localToken !== token) {
-                setToken(localToken);
-            }
-        }, 1000);
-
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-            clearInterval(interval);
-        };
-    }, [token, setToken]);
 
     const toggleExpand = (id) => {
         setExpandedId(prev => (prev === id ? null : id));

@@ -24,14 +24,35 @@ export const createTransporter = () => {
         isResend: true,
         resend,
         sendMail: async (mailOptions) => {
-          const result = await resend.emails.send({
-            from: mailOptions.from || user || 'noreply@yourdomain.com',
-            to: mailOptions.to,
-            subject: mailOptions.subject,
-            html: mailOptions.html,
-            text: mailOptions.text
-          })
-          return { messageId: result.data?.id || result.id }
+          try {
+            const result = await resend.emails.send({
+              from: mailOptions.from || user || 'noreply@yourdomain.com',
+              to: mailOptions.to,
+              subject: mailOptions.subject,
+              html: mailOptions.html,
+              text: mailOptions.text
+            })
+            
+            // Check for errors in Resend response
+            if (result.error) {
+              const errorMessage = result.error.message || 'Unknown Resend API error'
+              console.error('❌ Resend API error:', errorMessage)
+              throw new Error(`Resend API error: ${errorMessage}`)
+            }
+            
+            // Check if we got a valid message ID
+            const messageId = result.data?.id || result.id
+            if (!messageId) {
+              console.error('❌ Resend API returned no message ID:', result)
+              throw new Error('Resend API returned no message ID')
+            }
+            
+            return { messageId }
+          } catch (error) {
+            // Re-throw the error so it can be caught by the calling function
+            console.error('❌ Error in Resend sendMail:', error.message)
+            throw error
+          }
         }
       }
     } catch (error) {
