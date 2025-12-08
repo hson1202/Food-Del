@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
+import foodModel from '../models/foodModel.js'
 
 // Create transporter (supports Gmail, Resend, and custom SMTP)
 export const createTransporter = () => {
@@ -474,8 +475,8 @@ export const sendAdminOrderNotification = async (order) => {
       from: process.env.EMAIL_USER,
       to: adminEmail,
       subject: `Đơn hàng mới #${order.trackingCode} - ${order.customerInfo.name}`,
-      html: generateAdminOrderNotificationEmailHTML(order),
-      text: generateAdminOrderNotificationEmailText(order)
+      html: await generateAdminOrderNotificationEmailHTML(order),
+      text: await generateAdminOrderNotificationEmailText(order)
     }
     
     console.log(`📤 Sending admin order notification email to: ${adminEmail}`);
@@ -1521,8 +1522,134 @@ ${t.footer2}
   `
 }
 
+// Helper function to get Vietnamese product name (for admin emails)
+// Tự động query từ database nếu không có nameVI trong item
+const getVietnameseProductName = async (item) => {
+  // Ưu tiên nameVI nếu có
+  if (item.nameVI) {
+    return item.nameVI;
+  }
+  
+  // Nếu không có nameVI, thử query từ database bằng _id hoặc sku
+  try {
+    if (item._id || item.id) {
+      const product = await foodModel.findById(item._id || item.id);
+      if (product && product.nameVI) {
+        return product.nameVI;
+      }
+    }
+    
+    if (item.sku) {
+      const product = await foodModel.findOne({ sku: item.sku });
+      if (product && product.nameVI) {
+        return product.nameVI;
+      }
+    }
+  } catch (error) {
+    console.log('⚠️ Could not query product for Vietnamese name:', error.message);
+  }
+  
+  // Fallback về name nếu không tìm thấy
+  return item.name || 'Sản phẩm';
+};
+
+// Helper function to format selected options for display (for admin emails - always Vietnamese)
+// Luôn query từ database để lấy đầy đủ thông tin đa ngôn ngữ
+const formatSelectedOptionsForAdmin = async (item) => {
+  if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
+    return '';
+  }
+  
+  // Luôn query từ database để đảm bảo có đầy đủ thông tin đa ngôn ngữ
+  let options = null;
+  try {
+    if (item._id || item.id) {
+      const product = await foodModel.findById(item._id || item.id);
+      if (product && product.options) {
+        options = product.options;
+      }
+    } else if (item.sku) {
+      const product = await foodModel.findOne({ sku: item.sku });
+      if (product && product.options) {
+        options = product.options;
+      }
+    }
+    
+    // Nếu không query được, thử dùng options từ item
+    if (!options && item.options && Array.isArray(item.options) && item.options.length > 0) {
+      options = item.options;
+    }
+  } catch (error) {
+    console.log('⚠️ Could not query product options:', error.message);
+    // Fallback về options từ item nếu có
+    if (item.options && Array.isArray(item.options) && item.options.length > 0) {
+      options = item.options;
+    } else {
+      return '';
+    }
+  }
+  
+  if (!options || !Array.isArray(options) || options.length === 0) {
+    return '';
+  }
+  
+  const optionTexts = [];
+  
+  for (const [optionName, choiceCode] of Object.entries(item.selectedOptions)) {
+    // Tìm option theo name (có thể là name gốc, nameVI, nameEN, hoặc nameSK)
+    // optionName trong selectedOptions thường là name gốc của option
+    const option = options.find(opt => 
+      opt.name === optionName || 
+      opt.nameVI === optionName || 
+      opt.nameEN === optionName || 
+      opt.nameSK === optionName
+    );
+    
+    if (option) {
+      const choice = option.choices.find(c => c.code === choiceCode);
+      if (choice) {
+        // Luôn ưu tiên nameVI và labelVI cho admin email
+        const optionNameVI = option.nameVI || option.name || optionName;
+        const choiceLabelVI = choice.labelVI || choice.label || choice.code;
+        optionTexts.push(`${optionNameVI}: ${choiceLabelVI}`);
+      }
+    } else {
+      // Nếu không tìm thấy option, vẫn hiển thị với optionName và choiceCode
+      // (trường hợp này hiếm khi xảy ra)
+      optionTexts.push(`${optionName}: ${choiceCode}`);
+    }
+  }
+  
+  return optionTexts.length > 0 ? ` (${optionTexts.join(', ')})` : '';
+};
+
+// Helper function to format selected options for display (for customer emails - uses customer language)
+const formatSelectedOptions = (item) => {
+  if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
+    return '';
+  }
+  
+  if (!item.options || !Array.isArray(item.options) || item.options.length === 0) {
+    return '';
+  }
+  
+  const optionTexts = [];
+  Object.entries(item.selectedOptions).forEach(([optionName, choiceCode]) => {
+    const option = item.options.find(opt => opt.name === optionName);
+    if (option) {
+      const choice = option.choices.find(c => c.code === choiceCode);
+      if (choice) {
+        optionTexts.push(`${optionName}: ${choice.label || choice.code}`);
+      }
+    }
+  });
+  
+  return optionTexts.length > 0 ? ` (${optionTexts.join(', ')})` : '';
+};
+
 // Generate HTML email content for admin order notification
-const generateAdminOrderNotificationEmailHTML = (order) => {
+// LUÔN LUÔN BẰNG TIẾNG VIỆT, không phụ thuộc vào ngôn ngữ của khách hàng
+const generateAdminOrderNotificationEmailHTML = async (order) => {
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('vi-VN', {
       day: '2-digit',
@@ -1534,10 +1661,18 @@ const generateAdminOrderNotificationEmailHTML = (order) => {
   }
   
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
+    const n = Number(amount);
+    if (isNaN(n) || n < 0) return '€0';
+    
+    // Format EUR giống customer email
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND'
-    }).format(amount)
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(n);
+    
+    return formatted.replace(/\.00$/, '');
   }
   
   // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
@@ -1551,97 +1686,110 @@ const generateAdminOrderNotificationEmailHTML = (order) => {
       <meta charset="utf-8">
       <title>Đơn hàng mới #${order.trackingCode}</title>
       <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #2c3e50; margin: 0; padding: 0; background: #f5f5f5; }
-        .container { max-width: 600px; margin: 20px auto; background: white; }
-        .header { background: #2c3e50; color: white; padding: 16px 20px; border-bottom: 3px solid #e74c3c; }
-        .header h1 { margin: 0; font-size: 18px; font-weight: 600; }
-        .content { padding: 20px; }
-        .order-id { font-size: 20px; font-weight: 600; color: #e74c3c; margin: 0 0 16px 0; padding-bottom: 12px; border-bottom: 2px solid #ecf0f1; }
-        .section { margin: 16px 0; }
-        .section-title { font-size: 14px; font-weight: 600; color: #7f8c8d; text-transform: uppercase; margin-bottom: 8px; }
-        .info-grid { display: grid; grid-template-columns: 100px 1fr; gap: 8px 12px; font-size: 14px; }
-        .info-label { color: #7f8c8d; }
-        .info-value { color: #2c3e50; font-weight: 500; }
-        .items-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
-        .items-table td { padding: 8px 0; border-bottom: 1px solid #ecf0f1; }
-        .item-name { color: #2c3e50; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { background: #e74c3c; color: white; padding: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+        .content { padding: 24px; }
+        .order-code { background: #f8f9fa; padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 20px; }
+        .order-code strong { font-size: 18px; color: #e74c3c; }
+        .section { margin: 20px 0; }
+        .section-title { font-size: 14px; font-weight: 600; color: #7f8c8d; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #ecf0f1; }
+        .info-row { display: flex; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+        .info-label { width: 100px; color: #7f8c8d; font-size: 14px; }
+        .info-value { flex: 1; color: #2c3e50; font-weight: 500; font-size: 14px; }
+        .items-list { margin: 12px 0; }
+        .item-row { padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .item-name { color: #2c3e50; font-weight: 500; }
         .item-qty { color: #7f8c8d; margin-left: 8px; }
-        .item-price { text-align: right; color: #2c3e50; }
-        .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
-        .total-row.final { border-top: 2px solid #2c3e50; margin-top: 8px; padding-top: 12px; font-size: 16px; font-weight: 600; color: #e74c3c; }
-        .address-box { background: #f8f9fa; padding: 12px; border-left: 3px solid #3498db; margin: 12px 0; font-size: 14px; line-height: 1.6; }
-        .footer { text-align: center; padding: 16px; font-size: 12px; color: #95a5a6; border-top: 1px solid #ecf0f1; }
+        .item-options { font-size: 12px; color: #7f8c8d; margin-left: 20px; font-style: italic; }
+        .total-section { background: #f8f9fa; padding: 16px; border-radius: 6px; margin: 16px 0; }
+        .total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+        .total-row.final { border-top: 2px solid #2c3e50; margin-top: 8px; padding-top: 12px; font-size: 18px; font-weight: 600; color: #e74c3c; }
+        .address-box { background: #e8f4f8; padding: 14px; border-left: 4px solid #3498db; border-radius: 4px; font-size: 14px; line-height: 1.6; color: #2c3e50; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>Đơn hàng mới - VIET BOWLS</h1>
+          <h1>🍜 Đơn hàng mới - VIET BOWLS</h1>
         </div>
         
         <div class="content">
-          <div class="order-id">Đơn hàng #${order.trackingCode}</div>
+          <div class="order-code">
+            <strong>Đơn hàng #${order.trackingCode}</strong>
+          </div>
           
           <div class="section">
             <div class="section-title">Thông tin khách hàng</div>
-            <div class="info-grid">
+            <div class="info-row">
               <div class="info-label">Tên:</div>
               <div class="info-value">${order.customerInfo.name}</div>
+            </div>
+            <div class="info-row">
               <div class="info-label">SĐT:</div>
               <div class="info-value">${order.customerInfo.phone}</div>
-              ${order.customerInfo.email ? `
+            </div>
+            ${order.customerInfo.email ? `
+            <div class="info-row">
               <div class="info-label">Email:</div>
               <div class="info-value">${order.customerInfo.email}</div>
-              ` : ''}
-              <div class="info-label">Loại:</div>
-              <div class="info-value">${order.orderType === 'registered' ? 'Thành viên' : 'Khách vãng lai'}</div>
+            </div>
+            ` : ''}
+            <div class="info-row">
+              <div class="info-label">Địa chỉ:</div>
+              <div class="info-value">
+                ${order.address.street}, ${order.address.city}, ${order.address.state} ${order.address.zipcode}
+              </div>
             </div>
           </div>
           
           <div class="section">
-            <div class="section-title">Món ăn</div>
-            <table class="items-table">
-              ${order.items.map(item => `
-                <tr>
-                  <td class="item-name">${item.name}<span class="item-qty"> x${item.quantity || 1}</span></td>
-                </tr>
-              `).join('')}
-            </table>
-            <div class="total-row">
-              <span>Tạm tính:</span>
-              <span>${formatCurrency(subtotal)}</span>
+            <div class="section-title">Món ăn đã đặt</div>
+            <div class="items-list">
+              ${(await Promise.all(order.items.map(async (item) => {
+                // Luôn dùng tiếng Việt cho admin email
+                const productNameVI = await getVietnameseProductName(item);
+                const optionsText = await formatSelectedOptionsForAdmin(item);
+                const cleanOptionsText = optionsText ? optionsText.replace(/^ \(/, '').replace(/\)$/, '') : '';
+                return `
+                <div class="item-row">
+                  <div class="item-name">
+                    ${productNameVI}<span class="item-qty"> x${item.quantity || 1}</span>
+                  </div>
+                  ${cleanOptionsText ? `<div class="item-options">${cleanOptionsText}</div>` : ''}
+                </div>
+              `;
+              }))).join('')}
             </div>
-            <div class="total-row">
-              <span>Phí giao hàng:</span>
-              <span>${formatCurrency(deliveryFee)}</span>
-            </div>
-            <div class="total-row final">
-              <span>Tổng cộng:</span>
-              <span>${formatCurrency(order.amount)}</span>
+            
+            <div class="total-section">
+              <div class="total-row">
+                <span>Tạm tính:</span>
+                <span>${formatCurrency(subtotal)}</span>
+              </div>
+              <div class="total-row">
+                <span>Phí giao hàng:</span>
+                <span>${formatCurrency(deliveryFee)}</span>
+              </div>
+              <div class="total-row final">
+                <span>Tổng cộng:</span>
+                <span>${formatCurrency(order.amount)}</span>
+              </div>
             </div>
           </div>
           
           <div class="section">
-            <div class="section-title">Địa chỉ giao hàng</div>
-            <div class="address-box">
-              ${order.address.street}<br>
-              ${order.address.city}, ${order.address.state}<br>
-              ${order.address.zipcode}, ${order.address.country}
-            </div>
-          </div>
-          
-          <div class="section">
-            <div class="info-grid">
+            <div class="section-title">Thông tin đơn hàng</div>
+            <div class="info-row">
               <div class="info-label">Thời gian:</div>
               <div class="info-value">${formatDate(order.createdAt || order.date)}</div>
+            </div>
+            <div class="info-row">
               <div class="info-label">Thanh toán:</div>
               <div class="info-value">COD (Tiền mặt khi nhận)</div>
             </div>
           </div>
-        </div>
-        
-        <div class="footer">
-          <p>Email tự động từ hệ thống VIET BOWLS</p>
         </div>
       </div>
     </body>
@@ -1650,7 +1798,8 @@ const generateAdminOrderNotificationEmailHTML = (order) => {
 }
 
 // Generate plain text email content for admin order notification
-const generateAdminOrderNotificationEmailText = (order) => {
+// LUÔN LUÔN BẰNG TIẾNG VIỆT, không phụ thuộc vào ngôn ngữ của khách hàng
+const generateAdminOrderNotificationEmailText = async (order) => {
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('vi-VN', {
       day: '2-digit',
@@ -1662,10 +1811,18 @@ const generateAdminOrderNotificationEmailText = (order) => {
   }
   
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
+    const n = Number(amount);
+    if (isNaN(n) || n < 0) return '€0';
+    
+    // Format EUR giống customer email
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND'
-    }).format(amount)
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(n);
+    
+    return formatted.replace(/\.00$/, '');
   }
   
   // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
@@ -1673,33 +1830,37 @@ const generateAdminOrderNotificationEmailText = (order) => {
   const subtotal = order.amount - deliveryFee;
   
   return `
-ĐƠN HÀNG MỚI - VIET BOWLS
+🍜 ĐƠN HÀNG MỚI - VIET BOWLS
 
 Đơn hàng #${order.trackingCode}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 THÔNG TIN KHÁCH HÀNG:
 Tên: ${order.customerInfo.name}
 SĐT: ${order.customerInfo.phone}
-${order.customerInfo.email ? `Email: ${order.customerInfo.email}` : ''}
-Loại: ${order.orderType === 'registered' ? 'Thành viên' : 'Khách vãng lai'}
+${order.customerInfo.email ? `Email: ${order.customerInfo.email}\n` : ''}Địa chỉ: ${order.address.street}, ${order.address.city}, ${order.address.state} ${order.address.zipcode}
 
-MÓN ĂN:
-${order.items.map(item => `- ${item.name} x${item.quantity || 1}`).join('\n')}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-TỔNG CỘNG:
+MÓN ĂN ĐÃ ĐẶT:
+${(await Promise.all(order.items.map(async (item) => {
+    // Luôn dùng tiếng Việt cho admin email
+    const productNameVI = await getVietnameseProductName(item);
+    const optionsText = await formatSelectedOptionsForAdmin(item);
+    return `- ${productNameVI}${optionsText ? optionsText : ''} x${item.quantity || 1}`;
+  }))).join('\n')}
+
 Tạm tính: ${formatCurrency(subtotal)}
 Phí giao hàng: ${formatCurrency(deliveryFee)}
-Tổng: ${formatCurrency(order.amount)}
+TỔNG CỘNG: ${formatCurrency(order.amount)}
 
-ĐỊA CHỈ GIAO HÀNG:
-${order.address.street}
-${order.address.city}, ${order.address.state}
-${order.address.zipcode}, ${order.address.country}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Thời gian: ${formatDate(order.createdAt || order.date)}
 Thanh toán: COD (Tiền mặt khi nhận)
 
----
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Email tự động từ hệ thống VIET BOWLS
   `
 }

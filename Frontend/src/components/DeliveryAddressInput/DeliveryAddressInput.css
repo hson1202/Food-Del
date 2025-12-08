@@ -89,6 +89,30 @@
   color: #666;
 }
 
+/* Warning styles for addresses without house number */
+.suggestion-item-warning {
+  background-color: #fff9e6;
+  border-left: 3px solid #ffc107;
+}
+
+.suggestion-item-warning:hover {
+  background-color: #fff3cd;
+}
+
+.suggestion-warning-badge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.suggestion-warning-text {
+  font-size: 11px;
+  color: #856404;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 /* Delivery info card */
 .delivery-info-card {
   margin-top: 15px;

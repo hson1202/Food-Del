@@ -772,6 +772,82 @@
     padding: 10px 12px;
 }
 
+/* Enhanced warning box */
+.house-warning-enhanced {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff5f5;
+    border: 2px solid #ff6347;
+    border-radius: 8px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.warning-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.warning-content {
+    flex: 1;
+}
+
+.warning-content strong {
+    display: block;
+    color: #d32f2f;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.warning-content p {
+    margin: 0;
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* Input warning state */
+.house-number-input-warning {
+    border-color: #ff6347 !important;
+    background-color: #fff5f5 !important;
+}
+
+.house-number-input-warning:focus {
+    border-color: #ff6347 !important;
+    box-shadow: 0 0 0 3px rgba(255, 99, 71, 0.1) !important;
+}
+
+/* Flash animation for error input */
+@keyframes inputErrorFlash {
+    0%, 100% {
+        border-color: #ff6347;
+        background-color: #fff5f5;
+    }
+    50% {
+        border-color: #ff0000;
+        background-color: #ffe0e0;
+        transform: scale(1.02);
+    }
+}
+
+.input-error-flash {
+    animation: inputErrorFlash 0.5s ease-in-out;
+}
+
+/* Slide in animation for warning */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Delivery Time Section */
 .delivery-time-section {
     margin: 20px 0;

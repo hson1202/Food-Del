@@ -15,5 +15,8 @@ export default defineConfig({
   preview: {
     // Enable history API fallback for preview
     historyApiFallback: true
+  },
+  optimizeDeps: {
+    include: ['react-leaflet', 'leaflet']
   }
 })

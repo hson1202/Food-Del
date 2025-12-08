@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './DeliveryAddressInput.css';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import ManualLocationPicker from '../ManualLocationPicker/ManualLocationPicker';
 
 const DEFAULT_COORDS = { latitude: 50.08804, longitude: 14.42076 };
@@ -44,8 +45,8 @@ const DeliveryAddressInput = ({
   const [isManualPickerOpen, setIsManualPickerOpen] = useState(false);
   const debounceTimer = useRef(null);
   const inputRef = useRef(null);
-  const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN || '';
-  const manualPinAvailable = Boolean(mapboxToken);
+  // OpenStreetMap/Nominatim không cần API key, luôn available
+  const manualPinAvailable = true;
 
   // Fetch autocomplete suggestions
   const fetchSuggestions = useCallback(async (searchQuery) => {
@@ -142,6 +143,18 @@ const DeliveryAddressInput = ({
       } else {
         // Out of delivery range - but still update address if available
         const deliveryData = response.data;
+        
+        // Lấy thông báo phù hợp với ngôn ngữ hiện tại
+        let errorMessage = deliveryData.message || t('placeOrder.form.deliveryNotAvailable');
+        const currentLang = i18n.language || 'vi';
+        if (currentLang === 'en' && deliveryData.messageEn) {
+          errorMessage = deliveryData.messageEn;
+        } else if (currentLang === 'sk' && deliveryData.messageSk) {
+          errorMessage = deliveryData.messageSk;
+        } else if (currentLang === 'vi' && deliveryData.message) {
+          errorMessage = deliveryData.message;
+        }
+        
         if (deliveryData.address) {
           // Use coordinates from selectedAddress if available, otherwise from request
           const currentCoords = selectedAddress?.latitude && selectedAddress?.longitude
@@ -164,7 +177,7 @@ const DeliveryAddressInput = ({
           }
         }
         
-        setError(response.data.message || t('placeOrder.form.deliveryNotAvailable'));
+        setError(errorMessage);
         setDeliveryInfo(null);
         if (onDeliveryCalculated) {
           onDeliveryCalculated(null);
@@ -275,19 +288,39 @@ const DeliveryAddressInput = ({
       {/* Autocomplete suggestions */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="suggestions-dropdown">
-          {suggestions.map((suggestion) => (
-            <div
-              key={suggestion.id}
-              className="suggestion-item"
-              onClick={() => handleSelectSuggestion(suggestion)}
-            >
-              <span className="suggestion-icon">📍</span>
-              <div className="suggestion-text">
-                <div className="suggestion-main">{suggestion.shortAddress}</div>
-                <div className="suggestion-detail">{suggestion.address}</div>
+          {suggestions.map((suggestion) => {
+            // Kiểm tra xem địa chỉ có số nhà không
+            const hasHouseNumber = suggestion.components?.houseNumber && 
+                                  suggestion.components.houseNumber.trim().length > 0;
+            const isGeneralAddress = !hasHouseNumber && 
+                                    (suggestion.components?.street || suggestion.shortAddress);
+            
+            return (
+              <div
+                key={suggestion.id}
+                className={`suggestion-item ${isGeneralAddress ? 'suggestion-item-warning' : ''}`}
+                onClick={() => handleSelectSuggestion(suggestion)}
+              >
+                <span className="suggestion-icon">📍</span>
+                <div className="suggestion-text">
+                  <div className="suggestion-main">
+                    {suggestion.shortAddress}
+                    {isGeneralAddress && (
+                      <span className="suggestion-warning-badge" title={t('placeOrder.form.houseNumberMapboxMissing')}>
+                        ⚠️
+                      </span>
+                    )}
+                  </div>
+                  <div className="suggestion-detail">{suggestion.address}</div>
+                  {isGeneralAddress && (
+                    <div className="suggestion-warning-text">
+                      {t('placeOrder.form.houseNumberMapboxMissing')}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -350,7 +383,6 @@ const DeliveryAddressInput = ({
                   : DEFAULT_COORDS
             }
             restaurantLocation={restaurantLocation}
-            mapboxToken={mapboxToken}
           />
         </>
       )}

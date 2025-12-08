@@ -52,6 +52,31 @@ const placeOrder = async (req,res) => {
                 });
             }
         }
+
+        // ============================================
+        // ✨ BACKEND VALIDATION: Kiểm tra số nhà
+        // ============================================
+        // Helper function to check if address has house number
+        const hasHouseNumber = (addr) => {
+            if (!addr) return false;
+            const patterns = [
+                /^\d+/,                    // Số ở đầu: "123 Main St"
+                /\s\d+\s/,                 // Số giữa: "Street 123 Name"
+                /\s\d+$/,                  // Số ở cuối: "Main Street 123"
+                /\d+[a-zA-Z]?\s/,          // Số có thể kèm chữ: "123A Main St"
+            ];
+            return patterns.some(pattern => pattern.test(addr));
+        };
+
+        const addressHasNumber = hasHouseNumber(address.street);
+        const hasManualHouseNumber = address.houseNumber && address.houseNumber.trim().length > 0;
+
+        if (!addressHasNumber && !hasManualHouseNumber) {
+            return res.status(400).json({
+                success: false,
+                message: "House number is required. Please provide a house number in the address or in the house number field."
+            });
+        }
         
         // Kiểm tra userId có hợp lệ không (nếu có)
         let validUserId = null;
@@ -69,10 +94,43 @@ const placeOrder = async (req,res) => {
             }
         }
         
+        // Tự động chọn option đầu tiên (defaultChoiceCode) nếu món có options nhưng không có selectedOptions
+        const processedItems = items.map(item => {
+            // Nếu item có options nhưng không có selectedOptions hoặc selectedOptions rỗng
+            if (item.options && Array.isArray(item.options) && item.options.length > 0) {
+                // Kiểm tra xem có selectedOptions không
+                const hasSelectedOptions = item.selectedOptions && 
+                                         typeof item.selectedOptions === 'object' && 
+                                         Object.keys(item.selectedOptions).length > 0;
+                
+                if (!hasSelectedOptions) {
+                    // Tự động tạo selectedOptions với defaultChoiceCode cho mỗi option
+                    const defaultSelectedOptions = {};
+                    item.options.forEach(option => {
+                        if (option.defaultChoiceCode) {
+                            defaultSelectedOptions[option.name] = option.defaultChoiceCode;
+                        } else if (option.choices && option.choices.length > 0) {
+                            // Nếu không có defaultChoiceCode, chọn choice đầu tiên
+                            defaultSelectedOptions[option.name] = option.choices[0].code;
+                        }
+                    });
+                    
+                    if (Object.keys(defaultSelectedOptions).length > 0) {
+                        console.log(`🔧 Auto-selected default options for item "${item.name}":`, defaultSelectedOptions);
+                        return {
+                            ...item,
+                            selectedOptions: defaultSelectedOptions
+                        };
+                    }
+                }
+            }
+            return item;
+        });
+        
         // Tạo đơn hàng mới
         const newOrder = new orderModel({
             userId: validUserId, // Sẽ có giá trị nếu user đã đăng nhập và hợp lệ
-            items: items,
+            items: processedItems, // Sử dụng processedItems đã được xử lý options
             amount: amount,
             address: address,
             customerInfo: customerInfo,

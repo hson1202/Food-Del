@@ -1,4 +1,5 @@
-import React, { useContext, useState, useEffect } from 'react'
+import { useContext, useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import './Navbar.css'
 import {assets} from '../../assets/assets'
 import {Link, useNavigate, useLocation} from 'react-router-dom'
@@ -10,12 +11,12 @@ import config from '../../config/config'
 import { getOptimizedImageUrl } from '../../utils/imageUtils'
 
 
-const Navbar = ({setShowLogin}) => {
+const Navbar = ({ setShowLogin }) => {
     
     const { t } = useTranslation();
     const [menu,setMenu]=useState("home");
     const { isMobileMenuOpen, setIsMobileMenuOpen } = useContext(StoreContext);
-    const { token, user, logout: authLogout, isAuthenticated } = useAuth();
+    const { user, logout: authLogout, isAuthenticated } = useAuth();
     const location = useLocation();
     
     const navigate = useNavigate();
@@ -49,7 +50,7 @@ const Navbar = ({setShowLogin}) => {
 
         document.addEventListener('click', handleClickOutside);
         return () => document.removeEventListener('click', handleClickOutside);
-    }, [isMobileMenuOpen]);
+    }, [isMobileMenuOpen, setIsMobileMenuOpen]);
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -203,6 +204,10 @@ const Navbar = ({setShowLogin}) => {
             </div>
         </div>
   )
+}
+
+Navbar.propTypes = {
+    setShowLogin: PropTypes.func.isRequired,
 }
 
 export default Navbar

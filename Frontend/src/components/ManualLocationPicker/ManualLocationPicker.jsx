@@ -1,21 +1,104 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import './ManualLocationPicker.css';
 
+// Fix Leaflet default icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
 const DEFAULT_COORDS = { latitude: 50.08804, longitude: 14.42076 };
+const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
+const NOMINATIM_USER_AGENT = 'FoodDeliveryApp/1.0';
+
+// Format địa chỉ ngắn gọn từ Nominatim result
+// Ví dụ: "Hliník 1870/19, Veča, 927 05 Šaľa, Slovakia"
+const formatShortAddress = (result) => {
+  const address = result.address || {};
+  const parts = [];
+  
+  // Phần 1: Street line (số nhà + tên đường)
+  const houseNumber = address.house_number || address.house || address.housenumber || "";
+  const street = address.road || address.street || address.pedestrian || address.path || "";
+  const streetLine = [houseNumber, street].filter(Boolean).join(" ").trim();
+  
+  if (streetLine) {
+    parts.push(streetLine);
+  } else if (street) {
+    parts.push(street);
+  }
+  
+  // Phần 2: Village (thành phố nhỏ, ví dụ: Veča)
+  const village = address.village || "";
+  const town = address.town || address.city || "";
+  
+  if (village && village !== town) {
+    parts.push(village);
+  }
+  
+  // Phần 3: Zipcode + Town (thành phố lớn hơn, ví dụ: 927 05 Šaľa)
+  const zipcode = address.postcode || "";
+  if (zipcode && town) {
+    const zipAndTown = `${zipcode} ${town}`;
+    if (!parts.includes(town)) {
+      parts.push(zipAndTown);
+    } else {
+      parts.push(zipcode);
+    }
+  } else if (zipcode) {
+    parts.push(zipcode);
+  } else if (town && !village) {
+    parts.push(town);
+  } else if (address.city && !village && !town) {
+    parts.push(address.city);
+  }
+  
+  // Nếu không format được, fallback về display_name nhưng cố gắng rút gọn
+  if (parts.length === 0) {
+    // Thử lấy phần đầu của display_name (trước 3 dấu phẩy đầu tiên)
+    if (result.display_name) {
+      const displayParts = result.display_name.split(',').slice(0, 3);
+      return displayParts.join(',').trim();
+    }
+    return "";
+  }
+  
+  return parts.join(", ");
+};
+
+// Component để di chuyển map khi coords thay đổi
+function MapUpdater({ center, zoom, onMapClick }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.setView([center.latitude, center.longitude], zoom || map.getZoom());
+    }
+  }, [center, zoom, map]);
+
+  useEffect(() => {
+    if (onMapClick) {
+      map.on('click', onMapClick);
+      return () => {
+        map.off('click', onMapClick);
+      };
+    }
+  }, [map, onMapClick]);
+
+  return null;
+}
 
 const ManualLocationPicker = ({
   isOpen,
   onClose,
   onConfirm,
   initialCoords,
-  restaurantLocation,
-  mapboxToken
+  restaurantLocation
 }) => {
-  const mapContainerRef = useRef(null);
-  const mapRef = useRef(null);
-  const markerRef = useRef(null);
   const searchInputRef = useRef(null);
   const suggestionsRef = useRef(null);
   const [selectedCoords, setSelectedCoords] = useState(initialCoords || restaurantLocation || DEFAULT_COORDS);
@@ -24,11 +107,13 @@ const ManualLocationPicker = ({
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [mapCenter, setMapCenter] = useState(selectedCoords);
   const debounceTimer = useRef(null);
+  const markerRef = useRef(null);
 
-  // Search for addresses using Mapbox Geocoding API
+  // Search for addresses using Nominatim API
   const searchAddresses = useCallback(async (query) => {
-    if (!query || query.length < 3 || !mapboxToken) {
+    if (!query || query.length < 3) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -36,24 +121,42 @@ const ManualLocationPicker = ({
 
     setIsSearching(true);
     try {
-      let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&limit=5&types=address,place`;
+      const encodedQuery = encodeURIComponent(query);
+      let url = `${NOMINATIM_BASE_URL}/search?q=${encodedQuery}&format=json&limit=5&countrycodes=sk&addressdetails=1&accept-language=en`;
       
-      // Add proximity if restaurant location is available
+      // Add viewbox if restaurant location is available
       if (restaurantLocation?.longitude && restaurantLocation?.latitude) {
-        url += `&proximity=${restaurantLocation.longitude},${restaurantLocation.latitude}`;
+        const lng = restaurantLocation.longitude;
+        const lat = restaurantLocation.latitude;
+        const offset = 0.1; // ~10km
+        const viewbox = `${lng - offset},${lat - offset},${lng + offset},${lat + offset}`;
+        url += `&viewbox=${viewbox}&bounded=1`;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': NOMINATIM_USER_AGENT
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Nominatim API error: ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (data.features && data.features.length > 0) {
-        const formattedSuggestions = data.features.map(feature => ({
-          id: feature.id,
-          address: feature.place_name,
-          latitude: feature.center[1],
-          longitude: feature.center[0],
-          feature: feature
-        }));
+      if (data && data.length > 0) {
+        const formattedSuggestions = data.map((result, index) => {
+          // Format địa chỉ ngắn gọn
+          const shortAddress = formatShortAddress(result);
+          return {
+            id: result.place_id || result.osm_id || `nominatim-${index}`,
+            address: shortAddress || result.display_name, // Fallback về display_name nếu không format được
+            fullAddress: result.display_name, // Lưu địa chỉ đầy đủ để dùng khi cần
+            latitude: parseFloat(result.lat),
+            longitude: parseFloat(result.lon)
+          };
+        });
         setSuggestions(formattedSuggestions);
         setShowSuggestions(true);
       } else {
@@ -67,7 +170,7 @@ const ManualLocationPicker = ({
     } finally {
       setIsSearching(false);
     }
-  }, [mapboxToken, restaurantLocation]);
+  }, [restaurantLocation]);
 
   // Debounced search
   useEffect(() => {
@@ -102,29 +205,23 @@ const ManualLocationPicker = ({
     };
     
     setSelectedCoords(newCoords);
-    
-    // Move map and marker to selected location
-    if (mapRef.current && markerRef.current) {
-      mapRef.current.flyTo({
-        center: [suggestion.longitude, suggestion.latitude],
-        zoom: 15,
-        duration: 1000
-      });
-      
-      markerRef.current.setLngLat([suggestion.longitude, suggestion.latitude]);
-    }
+    setMapCenter(newCoords);
   };
 
-  // Move map to coordinates
-  const moveMapToCoords = (coords) => {
-    if (mapRef.current && markerRef.current) {
-      mapRef.current.flyTo({
-        center: [coords.longitude, coords.latitude],
-        zoom: 15,
-        duration: 1000
-      });
-      markerRef.current.setLngLat([coords.longitude, coords.latitude]);
-    }
+  // Handle map click
+  const handleMapClick = (e) => {
+    const { lat, lng } = e.latlng;
+    const newCoords = { latitude: lat, longitude: lng };
+    setSelectedCoords(newCoords);
+    setSearchQuery(''); // Clear search when clicking
+  };
+
+  // Handle marker drag end
+  const handleMarkerDragEnd = (e) => {
+    const { lat, lng } = e.target.getLatLng();
+    const newCoords = { latitude: lat, longitude: lng };
+    setSelectedCoords(newCoords);
+    setSearchQuery(''); // Clear search when dragging
   };
 
   useEffect(() => {
@@ -142,46 +239,8 @@ const ManualLocationPicker = ({
         : DEFAULT_COORDS);
 
     setSelectedCoords(startCoords);
-
-    if (!mapboxToken) {
-      return;
-    }
-
-    mapboxgl.accessToken = mapboxToken;
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [startCoords.longitude, startCoords.latitude],
-      zoom: 12
-    });
-
-    mapRef.current = map;
-
-    const marker = new mapboxgl.Marker({ draggable: true })
-      .setLngLat([startCoords.longitude, startCoords.latitude])
-      .addTo(map);
-
-    markerRef.current = marker;
-
-    const handleDragEnd = () => {
-      const lngLat = marker.getLngLat();
-      setSelectedCoords({ latitude: lngLat.lat, longitude: lngLat.lng });
-      setSearchQuery(''); // Clear search when dragging
-    };
-
-    marker.on('dragend', handleDragEnd);
-
-    map.on('click', (event) => {
-      marker.setLngLat(event.lngLat);
-      setSelectedCoords({ latitude: event.lngLat.lat, longitude: event.lngLat.lng });
-      setSearchQuery(''); // Clear search when clicking
-    });
-
-    return () => {
-      marker.off('dragend', handleDragEnd);
-      map.remove();
-    };
-  }, [isOpen, mapboxToken, initialCoords, restaurantLocation]);
+    setMapCenter(startCoords);
+  }, [isOpen, initialCoords, restaurantLocation]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -223,62 +282,80 @@ const ManualLocationPicker = ({
             ✖
           </button>
         </div>
-        {!mapboxToken ? (
-          <div className="manual-picker-error">
-            Mapbox token is missing. Please set VITE_MAPBOX_TOKEN (frontend) and reload.
-          </div>
-        ) : (
-          <>
-            {/* Search Box */}
-            <div className="manual-picker-search-wrapper">
-              <div className="manual-picker-search-input-wrapper">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="🔍 Tìm kiếm địa chỉ..."
-                  className="manual-picker-search-input"
-                  autoComplete="off"
-                />
-                {isSearching && <div className="manual-picker-search-loading">🔄</div>}
-              </div>
-              
-              {/* Suggestions Dropdown */}
-              {showSuggestions && suggestions.length > 0 && (
-                <div ref={suggestionsRef} className="manual-picker-suggestions">
-                  {suggestions.map((suggestion) => (
-                    <div
-                      key={suggestion.id}
-                      className="manual-picker-suggestion-item"
-                      onClick={() => handleSelectSuggestion(suggestion)}
-                    >
-                      <div className="manual-picker-suggestion-address">
-                        {suggestion.address}
-                      </div>
+        <>
+          {/* Search Box */}
+          <div className="manual-picker-search-wrapper">
+            <div className="manual-picker-search-input-wrapper">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="🔍 Tìm kiếm địa chỉ..."
+                className="manual-picker-search-input"
+                autoComplete="off"
+              />
+              {isSearching && <div className="manual-picker-search-loading">🔄</div>}
+            </div>
+            
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div ref={suggestionsRef} className="manual-picker-suggestions">
+                {suggestions.map((suggestion) => (
+                  <div
+                    key={suggestion.id}
+                    className="manual-picker-suggestion-item"
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                  >
+                    <div className="manual-picker-suggestion-address">
+                      {suggestion.address}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-            <div className="manual-picker-map" ref={mapContainerRef} />
-            <div className="manual-picker-footer">
-              <div className="manual-picker-coords">
-                <span>Lat: {selectedCoords?.latitude?.toFixed(5)}</span>
-                <span>Lng: {selectedCoords?.longitude?.toFixed(5)}</span>
-              </div>
-              <div className="manual-picker-actions">
-                <button type="button" className="secondary" onClick={onClose}>
-                  Cancel
-                </button>
-                <button type="button" className="primary" onClick={handleConfirm}>
-                  Use this location
-                </button>
-              </div>
+          <div className="manual-picker-map">
+            <MapContainer
+              center={[mapCenter.latitude, mapCenter.longitude]}
+              zoom={13}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <MapUpdater 
+                center={mapCenter} 
+                zoom={15} 
+                onMapClick={handleMapClick}
+              />
+              <Marker
+                position={[selectedCoords.latitude, selectedCoords.longitude]}
+                draggable={true}
+                eventHandlers={{
+                  dragend: handleMarkerDragEnd
+                }}
+                ref={markerRef}
+              />
+            </MapContainer>
+          </div>
+          <div className="manual-picker-footer">
+            <div className="manual-picker-coords">
+              <span>Lat: {selectedCoords?.latitude?.toFixed(5)}</span>
+              <span>Lng: {selectedCoords?.longitude?.toFixed(5)}</span>
             </div>
-          </>
-        )}
+            <div className="manual-picker-actions">
+              <button type="button" className="secondary" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="button" className="primary" onClick={handleConfirm}>
+                Use this location
+              </button>
+            </div>
+          </div>
+        </>
         {localError && <div className="manual-picker-error">{localError}</div>}
       </div>
     </div>
@@ -286,4 +363,3 @@ const ManualLocationPicker = ({
 };
 
 export default ManualLocationPicker;
-

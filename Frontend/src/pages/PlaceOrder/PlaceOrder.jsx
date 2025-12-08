@@ -227,6 +227,19 @@ const PlaceOrder = () => {
     fetchUserAddresses();
   }, [isAuthenticated, token, url, restaurantLocation]);
 
+  // Helper function to check if address has house number
+  const hasHouseNumber = (address) => {
+    if (!address) return false;
+    // Regex để tìm số nhà: số đứng đầu hoặc sau ký tự đặc biệt
+    const patterns = [
+      /^\d+/,                    // Số ở đầu: "123 Main St"
+      /\s\d+\s/,                 // Số giữa: "Street 123 Name"
+      /\s\d+$/,                  // Số ở cuối: "Main Street 123"
+      /\d+[a-zA-Z]?\s/,          // Số có thể kèm chữ: "123A Main St"
+    ];
+    return patterns.some(pattern => pattern.test(address));
+  };
+
   // Simple retry helper for transient errors (e.g., 502/503/network)
   const postWithRetry = async (endpoint, data, options, retries = 2, delayMs = 800) => {
     try {
@@ -251,6 +264,36 @@ const PlaceOrder = () => {
     // Validate delivery address first (most important)
     if (!deliveryAddress || !deliveryAddress.address) {
       alert(t('placeOrder.errors.invalidAddress'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate delivery zone - không cho phép đặt hàng nếu địa chỉ ngoài vùng giao hàng
+    if (!deliveryInfo || !deliveryInfo.zone) {
+      alert(t('placeOrder.errors.deliveryZoneNotAvailable'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    // ============================================
+    // ✨ THÊM MỚI: Kiểm tra số nhà
+    // ============================================
+    const addressHasNumber = hasHouseNumber(deliveryAddress.address);
+    const hasManualHouseNumber = deliveryAddress.houseNumber && deliveryAddress.houseNumber.trim().length > 0;
+    
+    if (!addressHasNumber && !hasManualHouseNumber) {
+      // Scroll đến ô số nhà và highlight
+      const houseNumberInput = document.querySelector('.house-number-field input');
+      if (houseNumberInput) {
+        houseNumberInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        houseNumberInput.focus();
+        houseNumberInput.classList.add('input-error-flash');
+        setTimeout(() => {
+          houseNumberInput.classList.remove('input-error-flash');
+        }, 2000);
+      }
+      
+      alert(t('placeOrder.errors.missingHouseNumber'));
       setIsSubmitting(false);
       return;
     }
@@ -708,17 +751,35 @@ const PlaceOrder = () => {
                 restaurantLocation={restaurantLocation}
               />
               <div className="house-number-field">
-                <label>{t('placeOrder.form.houseNumberLabel')}</label>
+                <label>
+                  {t('placeOrder.form.houseNumberLabel')}
+                  <span className="required-indicator" style={{color: 'red', marginLeft: '4px'}}>*</span>
+                </label>
                 <input
                   type="text"
                   placeholder={t('placeOrder.form.houseNumberPlaceholder')}
                   value={deliveryAddress?.houseNumber || ''}
                   onChange={handleHouseNumberChange}
+                  className={
+                    !deliveryAddress?.houseNumber && 
+                    deliveryAddress?.address && 
+                    !hasHouseNumber(deliveryAddress.address)
+                      ? 'house-number-input-warning'
+                      : ''
+                  }
                 />
                 <p className="house-helper">{t('placeOrder.form.houseNumberHint')}</p>
-                {!deliveryAddress?.houseNumber && deliveryAddress?.address && !/\d/.test(deliveryAddress.address) && (
-                  <div className="house-warning">
-                    ⚠️ {t('placeOrder.form.houseNumberMapboxMissing')}
+                
+                {/* ✨ CẢNH BÁO RÕ RÀNG HƠN */}
+                {!deliveryAddress?.houseNumber && 
+                 deliveryAddress?.address && 
+                 !hasHouseNumber(deliveryAddress.address) && (
+                  <div className="house-warning-enhanced">
+                    <div className="warning-icon">⚠️</div>
+                    <div className="warning-content">
+                      <strong>Thiếu số nhà!</strong>
+                      <p>Địa chỉ bạn chọn không có số nhà. Vui lòng nhập số nhà để tránh giao sai địa chỉ.</p>
+                    </div>
                   </div>
                 )}
               </div>
