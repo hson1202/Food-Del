@@ -1,210 +1,227 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import './Orders.css'
-import {toast} from "react-toastify"
-import axios from "axios"
-import {assets} from "../../assets/assets"
-import { useTranslation } from 'react-i18next'
-import '../../i18n'
-import config from '../../config/config'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
+import './Orders.css';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import '../../i18n';
+import config from '../../config/config';
 
-const Orders = ({url}) => {
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'Pending', label: 'Pending' },
+  { value: 'Out for delivery', label: 'Out' },
+  { value: 'Delivered', label: 'Delivered' },
+];
+
+const STATUS_COLORS = {
+  Pending: '#f59e0b',
+  'Out for delivery': '#3b82f6',
+  Delivered: '#10b981',
+};
+
+const formatMoney = (value = 0) => `€${Number(value || 0).toFixed(2)}`;
+const formatDateTime = (value) => {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('vi-VN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(new Date(value));
+};
+const csvCell = (value) => `"${String(value ?? '').replace(/"/g, '""').trim()}"`;
+
+const Orders = () => {
   const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
-  const [filteredOrders, setFilteredOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [autoRefresh, setAutoRefresh] = useState(true); // Auto-refresh toggle
-  const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds default
-  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 720);
   const audioRef = useRef(null);
-  const [soundReady, setSoundReady] = useState(false);
 
-  const fetchAllOrders = async (showLoadingToast = false) => {
-    try {
-      if (showLoadingToast) {
-        toast.info('🔄 Đang tải lại orders...', { autoClose: 1000 })
-      }
-      
-      const adminToken = localStorage.getItem('adminToken');
-      if (!adminToken) {
-        toast.error('Admin token not found. Please login again.');
-        return;
-      }
+  const fetchAllOrders = useCallback(
+    async (showToast = false) => {
+      try {
+        if (showToast) {
+          toast.info('🔄 Đang tải orders...', { autoClose: 800 });
+        }
 
-      const response = await axios.get(`${config.BACKEND_URL}/api/admin/orders`, {
-        headers: {
-          'token': adminToken
+        const adminToken = localStorage.getItem('adminToken');
+        if (!adminToken) {
+          toast.error('Admin token not found. Please login again.');
+          return;
         }
-      });
 
-      if (response.status === 200) {
-        const newOrders = response.data;
-        
-        // Check if there are new orders (only for auto-refresh, not manual refresh)
-        if (!showLoadingToast && orders.length > 0 && newOrders.length > orders.length) {
-          const newOrderCount = newOrders.length - orders.length;
-          toast.success(`🆕 ${newOrderCount} new order${newOrderCount > 1 ? 's' : ''} received!`);
-        }
-        
-        if (showLoadingToast) {
-          toast.success(`✅ Đã tải lại ${newOrders.length} orders`, { autoClose: 2000 })
-        }
-        
-        // Sort orders: Pending first, then by creation date
-        const sortedOrders = newOrders.sort((a, b) => {
-          // Pending orders first
-          if (a.status === 'Pending' && b.status !== 'Pending') return -1;
-          if (a.status !== 'Pending' && b.status === 'Pending') return 1;
-          
-          // Then by creation date (newest first)
-          const dateA = new Date(a.createdAt || a.date || 0);
-          const dateB = new Date(b.createdAt || b.date || 0);
-          return dateB - dateA;
+        const response = await axios.get(`${config.BACKEND_URL}/api/admin/orders`, {
+          headers: { token: adminToken },
         });
-        
-        setOrders(sortedOrders);
-        setLastRefresh(new Date());
-        setLoading(false);
-      }
-    } catch (error) {
-      if (error.response?.status === 401) {
-        toast.error('Session expired. Please login again.');
-        localStorage.removeItem('adminToken');
-      } else {
-        toast.error('Error fetching orders: ' + (error.response?.data?.message || error.message));
-      }
-      setLoading(false);
-    }
-  };
 
-  const statusHandler = async (event, orderId) => {
-    try {
-      console.log(`🔄 Updating order ${orderId} status to: ${event.target.value}`);
-      
-      // Get admin token from localStorage
-      const adminToken = localStorage.getItem('adminToken');
-      if (!adminToken) {
-        toast.error('Admin not logged in. Please login again.');
-        return;
-      }
-      
-      // Use the admin endpoint with auth token
-      const response = await axios.put(`${config.BACKEND_URL}/api/admin/orders/${orderId}/status`, {
-        status: event.target.value
-      }, {
-        headers: {
-          'token': adminToken
+        if (response.status === 200) {
+          const sortedOrders = response.data.sort((a, b) => {
+            if (a.status === 'Pending' && b.status !== 'Pending') return -1;
+            if (a.status !== 'Pending' && b.status === 'Pending') return 1;
+            const dateA = new Date(a.createdAt || a.date || 0);
+            const dateB = new Date(b.createdAt || b.date || 0);
+            return dateB - dateA;
+          });
+          setOrders(sortedOrders);
+          if (showToast) {
+            toast.success(`✅ Đã tải ${sortedOrders.length} orders`, { autoClose: 1200 });
+          }
         }
-      });
-      
-      console.log('📦 Status update response:', response.data);
-      
-      if (response.data.success){
-        await fetchAllOrders();
-        toast.success(t('orders.statusUpdateSuccess', 'Order status updated successfully'));
-      } else {
-        toast.error(response.data.message || t('orders.statusUpdateError', 'Failed to update order status'));
-      }
-    } catch (error) {
-      console.error('❌ Error updating order status:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        response: error.response,
-        request: error.request
-      });
-      
-      if (error.response) {
-        if (error.response.status === 401) {
-          toast.error('Admin session expired. Please login again.');
+      } catch (error) {
+        if (error.response?.status === 401) {
+          toast.error('Session expired. Please login again.');
           localStorage.removeItem('adminToken');
         } else {
-          toast.error(`Failed to update order status: ${error.response.data?.message || error.message}`);
+          toast.error('Error fetching orders: ' + (error.response?.data?.message || error.message));
         }
-      } else if (error.request) {
-        toast.error('No response received. Check if backend is running.');
-      } else {
-        toast.error(`Error: ${error.message}`);
+      } finally {
+        setLoading(false);
       }
-    }
-  }
+    },
+    [t]
+  );
 
-  // Filter orders based on search term and status
-  useEffect(() => {
-    let filtered = orders;
+  const statusHandler = useCallback(
+    async (nextStatus, orderId) => {
+      try {
+        const adminToken = localStorage.getItem('adminToken');
+        if (!adminToken) {
+          toast.error('Admin not logged in. Please login again.');
+          return;
+        }
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(order => 
+        const response = await axios.put(
+          `${config.BACKEND_URL}/api/admin/orders/${orderId}/status`,
+          { status: nextStatus },
+          { headers: { token: adminToken } }
+        );
+
+        if (response.data.success) {
+          await fetchAllOrders();
+          toast.success(t('orders.statusUpdateSuccess', 'Order status updated successfully'));
+        } else {
+          toast.error(response.data.message || t('orders.statusUpdateError', 'Failed to update order status'));
+        }
+      } catch (error) {
+        if (error.response) {
+          if (error.response.status === 401) {
+            toast.error('Admin session expired. Please login again.');
+            localStorage.removeItem('adminToken');
+          } else {
+            toast.error(`Failed to update order status: ${error.response.data?.message || error.message}`);
+          }
+        } else if (error.request) {
+          toast.error('No response received. Check if backend is running.');
+        } else {
+          toast.error(`Error: ${error.message}`);
+        }
+      }
+    },
+    [fetchAllOrders, t]
+  );
+
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const matchSearch =
+        !searchTerm ||
         order.customerInfo?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.customerInfo?.phone?.includes(searchTerm) ||
         order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.shortOrderId?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+        order.shortOrderId?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Filter by status
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(order => order.status === selectedStatus);
-    }
+      const matchStatus = statusFilter === 'all' ? true : order.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [orders, searchTerm, statusFilter]);
 
-    setFilteredOrders(filtered);
-  }, [orders, searchTerm, selectedStatus]);
-
-  useEffect(()=>{
-    fetchAllOrders();
-  },[])
-
-  // Ensure sound can play after a user gesture (browser autoplay policies)
-  useEffect(() => {
-    const enableSound = () => {
-      if (audioRef.current && !soundReady) {
-        const a = audioRef.current;
-        a.muted = true;
-        a.play().then(() => {
-          a.pause();
-          a.currentTime = 0;
-          a.muted = false;
-          setSoundReady(true);
-        }).catch(() => {
-          // ignore
-        });
+  const statusCounts = useMemo(() => {
+    return STATUS_OPTIONS.reduce((acc, opt) => {
+      if (opt.value === 'all') {
+        acc[opt.value] = orders.length;
+      } else {
+        acc[opt.value] = orders.filter((o) => o.status === opt.value).length;
       }
-    };
-    window.addEventListener('click', enableSound, { once: true });
-    window.addEventListener('keydown', enableSound, { once: true });
-    return () => {
-      window.removeEventListener('click', enableSound);
-      window.removeEventListener('keydown', enableSound);
-    };
-  }, [soundReady]);
+      return acc;
+    }, {});
+  }, [orders]);
 
-  // Realtime updates via Server-Sent Events (SSE)
+  const statusLabelMap = useMemo(() => {
+    return STATUS_OPTIONS.filter((opt) => opt.value !== 'all').reduce((acc, opt) => {
+      acc[opt.value] = opt.label;
+      return acc;
+    }, {});
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setSearchTerm('');
+    setStatusFilter('all');
+  }, []);
+
+  const showOrderDetails = useCallback((order) => {
+    setSelectedOrder(order);
+    setShowDetailsModal(true);
+  }, []);
+
+  const closeOrderDetails = useCallback(() => {
+    setSelectedOrder(null);
+    setShowDetailsModal(false);
+  }, []);
+
+  const handleExportCSV = useCallback(() => {
+    const header = ['Order ID', 'Date', 'Customer', 'Phone', 'Status', 'Total'];
+    const rows = filteredOrders.map((o) => [
+      o.shortOrderId || o._id,
+      formatDateTime(o.createdAt || o.date),
+      (o.customerInfo?.name || '').trim(),
+      (o.customerInfo?.phone || '').trim(),
+      statusLabelMap[o.status] || o.status || '',
+      formatMoney(o.amount),
+    ]);
+    const csvBody = [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n');
+    const csv = `\uFEFF${csvBody}`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'orders.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [filteredOrders, statusLabelMap]);
+
+  useEffect(() => {
+    fetchAllOrders();
+  }, [fetchAllOrders]);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 720);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   useEffect(() => {
     const eventsUrl = `${config.BACKEND_URL}/api/events?channel=orders`;
     const es = new EventSource(eventsUrl);
-
-    es.addEventListener('connected', () => {
-      toast.info('🔔 Realtime connected');
-    });
-
-    es.addEventListener('ping', () => {
-      // keep-alive
-    });
 
     es.addEventListener('message', (e) => {
       try {
         const data = JSON.parse(e.data);
         if (data?.type === 'order_created') {
           const newOrder = data.payload;
-          // Optimistically add to list if not present
-          setOrders(prev => {
-            const exists = prev.some(o => o._id === newOrder._id);
+          setOrders((prev) => {
+            const exists = prev.some((o) => o._id === newOrder._id);
             if (exists) return prev;
             const next = [newOrder, ...prev];
-            // Maintain sorting: Pending first, then newest
             return next.sort((a, b) => {
               if (a.status === 'Pending' && b.status !== 'Pending') return -1;
               if (a.status !== 'Pending' && b.status === 'Pending') return 1;
@@ -213,108 +230,59 @@ const Orders = ({url}) => {
               return dateB - dateA;
             });
           });
-          toast.success(`🆕 New order from ${newOrder?.customerInfo?.name || 'Customer'}`);
-          // Play notification sound if available
           if (audioRef.current) {
             audioRef.current.currentTime = 0;
             audioRef.current.play().catch(() => {});
           }
+          toast.success(`🆕 New order from ${newOrder?.customerInfo?.name || 'Customer'}`);
         }
-      } catch (_) {}
+      } catch (_) {
+        // ignore malformed messages
+      }
     });
-
-    es.onerror = () => {
-      // Auto-reconnect handled by EventSource; optional toast to avoid noise
-    };
 
     return () => {
       es.close();
     };
   }, []);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Pending':
-        return '#f59e0b';
-      case 'Out for delivery':
-        return '#3b82f6';
-      case 'Delivered':
-        return '#10b981';
-      default:
-        return '#6b7280';
-    }
-  };
-
-  const getStatusClass = (status = '') => status.toLowerCase().replace(/\s+/g, '-');
-
-  const getStatusCount = (status) => {
-    return orders.filter(order => order.status === status).length;
-  };
-
-  const clearSearch = () => {
-    setSearchTerm('');
-  };
-
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedStatus('all');
-  }
-
-  const showOrderDetails = (order) => {
-    setSelectedOrder(order);
-    setShowDetailsModal(true);
-  }
-
-  const closeOrderDetails = () => {
-    setSelectedOrder(null);
-    setShowDetailsModal(false);
-  };
-
   if (loading) {
     return (
       <div className="orders-loading">
-        <div className="loading-spinner"></div>
+        <div className="loading-spinner" />
         <p>{t('common.loading')}</p>
       </div>
     );
   }
 
   return (
-    <div className='orders-page'>
-      {/* Hidden audio element for realtime notification */}
+    <div className="orders-page">
       <audio ref={audioRef} src={`${config.BACKEND_URL}/sound/thongbao.mp3`} preload="auto" />
 
       <section className="orders-top">
-        <section className="orders-header">
+        <div className="orders-header">
           <div className="header-content">
             <p className="section-label">{t('orders.subtitle', 'Realtime order monitoring')}</p>
             <h1>{t('orders.title')}</h1>
           </div>
           <div className="header-actions">
-            <button className="ghost-btn" onClick={() => fetchAllOrders(true)}>
-              {t('common.refresh') || 'Refresh'}
+            <button className="icon-button ghost" onClick={() => fetchAllOrders(true)} title="Refresh">
+              🔄
             </button>
           </div>
-        </section>
+        </div>
 
-        <section className="orders-stats">
-          <div className="stat-card">
-            <span className="stat-label">{t('orders.totalOrders', 'Total Orders')}</span>
-            <strong>{orders.length}</strong>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">{t('orders.pending', 'Pending')}</span>
-            <strong>{getStatusCount('Pending')}</strong>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">{t('orders.outForDelivery', 'Out for Delivery')}</span>
-            <strong>{getStatusCount('Out for delivery')}</strong>
-          </div>
-          <div className="stat-card">
-            <span className="stat-label">{t('orders.delivered', 'Delivered')}</span>
-            <strong>{getStatusCount('Delivered')}</strong>
-          </div>
-        </section>
+        <div className="status-pills">
+          {STATUS_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              className={`pill ${statusFilter === option.value ? 'active' : ''}`}
+              onClick={() => setStatusFilter(option.value)}
+            >
+              {t(`orders.quick.${option.value}`, option.label)} ({statusCounts[option.value] ?? 0})
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="orders-toolbar">
@@ -328,91 +296,46 @@ const Orders = ({url}) => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm && (
-              <button className="clear-pill" onClick={clearSearch}>
+              <button className="clear-pill" onClick={() => setSearchTerm('')}>
                 {t('common.clear', 'Clear')}
               </button>
             )}
           </div>
         </div>
 
-        <div className="toolbar-divider" />
-
-        <div className="refresh-stack">
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-            />
-            <span>{t('orders.autoRefresh', 'Auto refresh')}</span>
-          </label>
-
-          {autoRefresh && (
-            <select
-              value={refreshInterval}
-              onChange={(e) => setRefreshInterval(Number(e.target.value))}
-            >
-              <option value={15000}>15s</option>
-              <option value={30000}>30s</option>
-              <option value={60000}>1m</option>
-              <option value={300000}>5m</option>
-            </select>
-          )}
-
-          <button
-            className="icon-button"
-            onClick={() => {
-              fetchAllOrders();
-              setLastRefresh(new Date());
-            }}
-            title="Refresh now"
-          >
+        <div className="toolbar-actions">
+          <button className="icon-button" title="Refresh" onClick={() => fetchAllOrders(true)}>
             🔄
           </button>
-
-          <span className="last-refresh">{t('orders.lastRefresh', 'Last update')} · {lastRefresh.toLocaleTimeString()}</span>
+          <button className="ghost-btn" onClick={handleExportCSV}>
+            {t('orders.exportCsv', 'Export CSV')}
+          </button>
         </div>
-
-        <div className="toolbar-spacer" />
-
-        <button className="primary-btn" onClick={() => fetchAllOrders(true)}>
-          {t('orders.refreshList', 'Reload list')}
-        </button>
       </section>
 
       <section className="orders-panel">
-        <div className="status-filter">
-          <div className="status-tabs">
-            <button 
-              className={`status-tab ${selectedStatus === 'all' ? 'active' : ''}`}
-              onClick={() => setSelectedStatus('all')}
-            >
-              {t('orders.allStatuses', 'All statuses')}
-            </button>
-            <button 
-              className={`status-tab ${selectedStatus === 'Pending' ? 'active' : ''}`}
-              onClick={() => setSelectedStatus('Pending')}
-            >
-              {t('orders.pending', 'Pending')}
-            </button>
-            <button 
-              className={`status-tab ${selectedStatus === 'Out for delivery' ? 'active' : ''}`}
-              onClick={() => setSelectedStatus('Out for delivery')}
-            >
-              {t('orders.outForDelivery', 'Out for delivery')}
-            </button>
-            <button 
-              className={`status-tab ${selectedStatus === 'Delivered' ? 'active' : ''}`}
-              onClick={() => setSelectedStatus('Delivered')}
-            >
-              {t('orders.delivered', 'Delivered')}
-            </button>
+        <div className="panel-controls">
+          <div className="inline-filter">
+            <label>{t('orders.status', 'Status')}</label>
+            <div className="button-group">
+              {STATUS_OPTIONS.filter((s) => s.value !== 'all').map((option) => (
+                <button
+                  key={option.value}
+                  className={`status-button ${statusFilter === option.value ? 'active' : ''}`}
+                  onClick={() => setStatusFilter(option.value)}
+                >
+                  {t(`orders.orderStatus.${option.value}`, option.label)}
+                </button>
+              ))}
+            </div>
           </div>
-          {(searchTerm || selectedStatus !== 'all') && (
-            <button className="link-btn" onClick={clearFilters}>
-              {t('orders.resetFilters', 'Reset filters')}
-            </button>
-          )}
+          <div className="panel-actions">
+            {(searchTerm || statusFilter !== 'all') && (
+              <button className="link-btn" onClick={clearFilters}>
+                {t('orders.resetFilters', 'Reset filters')}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="orders-table-wrapper">
@@ -428,300 +351,337 @@ const Orders = ({url}) => {
                   <th>{t('orders.orderId', 'Order')}</th>
                   <th>{t('orders.customer', 'Customer')}</th>
                   <th>{t('orders.items', 'Items')}</th>
-                  <th>{t('orders.total', 'Payment')}</th>
+                  <th>{t('orders.total', 'Total')}</th>
                   <th>{t('orders.status', 'Status')}</th>
-                  <th>{t('orders.actions', 'Actions')}</th>
+                  <th>{t('orders.details', 'Details')}</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => {
-                  const createdAt = order.createdAt ? new Date(order.createdAt) : null;
-                  const prettyDate = createdAt
-                    ? createdAt.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
-                    : 'N/A';
-                  const prettyTime = createdAt
-                    ? createdAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-                    : '';
-                  const items = Array.isArray(order.items) ? order.items : [];
-                  const previewItems = items.slice(0, 2);
-                  const remainingItems = Math.max(items.length - 2, 0);
-                  const deliveryFee = Number(order.deliveryInfo?.deliveryFee ?? 0);
-                  const showDeliveryFee = deliveryFee > 0;
-
-                  return (
-                    <tr key={order._id}>
-                      <td data-label={t('orders.orderId', 'Order')}>
-                        <div className="order-id-block">
-                          <p className="order-code">#{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}</p>
-                          <span className="order-date">{prettyDate} · {prettyTime}</span>
-                          {order.trackingCode && (
-                            <span className="order-meta">
-                              {t('orders.trackingCode', 'Tracking')} #{order.trackingCode}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td data-label={t('orders.customer', 'Customer')}>
-                        <div className="customer-cell">
-                          <p className="customer-name">{order.customerInfo?.name || t('orders.customerName', 'Customer')}</p>
-                          <p className="customer-meta">
-                            {order.customerInfo?.phone || '—'}
-                            {order.address?.city ? ` • ${order.address.city}` : ''}
-                          </p>
-                          <span className={`order-type-chip ${order.orderType === 'guest' ? 'guest' : 'registered'}`}>
-                            {order.orderType === 'guest' ? t('orders.guest', 'Guest checkout') : t('orders.user', 'Logged in')}
-                          </span>
-                        </div>
-                      </td>
-                      <td data-label={t('orders.items', 'Items')}>
-                        <div className="items-preview">
-                          {previewItems.length === 0 ? (
-                            <span className="muted">{t('orders.noItems', 'No items')}</span>
-                          ) : (
-                            <>
-                              {previewItems.map((item, index) => (
-                                <span key={`${order._id}-${item.sku || index}`} className="item-pill">
-                                  {item.name || 'Item'} ×{item.quantity || 1}
-                                </span>
-                              ))}
-                              {remainingItems > 0 && (
-                                <span className="extra-count">+{remainingItems}</span>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </td>
-                      <td data-label={t('orders.total', 'Payment')}>
-                        <div className="amount-stack">
-                          <span className="total-amount">€{Number(order.amount || 0).toFixed(2)}</span>
-                          {showDeliveryFee && (
-                            <span className="delivery-fee">
-                              {t('orders.deliveryFee', 'Delivery')} €{deliveryFee.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td data-label={t('orders.status', 'Status')}>
-                        <div className="status-cell">
-                          <span className={`status-pill ${getStatusClass(order.status)}`}>
-                            {t(`orders.orderStatus.${order.status}`, order.status)}
-                          </span>
-                          <select
-                            value={order.status}
-                            onChange={(e) => statusHandler(e, order._id)}
-                          >
-                            <option value="Pending">{t('orders.pending', 'Pending')}</option>
-                            <option value="Out for delivery">{t('orders.outForDelivery', 'Out for delivery')}</option>
-                            <option value="Delivered">{t('orders.delivered', 'Delivered')}</option>
-                          </select>
-                        </div>
-                      </td>
-                      <td data-label={t('orders.actions', 'Actions')}>
-                        <div className="table-actions">
-                          <button className="ghost-btn" onClick={() => showOrderDetails(order)}>
-                            {t('orders.viewDetails', 'View details')}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {filteredOrders.map((order) => (
+                  <OrderRow
+                    key={order._id}
+                    order={order}
+                    isMobile={isMobile}
+                    onStatusChange={statusHandler}
+                    onDetails={() => showOrderDetails(order)}
+                  />
+                ))}
               </tbody>
             </table>
           )}
         </div>
       </section>
 
-      {/* Order Details Modal */}
       {showDetailsModal && selectedOrder && (
-        <div className="modal-overlay" onClick={closeOrderDetails}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{t('orders.orderDetails', 'Order Details')}</h2>
-              <button className="modal-close" onClick={closeOrderDetails}>×</button>
-            </div>
-            
-            <div className="modal-body">
-              <div className="detail-section">
-                <h3>{t('orders.orderInfo', 'Order Information')}</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.orderId')}:</span>
-                    <span className="detail-value">#{selectedOrder.shortOrderId || (selectedOrder._id ? selectedOrder._id.slice(-6) : 'N/A')}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.orderDate', 'Order Date')}:</span>
-                    <span className="detail-value">
-                      {selectedOrder.createdAt 
-                        ? new Date(selectedOrder.createdAt).toLocaleString(undefined, {
-                            year: 'numeric', month: '2-digit', day: '2-digit',
-                            hour: '2-digit', minute: '2-digit', second: '2-digit'
-                          })
-                        : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.status')}:</span>
-                    <span 
-                      className="detail-value status-badge"
-                      style={{ backgroundColor: getStatusColor(selectedOrder.status) }}
-                    >
-                      {t(`orders.orderStatus.${selectedOrder.status}`, selectedOrder.status)}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.orderType', 'Order Type')}:</span>
-                    <span className="detail-value">
-                      <span className={`order-type-badge ${selectedOrder.orderType === 'guest' ? 'guest' : 'registered'}`}>
-                        {selectedOrder.orderType === 'guest' ? 'GUEST' : 'USER'}
-                      </span>
-                      {selectedOrder.orderType === 'guest' && (
-                        <span className="guest-note">💡 Khách không đăng nhập</span>
-                      )}
-                      {selectedOrder.orderType === 'registered' && selectedOrder.userId && (
-                        <span className="guest-note">
-                          👤 {selectedOrder.customerInfo?.name || 'Unknown User'} 
-                          <small> (ID: {selectedOrder.userId.slice(-8)})</small>
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.trackingCode', 'Tracking Code')}:</span>
-                    <span className="detail-value">{selectedOrder.trackingCode || 'N/A'}</span>
-                  </div>
-                  {selectedOrder.preferredDeliveryTime && (
-                    <div className="detail-item">
-                      <span className="detail-label">🕐 {t('orders.preferredDeliveryTime', 'Preferred Time')}:</span>
-                      <span className="detail-value">{selectedOrder.preferredDeliveryTime}</span>
-                    </div>
-                  )}
-                  {selectedOrder.deliveryInfo && (
-                    <div className="detail-item">
-                      <span className="detail-label">🚚 {t('orders.deliveryInfo', 'Delivery Info')}:</span>
-                      <span className="detail-value">
-                        {selectedOrder.deliveryInfo.zone} • {selectedOrder.deliveryInfo.distance}km • €{selectedOrder.deliveryInfo.deliveryFee} • ~{selectedOrder.deliveryInfo.estimatedTime}min
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>
-                  {selectedOrder.orderType === 'guest' ? t('orders.guestInfo', 'Guest Information') : t('orders.userInfo', 'User Information')}
-                </h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.customerName', 'Name')}:</span>
-                    <span className="detail-value">
-                      {selectedOrder.customerInfo?.name || 'N/A'}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.phone')}:</span>
-                    <span className="detail-value">{selectedOrder.customerInfo?.phone || 'N/A'}</span>
-                  </div>
-                  {selectedOrder.orderType === 'guest' && selectedOrder.customerInfo?.email && (
-                    <div className="detail-item">
-                      <span className="detail-label">{t('orders.email', 'Email')}:</span>
-                      <span className="detail-value">{selectedOrder.customerInfo.email}</span>
-                    </div>
-                  )}
-                  {selectedOrder.orderType === 'registered' && selectedOrder.userId && (
-                    <div className="detail-item">
-                      <span className="detail-label">{t('orders.userId', 'User')}:</span>
-                      <span className="detail-value">
-                        {selectedOrder.customerInfo?.name || 'Unknown User'}
-                        <br />
-                        <small>(ID: {selectedOrder.userId.slice(-8)})</small>
-                      </span>
-                    </div>
-                  )}
-                  <div className="detail-item">
-                    <span className="detail-label">{t('orders.address')}:</span>
-                    <span className="detail-value">
-                      {selectedOrder.address?.street ? `${selectedOrder.address.street}, ${selectedOrder.address.city || ''}` : 'N/A'}
-                    </span>
-                  </div>
-                  {selectedOrder.address?.state && (
-                    <div className="detail-item">
-                      <span className="detail-label">{t('orders.state', 'State')}:</span>
-                      <span className="detail-value">{selectedOrder.address.state}</span>
-                    </div>
-                  )}
-                  {selectedOrder.address?.zipcode && (
-                    <div className="detail-item">
-                      <span className="detail-label">{t('orders.zipcode', 'Postal Code')}:</span>
-                      <span className="detail-value">{selectedOrder.address.zipcode}</span>
-                    </div>
-                  )}
-                  {selectedOrder.address?.country && (
-                    <div className="detail-item">
-                      <span className="detail-label">{t('orders.country', 'Country')}:</span>
-                      <span className="detail-value">{selectedOrder.address.country}</span>
-                    </div>
-                  )}
-                  {(selectedOrder.note || selectedOrder.notes) && (
-                    <div className="detail-item full-width">
-                      <span className="detail-label">📝 {t('orders.customerNote', 'Customer Note')}:</span>
-                      <span className="detail-value notes-text">{selectedOrder.note || selectedOrder.notes}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <h3>{t('orders.items')}</h3>
-                <div className="modal-items">
-                  {selectedOrder.items && Array.isArray(selectedOrder.items) ? (
-                    selectedOrder.items.map((item, index) => (
-                      <div key={index} className="modal-item">
-                        <div className="modal-item-info">
-                          <span className="modal-item-name">{item.name || 'Unknown Item'}</span>
-                          <span className="modal-item-sku">SKU: {item.sku || 'N/A'}</span>
-                        </div>
-                        <div className="modal-item-quantity-price">
-                          <span className="modal-item-quantity">x{item.quantity || 1}</span>
-                          <span className="modal-item-price">€{((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p>No items found</p>
-                  )}
-                </div>
-                
-                {/* Order Summary Breakdown */}
-                <div className="order-summary-breakdown" style={{ marginTop: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '8px' }}>
-                  <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #ddd' }}>
-                    <span className="detail-label">Subtotal:</span>
-                    <span className="detail-value">
-                      €{(() => {
-                        const deliveryFee = selectedOrder.deliveryInfo?.deliveryFee ?? 0;
-                        const subtotal = (selectedOrder.amount || 0) - deliveryFee;
-                        return subtotal.toFixed(2);
-                      })()}
-                    </span>
-                  </div>
-                  <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #ddd' }}>
-                    <span className="detail-label">Delivery Fee:</span>
-                    <span className="detail-value">
-                      €{((selectedOrder.deliveryInfo?.deliveryFee ?? 0).toFixed(2))}
-                    </span>
-                  </div>
-                  <div className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', marginTop: '8px', borderTop: '2px solid #333' }}>
-                    <span className="detail-label" style={{ fontWeight: 'bold', fontSize: '16px' }}>{t('orders.total', 'Total')}:</span>
-                    <span className="detail-value total-amount" style={{ fontWeight: 'bold', fontSize: '18px', color: '#e74c3c' }}>€{(selectedOrder.amount || 0).toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <OrderDetailsModal order={selectedOrder} onClose={closeOrderDetails} />
       )}
     </div>
   );
+};
+
+const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => {
+  const { t } = useTranslation();
+  const createdAt = order.createdAt ? new Date(order.createdAt) : null;
+  const prettyDate = createdAt
+    ? createdAt.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })
+    : 'N/A';
+  const prettyTime = createdAt
+    ? createdAt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    : '';
+  const items = Array.isArray(order.items) ? order.items : [];
+  const previewItems = items.slice(0, 2);
+  const remainingItems = Math.max(items.length - 2, 0);
+  const deliveryFee = Number(order.deliveryInfo?.deliveryFee ?? 0);
+  const showDeliveryFee = deliveryFee > 0;
+  const itemsText =
+    items.length === 0
+      ? t('orders.noItems', 'No items')
+      : items.length <= 2
+      ? items.map((i) => `${i.name || 'Item'} ×${i.quantity || 1}`).join(', ')
+      : `${items[0].name || 'Item'} ×${items[0].quantity || 1}, ${items[1].name || 'Item'} ×${items[1].quantity || 1}, +${items.length - 2} more`;
+  const orderCode = `#${order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}`;
+
+  if (isMobile) {
+    return (
+      <tr className="mobile-order-card">
+        <td className="mobile-order-header">
+          <div className="order-headline">
+            <span className="order-code">{orderCode}</span>
+            <span className="order-date">
+              {prettyDate} · {prettyTime}
+            </span>
+          </div>
+          {order.trackingCode && <span className="order-meta">#{order.trackingCode}</span>}
+        </td>
+        <td className="mobile-customer-cell">
+          <p className="customer-line">
+            {order.customerInfo?.name || t('orders.customerName', 'Customer')} ·{' '}
+            {order.customerInfo?.phone || '—'}
+          </p>
+          {order.address?.city && <p className="customer-city">{order.address.city}</p>}
+        </td>
+        <td className="mobile-items-cell">
+          <span className="items-text">{itemsText}</span>
+        </td>
+        <td className="mobile-total-cell">
+          <span className="total-amount">{formatMoney(order.amount)}</span>
+        </td>
+        <td className="mobile-status-cell">
+          <div className="status-cell inline">
+            <select
+              className="status-select"
+              value={order.status}
+              onChange={(e) => onStatusChange(e.target.value, order._id)}
+            >
+              <option value="Pending">{t('orders.pending', 'Pending')}</option>
+              <option value="Out for delivery">{t('orders.outForDelivery', 'Out for delivery')}</option>
+              <option value="Delivered">{t('orders.delivered', 'Delivered')}</option>
+            </select>
+          </div>
+        </td>
+        <td className="mobile-details-cell">
+          <button className="ghost-btn slim full-width" onClick={onDetails}>
+            {t('orders.viewDetails', 'Details')}
+          </button>
+        </td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr>
+      <td data-label={t('orders.orderId', 'Order')}>
+        <div className="order-id-block">
+          <p className="order-code">#{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}</p>
+          <span className="order-date">
+            {prettyDate} · {prettyTime}
+          </span>
+          {order.trackingCode && <span className="order-meta">#{order.trackingCode}</span>}
+        </div>
+      </td>
+      <td data-label={t('orders.customer', 'Customer')}>
+        <div className="customer-cell">
+          <p className="customer-name">{order.customerInfo?.name || t('orders.customerName', 'Customer')}</p>
+          <p className="customer-meta">
+            {order.customerInfo?.phone || '—'}
+            {order.address?.city ? ` • ${order.address.city}` : ''}
+          </p>
+        </div>
+      </td>
+      <td data-label={t('orders.items', 'Items')}>
+        <div className="items-preview">
+          {previewItems.length === 0 ? (
+            <span className="muted">{t('orders.noItems', 'No items')}</span>
+          ) : (
+            <>
+              {previewItems.map((item, index) => (
+                <span key={`${order._id}-${item.sku || index}`} className="item-pill">
+                  {item.name || 'Item'} ×{item.quantity || 1}
+                </span>
+              ))}
+              {remainingItems > 0 && <span className="extra-count">+{remainingItems}</span>}
+            </>
+          )}
+        </div>
+      </td>
+      <td data-label={t('orders.total', 'Total')}>
+        <div className="amount-stack">
+          {showDeliveryFee && (
+            <div className="amount-row">
+              <span className="amount-label">{t('orders.deliveryFee', 'Delivery')}</span>
+              <span className="amount-value">{formatMoney(deliveryFee)}</span>
+            </div>
+          )}
+          <div className="amount-row strong">
+            <span className="amount-label">{t('orders.total', 'Total')}</span>
+            <span className="amount-value">{formatMoney(order.amount)}</span>
+          </div>
+        </div>
+      </td>
+      <td data-label={t('orders.status', 'Status')}>
+        <div className="status-cell inline">
+          <select
+            className="status-select"
+            value={order.status}
+            onChange={(e) => onStatusChange(e.target.value, order._id)}
+          >
+            <option value="Pending">{t('orders.pending', 'Pending')}</option>
+            <option value="Out for delivery">{t('orders.outForDelivery', 'Out for delivery')}</option>
+            <option value="Delivered">{t('orders.delivered', 'Delivered')}</option>
+          </select>
+        </div>
+      </td>
+      <td data-label={t('orders.details', 'Details')}>
+        <button className="ghost-btn slim" onClick={onDetails}>
+          {t('orders.viewDetails', 'Details')}
+        </button>
+      </td>
+    </tr>
+  );
+});
+
+OrderRow.propTypes = {
+  order: PropTypes.object.isRequired,
+  onStatusChange: PropTypes.func.isRequired,
+  onDetails: PropTypes.func.isRequired,
+  isMobile: PropTypes.bool,
+};
+
+const OrderSummary = React.memo(({ amount, deliveryFee }) => {
+  const subtotal = (amount || 0) - (deliveryFee || 0);
+  const rows = [
+    { label: 'Subtotal', value: formatMoney(subtotal) },
+    { label: 'Delivery', value: formatMoney(deliveryFee) },
+    { label: 'Total', value: formatMoney(amount), strong: true },
+  ];
+
+  return (
+    <div className="order-summary">
+      {rows.map((row) => (
+        <div key={row.label} className={`summary-row ${row.strong ? 'strong' : ''}`}>
+          <span>{row.label}</span>
+          <span>{row.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+OrderSummary.propTypes = {
+  amount: PropTypes.number,
+  deliveryFee: PropTypes.number,
+};
+
+const OrderDetailsModal = React.memo(({ order, onClose }) => {
+  const { t } = useTranslation();
+  const deliveryFee = Number(order.deliveryInfo?.deliveryFee ?? 0);
+  const copyId = () => {
+    const id = order.shortOrderId || order._id || '';
+    navigator.clipboard.writeText(id).then(() => toast.success(t('orders.copied', 'Order ID copied')));
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <p className="section-label">{t('orders.orderDetails', 'Order Details')}</p>
+            <h2>#{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}</h2>
+          </div>
+          <div className="modal-header-actions">
+            <button className="ghost-btn" onClick={copyId}>
+              {t('orders.copyId', 'Copy ID')}
+            </button>
+            <button className="icon-button" onClick={onClose} title="Close">
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="modal-body">
+          <div className="detail-section">
+            <h3>{t('orders.meta', 'Order Meta')}</h3>
+            <div className="meta-grid">
+              <div>
+                <p className="meta-label">{t('orders.orderDate', 'Order Date')}</p>
+                <p className="meta-value">
+                  {order.createdAt
+                    ? new Date(order.createdAt).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="meta-label">{t('orders.status', 'Status')}</p>
+                <p className="meta-value status-chip" style={{ color: STATUS_COLORS[order.status] }}>
+                  {t(`orders.orderStatus.${order.status}`, order.status)}
+                </p>
+              </div>
+              <div>
+                <p className="meta-label">{t('orders.trackingCode', 'Tracking')}</p>
+                <p className="meta-value">{order.trackingCode || '—'}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="detail-section">
+            <h3>{t('orders.customer', 'Customer')}</h3>
+            <div className="customer-grid">
+              <div>
+                <p className="meta-label">{t('orders.customerName', 'Name')}</p>
+                <p className="meta-value">{order.customerInfo?.name || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="meta-label">{t('orders.phone', 'Phone')}</p>
+                <p className="meta-value">{order.customerInfo?.phone || 'N/A'}</p>
+              </div>
+              <div className="full">
+                <p className="meta-label">{t('orders.address', 'Address')}</p>
+                <p className="meta-value">
+                  {order.address?.street
+                    ? `${order.address.street}, ${order.address.city || ''} ${order.address.state || ''}`
+                    : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="detail-section">
+            <h3>{t('orders.items', 'Items')}</h3>
+            <div className="items-and-summary">
+              <div className="modal-items">
+                {order.items && Array.isArray(order.items) ? (
+                  order.items.map((item, index) => (
+                    <div key={index} className="modal-item">
+                      <div>
+                        <p className="modal-item-name">{item.name || 'Item'}</p>
+                        <p className="modal-item-meta">SKU: {item.sku || 'N/A'}</p>
+                        {Array.isArray(item.options) && item.options.length > 0 && (
+                          <p className="modal-item-meta small">
+                            {item.options.map((opt) => opt?.label || opt?.name || opt).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                      <div className="modal-item-quantity-price">
+                        <span>x{item.quantity || 1}</span>
+                        <strong>{formatMoney((item.price || 0) * (item.quantity || 1))}</strong>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p>{t('orders.noItems', 'No items')}</p>
+                )}
+              </div>
+
+              <OrderSummary amount={Number(order.amount || 0)} deliveryFee={deliveryFee} />
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-actions">
+          <button className="ghost-btn" onClick={copyId}>
+            {t('orders.copyId', 'Copy ID')}
+          </button>
+          <button className="ghost-btn" onClick={() => window.print()}>
+            {t('orders.print', 'Print')}
+          </button>
+          <button className="primary-btn" onClick={onClose}>
+            {t('orders.close', 'Close')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+OrderDetailsModal.propTypes = {
+  order: PropTypes.object.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 export default Orders;

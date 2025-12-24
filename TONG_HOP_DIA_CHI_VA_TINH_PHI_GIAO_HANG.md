@@ -301,3 +301,8 @@ VITE_MAPBOX_TOKEN=pk.eyJ1Ijoi...
 - [ ] Xác nhận cách hiển thị phí ship (€0.00 hoặc FREE)
 - [ ] Xác nhận validation địa chỉ trước khi đặt hàng
 - [ ] Xác nhận cách lưu địa chỉ vào order (có đầy đủ components: street, city, state, zipcode, country)
+
+
+
+
+

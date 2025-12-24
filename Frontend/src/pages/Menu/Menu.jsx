@@ -50,12 +50,8 @@ const Menu = () => {
   // Tự động chọn parent category đầu tiên khi menu được load
   useEffect(() => {
     if (parentCategories.length > 0 && selectedParentCategory === null) {
-      const sortedParents = [...parentCategories].sort((a, b) => {
-        const dateA = new Date(a?.createdAt || 0).getTime()
-        const dateB = new Date(b?.createdAt || 0).getTime()
-        return dateA - dateB
-      })
-      const firstParent = sortedParents[0]
+      // Backend already sorted by sortOrder, so just use the first one
+      const firstParent = parentCategories[0]
       const firstParentId = firstParent._id?.toString() || 'first'
       setSelectedParentCategory(firstParentId)
     }
@@ -127,22 +123,19 @@ const Menu = () => {
     })
   }, [food_list, searchTerm, getLocalizedName])
 
-  const sortByCreatedAt = (items = []) =>
-    [...items].sort((a, b) => {
-      const dateA = new Date(a?.createdAt || 0).getTime()
-      const dateB = new Date(b?.createdAt || 0).getTime()
-      return dateA - dateB
-    })
-
+  // Backend already sorts by sortOrder, so we just use the order as received
+  // No need to sort by createdAt anymore
   const menuSections = useMemo(() => {
     if (!parentCategories.length) return []
 
     const coveredFoodIds = new Set()
 
-    const sections = sortByCreatedAt(parentCategories)
+    // Use parentCategories directly as they're already sorted by backend
+    const sections = parentCategories
       .map((parent) => {
         const localizedParentName = getLocalizedName(parent)
-        const categories = sortByCreatedAt(parent.categories || [])
+        // Use categories directly as they're already sorted by backend
+        const categories = (parent.categories || [])
           .map((category) => {
             const categoryKey = category._id?.toString() || category.name || localizedParentName
             const foods = filteredFoods.filter((food) => {
@@ -236,7 +229,7 @@ const Menu = () => {
       <div className="menu-filter-container">
         {/* Parent Category Filter */}
           <div className="parent-category-container">
-            {sortByCreatedAt(parentCategories).map((parent) => {
+            {parentCategories.map((parent) => {
               const parentId = parent._id?.toString() || 'first'
               const isActive = selectedParentCategory === parentId
               return (

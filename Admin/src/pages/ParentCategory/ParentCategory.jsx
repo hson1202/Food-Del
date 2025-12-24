@@ -16,6 +16,7 @@ const ParentCategory = ({ url }) => {
     nameSK: '', 
     description: '', 
     icon: '',
+    sortOrder: 0,
     image: null 
   })
   const [editingParentCategory, setEditingParentCategory] = useState(null)
@@ -75,6 +76,7 @@ const ParentCategory = ({ url }) => {
       formData.append('nameSK', newParentCategory.nameSK || newParentCategory.name)
       formData.append('description', newParentCategory.description)
       formData.append('icon', newParentCategory.icon)
+      formData.append('sortOrder', newParentCategory.sortOrder || 0)
       if (newParentCategory.image) {
         formData.append('image', newParentCategory.image)
       }
@@ -94,6 +96,7 @@ const ParentCategory = ({ url }) => {
         nameSK: '', 
         description: '', 
         icon: '',
+        sortOrder: 0,
         image: null 
       })
       fetchParentCategories()
@@ -134,6 +137,7 @@ const ParentCategory = ({ url }) => {
       formData.append('nameSK', editingParentCategory.nameSK || editingParentCategory.name)
       formData.append('description', editingParentCategory.description)
       formData.append('icon', editingParentCategory.icon)
+      formData.append('sortOrder', editingParentCategory.sortOrder || 0)
       if (editingParentCategory.newImage) {
         formData.append('image', editingParentCategory.newImage)
       }
@@ -239,6 +243,19 @@ const ParentCategory = ({ url }) => {
                 maxLength="2"
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="sortOrder">Sort Order *</label>
+              <input
+                type="number"
+                id="sortOrder"
+                value={newParentCategory.sortOrder}
+                onChange={(e) => setNewParentCategory({ ...newParentCategory, sortOrder: parseInt(e.target.value) || 0 })}
+                placeholder="0"
+                min="0"
+                step="1"
+              />
+              <small style={{ color: '#666', fontSize: '0.85rem' }}>Lower numbers appear first</small>
+            </div>
           </div>
 
           <div className="form-row">
@@ -306,6 +323,7 @@ const ParentCategory = ({ url }) => {
               nameSK: '', 
               description: '', 
               icon: '',
+              sortOrder: 0,
               image: null 
             })}>
               Clear
@@ -346,6 +364,17 @@ const ParentCategory = ({ url }) => {
                           onChange={(e) => setEditingParentCategory({ ...editingParentCategory, icon: e.target.value })}
                           maxLength="2"
                         />
+                      </div>
+                      <div className="form-group">
+                        <label>Sort Order</label>
+                        <input
+                          type="number"
+                          value={editingParentCategory.sortOrder || 0}
+                          onChange={(e) => setEditingParentCategory({ ...editingParentCategory, sortOrder: parseInt(e.target.value) || 0 })}
+                          min="0"
+                          step="1"
+                        />
+                        <small style={{ color: '#666', fontSize: '0.85rem' }}>Lower numbers appear first</small>
                       </div>
                       <div className="form-group">
                         <label>Name VI</label>
@@ -426,6 +455,7 @@ const ParentCategory = ({ url }) => {
                           <div><strong>VI:</strong> {category.nameVI || category.name}</div>
                           <div><strong>EN:</strong> {category.nameEN || category.name}</div>
                           <div><strong>SK:</strong> {category.nameSK || category.name}</div>
+                          <div><strong>Sort Order:</strong> {category.sortOrder || 0}</div>
                           {category.categories && (
                             <div><strong>Sub-categories:</strong> {category.categories.length}</div>
                           )}

@@ -129,7 +129,7 @@ const resources = {
       'contact.address.title': 'Địa Chỉ',
       'contact.address.content': 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
       'contact.phone.title': 'Điện Thoại',
-      'contact.phone.content': '+84 123 456 789<br/>+84 987 654 321',
+      'contact.phone.content': '+421 952 514 268',
       'contact.email.title': 'Email',
       'contact.email.content': 'vietbowlssala666@gmail.com',
       'contact.openingHours': 'Giờ Mở Cửa',
@@ -187,7 +187,7 @@ const resources = {
       ],
       'footer.contactInfo': [
         { label: 'Email', value: 'vietbowlssala666@gmail.com' },
-        { label: 'Hotline', value: '+421 950 452 111' },
+        { label: 'Hotline', value: '+421 952 514 268' },
         { label: 'Địa chỉ', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
       ],
       'footer.socialLabels': {
@@ -261,7 +261,7 @@ const resources = {
       'footer.delivery': 'Giao hàng',
       'footer.privacy': 'Chính sách bảo mật',
       'footer.getInTouch': 'LIÊN HỆ',
-      'footer.phone': '+421 123 456 789',
+      'footer.phone': '+421 952 514 268',
       'footer.email': 'vietbowlssala@gmail.com',
       'footer.copyright': 'Bản quyền 2025 © VietBow - Đã đăng ký bản quyền.',
 
@@ -653,7 +653,7 @@ const resources = {
       'contact.address.title': 'Address',
       'contact.address.content': 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
       'contact.phone.title': 'Phone',
-      'contact.phone.content': '+84 123 456 789<br/>+84 987 654 321',
+      'contact.phone.content': '+421 952 514 268',
       'contact.email.title': 'Email',
       'contact.email.content': 'vietbowlssala666@gmail.com',
       'contact.openingHours': 'Opening Hours',
@@ -711,7 +711,7 @@ const resources = {
       ],
       'footer.contactInfo': [
         { label: 'Email', value: 'vietbowlssala666@gmail.com' },
-        { label: 'Hotline', value: '+421 950 452 111' },
+        { label: 'Hotline', value: '+421 952 514 268' },
         { label: 'Address', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
       ],
       'footer.socialLabels': {
@@ -787,7 +787,7 @@ const resources = {
       'footer.delivery': 'Delivery',
       'footer.privacy': 'Privacy Policy',
       'footer.getInTouch': 'GET IN TOUCH',
-      'footer.phone': '+91-1234-5678',
+      'footer.phone': '+421 952 514 268',
       'footer.email': 'contact@tomato.com',
       'footer.copyright': 'Copyright 2025 © VietBow - All Right Reserved.',
 
@@ -1179,7 +1179,7 @@ const resources = {
       'contact.address.title': 'Adresa',
       'contact.address.content': 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
       'contact.phone.title': 'Telefón',
-      'contact.phone.content': '+84 123 456 789<br/>+84 987 654 321',
+      'contact.phone.content': '+421 952 514 268',
       'contact.email.title': 'Email',
       'contact.email.content': 'vietbowlssala666@gmail.com',
       'contact.openingHours': 'Otvorené hodiny',
@@ -1240,7 +1240,7 @@ const resources = {
       ],
       'footer.contactInfo': [
         { label: 'Email', value: 'vietbowlssala666@gmail.com' },
-        { label: 'Infolinka', value: '+421 950 452 111' },
+        { label: 'Infolinka', value: '+421 952 514 268' },
         { label: 'Adresa', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
       ],
       'footer.socialLabels': {
@@ -1314,7 +1314,7 @@ const resources = {
       'footer.delivery': 'Doručenie',
       'footer.privacy': 'Zásady ochrany osobných údajov',
       'footer.getInTouch': 'KONTAKTUJTE NÁS',
-      'footer.phone': '+91-1234-5678',
+      'footer.phone': '+421 952 514 268',
       'footer.email': 'contact@tomato.com',
       'footer.copyright': 'Autorské práva 2025 © VietBow - Všetky práva vyhradené.',
 
