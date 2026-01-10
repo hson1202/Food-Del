@@ -73,6 +73,9 @@ const FoodDisplay = ({category, onViewDetails}) => {
                         soldCount={item.soldCount}
                         likes={item.likes}
                         options={item.options}
+                        availableFrom={item.availableFrom}
+                        availableTo={item.availableTo}
+                        dailyAvailability={item.dailyAvailability}
                         onViewDetails={onViewDetails}
                     />
                 ))}

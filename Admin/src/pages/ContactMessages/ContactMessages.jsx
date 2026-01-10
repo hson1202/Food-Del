@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'react-toastify'
 import './ContactMessages.css'
 import config from '../../config/config'
 
@@ -19,10 +20,53 @@ const ContactMessages = ({ url }) => {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
   const [adminResponse, setAdminResponse] = useState('')
+  const audioRef = useRef(null)
 
   useEffect(() => {
     fetchMessages()
   }, [currentPage, filterStatus, filterSubject, searchTerm])
+
+  // SSE Realtime notification for new messages
+  useEffect(() => {
+    const eventsUrl = `${config.BACKEND_URL}/api/events?channel=messages`
+    const es = new EventSource(eventsUrl)
+
+    es.addEventListener('message', (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data?.type === 'contact_created') {
+          const newMessage = data.payload
+          
+          // Add to list if not exists
+          setMessages((prev) => {
+            const exists = prev.some((m) => m._id === newMessage._id)
+            if (exists) return prev
+            return [newMessage, ...prev]
+          })
+          
+          // Play notification sound
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0
+            audioRef.current.play().catch(() => {})
+          }
+          
+          // Show toast notification
+          toast.info(`📬 Message #${newMessage.messageNumber || 'NEW'} from ${newMessage.name}`, {
+            autoClose: 5000,
+            position: 'top-right'
+          })
+          
+          console.log('🔔 New contact message received:', newMessage)
+        }
+      } catch (err) {
+        // Ignore malformed messages
+      }
+    })
+
+    return () => {
+      es.close()
+    }
+  }, [])
 
   const fetchMessages = async () => {
     try {
@@ -356,6 +400,8 @@ const ContactMessages = ({ url }) => {
 
   return (
     <div className="contact-messages-page">
+      <audio ref={audioRef} src={`${config.BACKEND_URL}/sound/thongbao.mp3`} preload="auto" />
+      
       <div className="page-header">
         <h1>Contact Messages Management</h1>
         <p>Manage and respond to customer inquiries, feedback, and complaints</p>
@@ -424,6 +470,7 @@ const ContactMessages = ({ url }) => {
         <table>
           <thead>
             <tr>
+              <th>#</th>
               <th>Customer</th>
               <th>Subject</th>
               <th>Message</th>
@@ -436,6 +483,9 @@ const ContactMessages = ({ url }) => {
           <tbody>
             {filteredMessages.map((message) => (
               <tr key={message._id} className={message.status === 'unread' ? 'unread-row' : ''}>
+                <td>
+                  <div className="message-number">#{message.messageNumber || '—'}</div>
+                </td>
                 <td>
                   <div className="customer-info">
                     <strong>{message.name}</strong>
@@ -546,7 +596,7 @@ const ContactMessages = ({ url }) => {
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Message Details</h2>
+              <h2>📬 Message #{selectedMessage.messageNumber || selectedMessage._id.slice(-6)}</h2>
               <button className="close-btn" onClick={closeModal}>×</button>
             </div>
             

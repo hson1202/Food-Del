@@ -10,6 +10,7 @@ const DeliveryZones = ({ url }) => {
   const [showZoneForm, setShowZoneForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [editingZone, setEditingZone] = useState(null);
+  const [tokenDebug, setTokenDebug] = useState(null);
 
   // Zone form state
   const [zoneForm, setZoneForm] = useState({
@@ -28,11 +29,19 @@ const DeliveryZones = ({ url }) => {
     name: 'VietBowls Restaurant',
     address: '',
     latitude: '',
-    longitude: ''
+    longitude: '',
+    boxFee: 0.3  // Default box fee
   });
 
   useEffect(() => {
     fetchData();
+    // Check token on mount
+    const token = localStorage.getItem('adminToken');
+    setTokenDebug({
+      exists: !!token,
+      length: token ? token.length : 0,
+      preview: token ? `${token.substring(0, 20)}...${token.substring(token.length - 10)}` : 'No token'
+    });
   }, []);
 
   const fetchData = async () => {
@@ -50,7 +59,7 @@ const DeliveryZones = ({ url }) => {
   const fetchZones = async () => {
     try {
       const response = await axios.get(`${url}/api/delivery/zones`, {
-        headers: { token: localStorage.getItem('token') }
+        headers: { token: localStorage.getItem('adminToken') }
       });
       if (response.data.success) {
         setZones(response.data.data);
@@ -69,7 +78,8 @@ const DeliveryZones = ({ url }) => {
           name: response.data.data.name,
           address: response.data.data.address,
           latitude: response.data.data.latitude,
-          longitude: response.data.data.longitude
+          longitude: response.data.data.longitude,
+          boxFee: response.data.data.boxFee !== undefined ? response.data.data.boxFee : 0.3
         });
       }
     } catch (error) {
@@ -89,11 +99,20 @@ const DeliveryZones = ({ url }) => {
 
   const handleCreateZone = async (e) => {
     e.preventDefault();
+    
+    // Check if token exists
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      toast.error('❌ Not authorized! Please login again.');
+      console.error('No adminToken found in localStorage');
+      return;
+    }
+    
     try {
       const response = await axios.post(
         `${url}/api/delivery/zones/create`,
         zoneForm,
-        { headers: { token: localStorage.getItem('token') } }
+        { headers: { token } }
       );
       
       if (response.data.success) {
@@ -104,17 +123,32 @@ const DeliveryZones = ({ url }) => {
       }
     } catch (error) {
       console.error('Error creating zone:', error);
-      toast.error(error.response?.data?.message || 'Failed to create zone');
+      if (error.response?.status === 401) {
+        toast.error('❌ Session expired! Please login again.');
+        // Optionally redirect to login
+        // window.location.href = '/login';
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to create zone');
+      }
     }
   };
 
   const handleUpdateZone = async (e) => {
     e.preventDefault();
+    
+    // Check if token exists
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      toast.error('❌ Not authorized! Please login again.');
+      console.error('No adminToken found in localStorage');
+      return;
+    }
+    
     try {
       const response = await axios.put(
         `${url}/api/delivery/zones/${editingZone._id}`,
         zoneForm,
-        { headers: { token: localStorage.getItem('token') } }
+        { headers: { token } }
       );
       
       if (response.data.success) {
@@ -126,7 +160,13 @@ const DeliveryZones = ({ url }) => {
       }
     } catch (error) {
       console.error('Error updating zone:', error);
-      toast.error(error.response?.data?.message || 'Failed to update zone');
+      if (error.response?.status === 401) {
+        toast.error('❌ Session expired! Please login again.');
+        // Optionally redirect to login
+        // window.location.href = '/login';
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to update zone');
+      }
     }
   };
 
@@ -135,10 +175,18 @@ const DeliveryZones = ({ url }) => {
       return;
     }
 
+    // Check if token exists
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      toast.error('❌ Not authorized! Please login again.');
+      console.error('No adminToken found in localStorage');
+      return;
+    }
+
     try {
       const response = await axios.delete(
         `${url}/api/delivery/zones/${zoneId}`,
-        { headers: { token: localStorage.getItem('token') } }
+        { headers: { token } }
       );
       
       if (response.data.success) {
@@ -147,7 +195,11 @@ const DeliveryZones = ({ url }) => {
       }
     } catch (error) {
       console.error('Error deleting zone:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete zone');
+      if (error.response?.status === 401) {
+        toast.error('❌ Session expired! Please login again.');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to delete zone');
+      }
     }
   };
 
@@ -164,6 +216,14 @@ const DeliveryZones = ({ url }) => {
       order: zone.order
     });
     setShowZoneForm(true);
+    
+    // Scroll to form after a short delay to ensure it's rendered
+    setTimeout(() => {
+      const form = document.querySelector('.zone-form');
+      if (form) {
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   const resetZoneForm = () => {
@@ -182,11 +242,20 @@ const DeliveryZones = ({ url }) => {
 
   const handleUpdateLocation = async (e) => {
     e.preventDefault();
+    
+    // Check if token exists
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      toast.error('❌ Not authorized! Please login again.');
+      console.error('No adminToken found in localStorage');
+      return;
+    }
+    
     try {
       const response = await axios.put(
         `${url}/api/delivery/restaurant-location`,
         locationForm,
-        { headers: { token: localStorage.getItem('token') } }
+        { headers: { token } }
       );
       
       if (response.data.success) {
@@ -196,7 +265,11 @@ const DeliveryZones = ({ url }) => {
       }
     } catch (error) {
       console.error('Error updating location:', error);
-      toast.error(error.response?.data?.message || 'Failed to update location');
+      if (error.response?.status === 401) {
+        toast.error('❌ Session expired! Please login again.');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to update location');
+      }
     }
   };
 
@@ -210,6 +283,26 @@ const DeliveryZones = ({ url }) => {
         <h1>🚚 Delivery Zones Management</h1>
         <p>Manage delivery zones, fees, and restaurant location</p>
       </div>
+
+      {/* Debug Token Info */}
+      {tokenDebug && !tokenDebug.exists && (
+        <div className="token-warning-banner">
+          <span className="warning-icon">⚠️</span>
+          <div className="warning-content">
+            <strong>Authentication Issue Detected!</strong>
+            <p>No token found in localStorage. Please logout and login again.</p>
+            <button 
+              className="btn btn-primary"
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = '/login';
+              }}
+            >
+              🔄 Go to Login
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Restaurant Location Section */}
       <div className="section-card location-section">
@@ -238,6 +331,12 @@ const DeliveryZones = ({ url }) => {
                 <span className="label">Coordinates:</span>
                 <span className="value">
                   {restaurantLocation.latitude}, {restaurantLocation.longitude}
+                </span>
+              </div>
+              <div className="info-item">
+                <span className="label">📦 Box Fee:</span>
+                <span className="value" style={{ fontWeight: 'bold', color: '#ff6b35' }}>
+                  €{(restaurantLocation.boxFee !== undefined ? restaurantLocation.boxFee : 0.3).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -292,6 +391,22 @@ const DeliveryZones = ({ url }) => {
                   required
                 />
               </div>
+              <div className="form-group">
+                <label>📦 Box Fee (€)</label>
+                <input
+                  type="number"
+                  name="boxFee"
+                  value={locationForm.boxFee}
+                  onChange={handleLocationFormChange}
+                  step="0.01"
+                  min="0"
+                  placeholder="e.g., 0.3"
+                  required
+                />
+                <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                  Default packaging fee per item (can be disabled per product)
+                </small>
+              </div>
             </div>
             <div className="form-actions">
               <button type="submit" className="btn btn-success">
@@ -329,9 +444,17 @@ const DeliveryZones = ({ url }) => {
             className="zone-form"
             onSubmit={editingZone ? handleUpdateZone : handleCreateZone}
           >
+            <div className="form-header-title">
+              <h3>{editingZone ? '✏️ Edit Delivery Zone' : '➕ Create New Delivery Zone'}</h3>
+              <p className="form-subtitle">
+                {editingZone 
+                  ? 'Update the delivery zone details below. Changes will affect customer orders immediately.' 
+                  : 'Set up a new delivery zone with distance range, fees, and minimum order.'}
+              </p>
+            </div>
             <div className="form-grid">
               <div className="form-group">
-                <label>Zone Name</label>
+                <label>Zone Name *</label>
                 <input
                   type="text"
                   name="name"
@@ -342,7 +465,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Min Distance (km)</label>
+                <label>Min Distance (km) *</label>
                 <input
                   type="number"
                   name="minDistance"
@@ -354,7 +477,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Max Distance (km)</label>
+                <label>Max Distance (km) *</label>
                 <input
                   type="number"
                   name="maxDistance"
@@ -366,7 +489,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Delivery Fee (€)</label>
+                <label>💰 Delivery Fee (€) *</label>
                 <input
                   type="number"
                   name="deliveryFee"
@@ -375,10 +498,12 @@ const DeliveryZones = ({ url }) => {
                   step="0.01"
                   min="0"
                   required
+                  className="highlight-input"
                 />
+                <small className="field-hint">This is the shipping cost customers will pay</small>
               </div>
               <div className="form-group">
-                <label>Min Order (€)</label>
+                <label>🛒 Min Order (€) *</label>
                 <input
                   type="number"
                   name="minOrder"
@@ -387,10 +512,12 @@ const DeliveryZones = ({ url }) => {
                   step="0.01"
                   min="0"
                   required
+                  className="highlight-input"
                 />
+                <small className="field-hint">Minimum order value required for this zone</small>
               </div>
               <div className="form-group">
-                <label>Estimated Time (min)</label>
+                <label>⏱️ Estimated Time (min) *</label>
                 <input
                   type="number"
                   name="estimatedTime"
@@ -399,9 +526,10 @@ const DeliveryZones = ({ url }) => {
                   min="0"
                   required
                 />
+                <small className="field-hint">Expected delivery time</small>
               </div>
               <div className="form-group">
-                <label>Color</label>
+                <label>🎨 Color</label>
                 <input
                   type="color"
                   name="color"
@@ -422,7 +550,7 @@ const DeliveryZones = ({ url }) => {
             </div>
             <div className="form-actions">
               <button type="submit" className="btn btn-success">
-                {editingZone ? 'Update Zone' : 'Create Zone'}
+                {editingZone ? '✅ Update Zone' : '➕ Create Zone'}
               </button>
               <button
                 type="button"
@@ -432,7 +560,7 @@ const DeliveryZones = ({ url }) => {
                   setShowZoneForm(false);
                 }}
               >
-                Cancel
+                ❌ Cancel
               </button>
             </div>
           </form>

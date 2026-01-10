@@ -514,7 +514,10 @@ const getRestaurantLocation = async (req, res) => {
 
 const updateRestaurantLocation = async (req, res) => {
   try {
-    const { name, address, latitude, longitude } = req.body;
+    const { name, address, latitude, longitude, boxFee } = req.body;
+    
+    console.log('🔍 Update Restaurant Location - Request body:', req.body);
+    console.log('📦 Box Fee received:', boxFee, 'Type:', typeof boxFee);
     
     // Tìm location hiện tại hoặc tạo mới
     let location = await restaurantLocationModel.findOne({ 
@@ -523,17 +526,27 @@ const updateRestaurantLocation = async (req, res) => {
     });
     
     if (location) {
+      console.log('📍 Existing location found, updating...');
       location.name = name || location.name;
       location.address = address || location.address;
       location.latitude = latitude || location.latitude;
       location.longitude = longitude || location.longitude;
+      if (boxFee !== undefined && boxFee !== null) {
+        const oldBoxFee = location.boxFee;
+        location.boxFee = Number(boxFee);
+        console.log(`📦 Box Fee updated: ${oldBoxFee} → ${location.boxFee}`);
+      }
       await location.save();
+      console.log('✅ Location saved successfully');
     } else {
+      console.log('📍 No existing location, creating new...');
+
       location = new restaurantLocationModel({
         name,
         address,
         latitude,
         longitude,
+        boxFee: boxFee !== undefined && boxFee !== null ? Number(boxFee) : 0.3,
         isActive: true,
         isPrimary: true
       });

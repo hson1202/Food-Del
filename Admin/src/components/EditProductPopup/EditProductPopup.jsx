@@ -869,6 +869,121 @@ const EditProductPopup = ({
               )}
             </div>
             
+            {/* Time-Based Availability Section */}
+            <div className="form-section">
+              <h3 className="section-title">🕐 {t('editProduct.timeAvailability', 'Time-Based Availability')}</h3>
+              <p className="section-description">
+                Set specific times or dates when this product should be available
+              </p>
+              
+              {/* Daily Time Availability */}
+              <div className="form-group checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={editForm.dailyAvailabilityEnabled || false}
+                    onChange={(e) => onInputChange({
+                      target: {
+                        name: 'dailyAvailabilityEnabled',
+                        type: 'checkbox',
+                        checked: e.target.checked
+                      }
+                    })}
+                  />
+                  Enable Daily Time Availability
+                </label>
+                <small className="form-help">
+                  Product will only be available during this time window every day (e.g., Lunch: 11:00-14:30)
+                </small>
+              </div>
+              
+              {editForm.dailyAvailabilityEnabled && (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Available From (Daily)</label>
+                    <input
+                      type="time"
+                      name="dailyTimeFrom"
+                      value={editForm.dailyTimeFrom || ''}
+                      onChange={onInputChange}
+                      placeholder="11:00"
+                    />
+                    <small className="form-help">Start time (24h format)</small>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Available Until (Daily)</label>
+                    <input
+                      type="time"
+                      name="dailyTimeTo"
+                      value={editForm.dailyTimeTo || ''}
+                      onChange={onInputChange}
+                      placeholder="14:30"
+                    />
+                    <small className="form-help">End time (24h format)</small>
+                  </div>
+                </div>
+              )}
+
+              {/* Date Range Availability */}
+              <div className="form-group" style={{ marginTop: '20px' }}>
+                <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                  Date Range Availability (Optional)
+                </label>
+                <small className="form-help" style={{ marginBottom: '10px', display: 'block' }}>
+                  Set specific start/end dates for special events or seasonal items
+                </small>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Available From Date</label>
+                    <input
+                      type="datetime-local"
+                      name="availableFrom"
+                      value={editForm.availableFrom || ''}
+                      onChange={onInputChange}
+                    />
+                    <small className="form-help">Product starts being available from this date/time</small>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Available Until Date</label>
+                    <input
+                      type="datetime-local"
+                      name="availableTo"
+                      value={editForm.availableTo || ''}
+                      onChange={onInputChange}
+                    />
+                    <small className="form-help">Product stops being available after this date/time</small>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview/Info Box */}
+              {(editForm.dailyAvailabilityEnabled || editForm.availableFrom || editForm.availableTo) && (
+                <div className="availability-preview" style={{ 
+                  marginTop: '15px', 
+                  padding: '12px', 
+                  backgroundColor: '#e3f2fd',
+                  borderRadius: '5px',
+                  border: '1px solid #90caf9'
+                }}>
+                  <strong style={{ color: '#1976d2' }}>⏰ Availability Summary:</strong>
+                  <ul style={{ marginTop: '8px', marginBottom: '0', paddingLeft: '20px', color: '#555' }}>
+                    {editForm.dailyAvailabilityEnabled && editForm.dailyTimeFrom && editForm.dailyTimeTo && (
+                      <li>Daily: {editForm.dailyTimeFrom} - {editForm.dailyTimeTo}</li>
+                    )}
+                    {editForm.availableFrom && (
+                      <li>From: {new Date(editForm.availableFrom).toLocaleString()}</li>
+                    )}
+                    {editForm.availableTo && (
+                      <li>Until: {new Date(editForm.availableTo).toLocaleString()}</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+            
             {/* Form Actions */}
             <div className="form-actions">
               <button type="submit" className="btn btn-primary btn-save">

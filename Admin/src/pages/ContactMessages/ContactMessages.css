@@ -161,6 +161,20 @@
   background: #ffeaa7 !important;
 }
 
+.message-number {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #667eea;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  min-width: 50px;
+  text-align: center;
+  border: 2px solid #667eea;
+}
+
 .customer-info strong {
   display: block;
   margin-bottom: 5px;
@@ -564,6 +578,12 @@ textarea:focus {
   .messages-table th,
   .messages-table td {
     padding: 10px;
+  }
+  
+  .message-number {
+    font-size: 14px;
+    padding: 6px 10px;
+    min-width: 45px;
   }
   
   .action-buttons {

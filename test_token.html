@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 Token Debugger</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #1f2937;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    
+    .status-card {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 4px solid #10b981;
+    }
+    
+    .status-card.error {
+      border-left-color: #ef4444;
+      background: #fee2e2;
+    }
+    
+    .status-card.warning {
+      border-left-color: #f59e0b;
+      background: #fef3c7;
+    }
+    
+    .status-card h3 {
+      margin-bottom: 10px;
+      color: #1f2937;
+      font-size: 16px;
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    
+    .label {
+      font-weight: 600;
+      color: #4b5563;
+    }
+    
+    .value {
+      color: #1f2937;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+    }
+    
+    .token-preview {
+      background: #1f2937;
+      color: #10b981;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: 15px 0;
+    }
+    
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    
+    .badge-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .badge-error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Token Debugger</h1>
+    <p class="subtitle">Check your admin authentication token status</p>
+    
+    <div id="status-container"></div>
+    
+    <div class="buttons">
+      <button class="btn-primary" onclick="checkToken()">🔍 Check Token</button>
+      <button class="btn-success" onclick="testAPI()">🧪 Test API</button>
+      <button class="btn-danger" onclick="clearToken()">🗑️ Clear Token</button>
+      <button class="btn-primary" onclick="location.reload()">🔄 Refresh</button>
+    </div>
+  </div>
+  
+  <script>
+    function checkToken() {
+      const token = localStorage.getItem('token');
+      const container = document.getElementById('status-container');
+      
+      if (!token) {
+        container.innerHTML = `
+          <div class="status-card error">
+            <h3>❌ No Token Found</h3>
+            <p>You need to login to the admin panel first.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      try {
+        // Decode JWT
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          throw new Error('Invalid token format');
+        }
+        
+        const payload = JSON.parse(atob(parts[1]));
+        const now = Date.now();
+        const expireDate = new Date(payload.exp * 1000);
+        const isExpired = now > payload.exp * 1000;
+        const timeLeft = payload.exp * 1000 - now;
+        const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        const hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        
+        container.innerHTML = `
+          <div class="status-card ${isExpired ? 'error' : 'success'}">
+            <h3>${isExpired ? '❌' : '✅'} Token Status: ${isExpired ? 'EXPIRED' : 'VALID'}</h3>
+            <div class="info-row">
+              <span class="label">User ID:</span>
+              <span class="value">${payload.id || 'N/A'}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Role:</span>
+              <span class="value">${payload.role || 'N/A'} ${payload.role === 'admin' ? '👑' : ''}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Expires At:</span>
+              <span class="value">${expireDate.toLocaleString()}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Time Left:</span>
+              <span class="value ${isExpired ? '' : 'badge badge-success'}">
+                ${isExpired ? 'EXPIRED' : `${daysLeft} days, ${hoursLeft} hours`}
+              </span>
+            </div>
+          </div>
+          
+          <div class="status-card">
+            <h3>🔑 Token Preview</h3>
+            <div class="token-preview">${token.substring(0, 100)}...${token.substring(token.length - 50)}</div>
+            <small style="color: #6b7280;">Length: ${token.length} characters</small>
+          </div>
+        `;
+        
+        if (isExpired) {
+          container.innerHTML += `
+            <div class="status-card warning">
+              <h3>⚠️ Action Required</h3>
+              <p>Your token has expired. Please logout and login again to get a new token.</p>
+            </div>
+          `;
+        }
+        
+      } catch (error) {
+        container.innerHTML = `
+          <div class="status-card error">
+            <h3>❌ Invalid Token</h3>
+            <p>Token exists but cannot be decoded: ${error.message}</p>
+            <p style="margin-top: 10px;">Please clear the token and login again.</p>
+          </div>
+        `;
+      }
+    }
+    
+    function testAPI() {
+      const token = localStorage.getItem('token');
+      const container = document.getElementById('status-container');
+      
+      if (!token) {
+        alert('❌ No token found! Please login first.');
+        return;
+      }
+      
+      const backendURL = prompt('Enter your backend URL:', 'http://localhost:4000');
+      if (!backendURL) return;
+      
+      container.innerHTML = `
+        <div class="status-card">
+          <h3>⏳ Testing API...</h3>
+          <p>Sending request to ${backendURL}/api/delivery/zones</p>
+        </div>
+      `;
+      
+      fetch(`${backendURL}/api/delivery/zones`, {
+        headers: {
+          'token': token
+        }
+      })
+      .then(response => {
+        const status = response.status;
+        return response.json().then(data => ({ status, data }));
+      })
+      .then(({ status, data }) => {
+        if (status === 200) {
+          container.innerHTML = `
+            <div class="status-card success">
+              <h3>✅ API Test Successful!</h3>
+              <div class="info-row">
+                <span class="label">Status:</span>
+                <span class="value badge badge-success">${status} OK</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Response:</span>
+                <span class="value">${JSON.stringify(data).substring(0, 100)}...</span>
+              </div>
+              <p style="margin-top: 15px; color: #059669;">✅ Your token is working correctly!</p>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="status-card error">
+              <h3>❌ API Test Failed!</h3>
+              <div class="info-row">
+                <span class="label">Status:</span>
+                <span class="value badge badge-error">${status}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Message:</span>
+                <span class="value">${data.message || 'Unknown error'}</span>
+              </div>
+              <p style="margin-top: 15px; color: #991b1b;">Please logout and login again.</p>
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        container.innerHTML = `
+          <div class="status-card error">
+            <h3>❌ Connection Error</h3>
+            <p>Cannot connect to backend: ${error.message}</p>
+            <p style="margin-top: 10px;">Make sure your backend server is running.</p>
+          </div>
+        `;
+      });
+    }
+    
+    function clearToken() {
+      if (confirm('⚠️ Are you sure you want to clear the token?\n\nYou will need to login again.')) {
+        localStorage.removeItem('token');
+        alert('✅ Token cleared! Please close this page and login again.');
+        checkToken();
+      }
+    }
+    
+    // Auto-check on load
+    window.onload = checkToken;
+  </script>
+</body>
+</html>
+

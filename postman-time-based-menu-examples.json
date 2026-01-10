@@ -1,0 +1,514 @@
+{
+  "info": {
+    "name": "Time-Based Menu Examples",
+    "description": "Examples for adding time-based menu items",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add Breakfast Menu (7:00 - 10:00)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "BF-PHO-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Phở bò sáng",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Phở bò sáng",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Morning Beef Pho",
+              "type": "text"
+            },
+            {
+              "key": "nameSK",
+              "value": "Ranná hovädzia polievka",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Phở bò tươi ngon, chỉ phục vụ buổi sáng",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "65",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Ngày",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "100",
+              "type": "text"
+            },
+            {
+              "key": "status",
+              "value": "active",
+              "type": "text"
+            },
+            {
+              "key": "dailyAvailabilityEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeFrom",
+              "value": "07:00",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeTo",
+              "value": "10:00",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/food/add",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "food", "add"]
+        }
+      }
+    },
+    {
+      "name": "2. Add Lunch Special (11:00 - 14:30)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "LC-COM-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Cơm trưa combo đặc biệt",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Cơm trưa combo đặc biệt",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Lunch Combo Special",
+              "type": "text"
+            },
+            {
+              "key": "nameSK",
+              "value": "Obedové kombo špeciál",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Combo cơm trưa với canh và đồ uống",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "85",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Ngày",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "80",
+              "type": "text"
+            },
+            {
+              "key": "dailyAvailabilityEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeFrom",
+              "value": "11:00",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeTo",
+              "value": "14:30",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/food/add",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "food", "add"]
+        }
+      }
+    },
+    {
+      "name": "3. Add Dinner Special (17:00 - 21:00)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "DN-LAU-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Lẩu hải sản buổi tối",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Lẩu hải sản buổi tối",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Evening Seafood Hotpot",
+              "type": "text"
+            },
+            {
+              "key": "nameSK",
+              "value": "Večerný morský kotlík",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Lẩu hải sản tươi sống, phục vụ buổi tối",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "350",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Ngày",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "25",
+              "type": "text"
+            },
+            {
+              "key": "dailyAvailabilityEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeFrom",
+              "value": "17:00",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeTo",
+              "value": "21:00",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/food/add",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "food", "add"]
+        }
+      }
+    },
+    {
+      "name": "4. Add Weekend Special (Date Range)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "WE-BUFFET-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Buffet cuối tuần",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Buffet cuối tuần",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Weekend Buffet",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "All you can eat - Chỉ có thứ 7 và CN",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "199",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Ngày",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "50",
+              "type": "text"
+            },
+            {
+              "key": "availableFrom",
+              "value": "2026-01-11T10:00:00.000Z",
+              "type": "text",
+              "description": "Saturday 10:00"
+            },
+            {
+              "key": "availableTo",
+              "value": "2026-01-12T22:00:00.000Z",
+              "type": "text",
+              "description": "Sunday 22:00"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/food/add",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "food", "add"]
+        }
+      }
+    },
+    {
+      "name": "5. Add Tet Special (Multi-day Event)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "TET-MENU-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Menu Tết Nguyên Đán 2026",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Menu Tết Nguyên Đán 2026",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Lunar New Year Menu 2026",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Đặc sản dịp Tết - Chỉ phục vụ từ mùng 1 đến 15",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "250",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Ngày",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "30",
+              "type": "text"
+            },
+            {
+              "key": "isPromotion",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "promotionPrice",
+              "value": "220",
+              "type": "text"
+            },
+            {
+              "key": "availableFrom",
+              "value": "2026-02-01T00:00:00.000Z",
+              "type": "text",
+              "description": "Feb 1, 2026 - Start of Tet"
+            },
+            {
+              "key": "availableTo",
+              "value": "2026-02-15T23:59:59.000Z",
+              "type": "text",
+              "description": "Feb 15, 2026 - End of Tet period"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/food/add",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "food", "add"]
+        }
+      }
+    },
+    {
+      "name": "6. Add Happy Hour (Combined Time)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "HH-DRINK-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Happy Hour Special",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Giờ vàng giảm giá",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Happy Hour Special",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Đồ uống giảm 50% từ 15h-17h mỗi ngày",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "50",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Ngày",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "100",
+              "type": "text"
+            },
+            {
+              "key": "isPromotion",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "promotionPrice",
+              "value": "25",
+              "type": "text"
+            },
+            {
+              "key": "dailyAvailabilityEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeFrom",
+              "value": "15:00",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeTo",
+              "value": "17:00",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:4000/api/food/add",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "food", "add"]
+        }
+      }
+    },
+    {
+      "name": "7. List All Foods (Frontend View)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/api/food/list?forUser=true&noPagination=true",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["api", "food", "list"],
+          "query": [
+            {
+              "key": "forUser",
+              "value": "true",
+              "description": "Show only active items"
+            },
+            {
+              "key": "noPagination",
+              "value": "true",
+              "description": "Get all items at once"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+

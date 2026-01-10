@@ -7,7 +7,9 @@ const addFood = async (req, res) => {
       sku, name, description, price, category,
       nameVI, nameEN, nameSK,
       isPromotion, promotionPrice,
-      soldCount, quantity, slug, options
+      soldCount, quantity, slug, options,
+      availableFrom, availableTo,
+      dailyAvailabilityEnabled, dailyTimeFrom, dailyTimeTo
       // slug có thể để trống để model tự tạo
     } = req.body;
 
@@ -43,7 +45,15 @@ const addFood = async (req, res) => {
       // originalPrice removed - using regular price as base
       promotionPrice: isPromotionBool ? Number(promotionPrice) : undefined,
       soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
-      status: "active"
+      status: "active",
+      // Time-based availability
+      availableFrom: availableFrom || null,
+      availableTo: availableTo || null,
+      dailyAvailability: {
+        enabled: dailyAvailabilityEnabled === true || dailyAvailabilityEnabled === "true",
+        timeFrom: dailyTimeFrom?.trim() || null,
+        timeTo: dailyTimeTo?.trim() || null
+      }
     });
 
     // Add options if provided
@@ -242,7 +252,9 @@ const updateFood = async (req, res) => {
       sku, name, description, price, category,
       nameVI, nameEN, nameSK,
       isPromotion, promotionPrice,
-      soldCount, quantity, slug, options
+      soldCount, quantity, slug, options,
+      availableFrom, availableTo,
+      dailyAvailabilityEnabled, dailyTimeFrom, dailyTimeTo
     } = req.body
 
     // Validate required fields
@@ -271,7 +283,15 @@ const updateFood = async (req, res) => {
       isPromotion: isPromotion === true || isPromotion === "true" || isPromotion === 1 || isPromotion === "1",
       // originalPrice removed - using regular price as base
       promotionPrice: isPromotion ? Number(promotionPrice) : undefined,
-      soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0
+      soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
+      // Time-based availability
+      availableFrom: availableFrom || null,
+      availableTo: availableTo || null,
+      dailyAvailability: {
+        enabled: dailyAvailabilityEnabled === true || dailyAvailabilityEnabled === "true",
+        timeFrom: dailyTimeFrom?.trim() || null,
+        timeTo: dailyTimeTo?.trim() || null
+      }
     }
 
     // If new image uploaded, update image field with Cloudinary URL or local filename

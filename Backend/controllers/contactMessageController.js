@@ -1,5 +1,6 @@
 import ContactMessage from '../models/contactMessageModel.js'
 import { sendContactConfirmation, sendAdminNotification } from '../services/emailService.js'
+import eventBus from '../services/eventBus.js'
 
 // Create new contact message
 export const createContactMessage = async (req, res) => {
@@ -51,30 +52,94 @@ export const createContactMessage = async (req, res) => {
 
     await contactMessage.save()
 
-    // Send confirmation email to customer
+    console.log(`✅ Contact message created: ID=${contactMessage._id}, From=${contactMessage.name}, Subject=${contactMessage.subject}`)
+    
+    // Emit internal event for realtime admin updates
     try {
-      await sendContactConfirmation(contactMessage)
-    } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError)
-      // Don't fail the request if email fails
+      eventBus.emit('contact:created', contactMessage)
+      console.log('🔔 Realtime notification sent to admin panel')
+    } catch (emitErr) {
+      console.log('⚠️ Failed to emit contact:created event', emitErr?.message)
     }
 
-    // Send notification to admin
-    try {
-      await sendAdminNotification(contactMessage)
-    } catch (emailError) {
-      console.error('Error sending admin notification:', emailError)
-      // Don't fail the request if email fails
-    }
-
+    // Trả về ngay cho client để UX mượt mà
     res.status(201).json({
       success: true,
       message: 'Your message has been sent successfully. We will get back to you soon.',
       data: {
         id: contactMessage._id,
+        messageNumber: contactMessage.messageNumber,
         name: contactMessage.name,
         subject: contactMessage.subject,
         createdAt: contactMessage.createdAt
+      }
+    })
+
+    // Gửi email ở chế độ nền (không block response)
+    setImmediate(async () => {
+      try {
+        console.log('')
+        console.log('=' .repeat(60))
+        console.log('📧 NEW CONTACT MESSAGE - ADMIN NOTIFICATION')
+        console.log('=' .repeat(60))
+        console.log(`📋 Message #${contactMessage.messageNumber}`)
+        console.log(`🆔 ID: ${contactMessage._id}`)
+        console.log(`👤 From: ${contactMessage.name} (${contactMessage.email})`)
+        console.log(`📌 Subject: ${contactMessage.subject.toUpperCase()}`)
+        console.log(`⚡ Priority: ${contactMessage.priority}`)
+        console.log(`💬 Message: ${contactMessage.message.substring(0, 100)}${contactMessage.message.length > 100 ? '...' : ''}`)
+        console.log('=' .repeat(60))
+        console.log('')
+        
+        // CHỈ gửi email thông báo cho admin (KHÔNG gửi cho khách)
+        console.log('📤 Sending admin notification email...')
+        console.log('📤 Sending admin notification email...')
+        console.log(`   Admin Email: ${process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'NOT SET'}`)
+        const adminEmailResult = await sendAdminNotification(contactMessage)
+        
+        if (adminEmailResult && adminEmailResult.success) {
+          console.log('')
+          console.log('🎉 SUCCESS: Admin notification email sent!')
+          console.log('=' .repeat(60))
+          console.log(`✅ Admin was notified about new message`)
+          console.log(`   From: ${contactMessage.name}`)
+          console.log(`   Email: ${contactMessage.email}`)
+          console.log(`   Subject: ${contactMessage.subject}`)
+          console.log(`   MessageID: ${adminEmailResult.messageId}`)
+          console.log('=' .repeat(60))
+          console.log('')
+        } else {
+          console.log('')
+          console.error('⚠️⚠️⚠️ CRITICAL: ADMIN EMAIL NOTIFICATION FAILED ⚠️⚠️⚠️')
+          console.error('=' .repeat(60))
+          console.error('❌ Admin was NOT notified about this contact message!')
+          console.error('')
+          console.error('📋 Message Details:')
+          console.error(`   ID: ${contactMessage._id}`)
+          console.error(`   Name: ${contactMessage.name}`)
+          console.error(`   Email: ${contactMessage.email}`)
+          console.error(`   Subject: ${contactMessage.subject}`)
+          console.error(`   Priority: ${contactMessage.priority}`)
+          console.error('')
+          console.error('🔧 Troubleshooting:')
+          console.error(`   1. Check ADMIN_EMAIL in .env: ${process.env.ADMIN_EMAIL ? '✓ SET' : '✗ NOT SET'}`)
+          console.error(`   2. Check EMAIL_USER in .env: ${process.env.EMAIL_USER ? '✓ SET' : '✗ NOT SET'}`)
+          console.error(`   3. Check EMAIL_PASSWORD in .env: ${process.env.EMAIL_PASSWORD ? '✓ SET' : '✗ NOT SET'}`)
+          console.error(`   4. Check email service: ${process.env.EMAIL_SERVICE || 'gmail'}`)
+          console.error('')
+          console.error(`   Error: ${adminEmailResult?.message || 'Unknown error'}`)
+          console.error('=' .repeat(60))
+          console.error('⚠️ ADMIN MUST CHECK MESSAGES PAGE MANUALLY!')
+          console.error('')
+        }
+      } catch (emailError) {
+        console.error('')
+        console.error('💥 EXCEPTION: Email sending process crashed')
+        console.error('=' .repeat(60))
+        console.error('Error:', emailError.message)
+        console.error('Stack:', emailError.stack)
+        console.error('=' .repeat(60))
+        console.error('')
       }
     })
 

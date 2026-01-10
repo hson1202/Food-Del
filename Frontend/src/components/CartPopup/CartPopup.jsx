@@ -82,7 +82,7 @@ const pickImageFromSelections = (product, selectedOptions = {}) => {
 };
 
 const CartPopup = ({ onClose }) => {
-  const { cartItems, cartItemsData, food_list, addToCart, removeFromCart, getTotalCartAmount, url } = useContext(StoreContext)
+  const { cartItems, cartItemsData, food_list, addToCart, removeFromCart, getTotalCartAmount, url, boxFee } = useContext(StoreContext)
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [recommendedItems, setRecommendedItems] = useState([])
@@ -160,7 +160,7 @@ const CartPopup = ({ onClose }) => {
     let totalBoxFee = 0;
     items.forEach(item => {
       if (!isBoxFeeDisabled(item)) {
-        totalBoxFee += 0.3 * item.quantity;
+        totalBoxFee += boxFee * item.quantity;
       }
     });
     return totalBoxFee;
@@ -351,9 +351,9 @@ const CartPopup = ({ onClose }) => {
                               } else {
                                 basePrice = item.isPromotion && item.promotionPrice ? item.promotionPrice : (item.price || 0);
                               }
-                              // Thêm tiền hộp 0.3€ nếu không tắt
-                              const boxFee = isBoxFeeDisabled(item) ? 0 : 0.3;
-                              const unitPrice = basePrice + boxFee;
+                              // Thêm tiền hộp nếu không tắt
+                              const itemBoxFee = isBoxFeeDisabled(item) ? 0 : boxFee;
+                              const unitPrice = basePrice + itemBoxFee;
                               return formatPrice(unitPrice * item.quantity);
                             })()}
                           </div>

@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
 import foodModel from '../models/foodModel.js'
+import restaurantLocationModel from '../models/restaurantLocationModel.js'
 
 // Create transporter (supports Gmail, Resend, and custom SMTP)
 export const createTransporter = () => {
@@ -371,7 +372,7 @@ export const sendAdminNotification = async (contactMessage) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-      subject: `New Contact Message - ${contactMessage.subject.toUpperCase()} - VIET BOWLS`,
+      subject: `📬 Message #${contactMessage.messageNumber || contactMessage._id.toString().slice(-6)} - ${contactMessage.subject.toUpperCase()} - VIET BOWLS`,
       html: generateAdminNotificationEmailHTML(contactMessage),
       text: generateAdminNotificationEmailText(contactMessage)
     }
@@ -398,6 +399,20 @@ export const sendOrderConfirmation = async (order) => {
         message: 'Order confirmation not sent (no email address provided)'
       }
     }
+
+    // Fetch global box fee from restaurant settings
+    let globalBoxFee = 0.3; // Default
+    try {
+      const restaurant = await restaurantLocationModel.findOne({ isActive: true, isPrimary: true });
+      if (restaurant && restaurant.boxFee !== undefined) {
+        globalBoxFee = restaurant.boxFee;
+      }
+    } catch (err) {
+      console.warn('⚠️ Could not fetch box fee, using default 0.3:', err.message);
+    }
+    
+    // Store box fee in order for email calculation
+    order._globalBoxFee = globalBoxFee;
 
     const transporter = createTransporter()
     
@@ -1007,40 +1022,56 @@ const generateAdminNotificationEmailHTML = (contactMessage) => {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>New Contact Message - ${contactMessage.subject.toUpperCase()}</title>
+      <title>Message #${contactMessage.messageNumber || 'N/A'} - ${contactMessage.subject.toUpperCase()}</title>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #e74c3c; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .message-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #e74c3c; }
-        .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
-        .label { font-weight: bold; color: #555; }
-        .value { color: #333; }
-        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
-        .priority-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; color: white; font-size: 12px; font-weight: bold; }
-        .customer-info { background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0 0 10px 0; font-size: 28px; }
+        .header p { margin: 0; font-size: 16px; opacity: 0.9; }
+        .message-number { background: rgba(255,255,255,0.2); display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-top: 10px; }
+        .content { padding: 30px; }
+        .alert-box { background: #fff3cd; border-left: 4px solid #f39c12; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .alert-box strong { color: #856404; }
+        .customer-info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6; }
+        .customer-info h3 { margin: 0 0 15px 0; color: #495057; font-size: 16px; border-bottom: 2px solid #e74c3c; padding-bottom: 8px; }
+        .detail-row { display: flex; justify-content: space-between; margin: 12px 0; padding: 10px; background: white; border-radius: 6px; }
+        .label { font-weight: bold; color: #6c757d; font-size: 14px; }
+        .value { color: #212529; font-size: 14px; text-align: right; }
+        .message-content { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border: 2px solid #e74c3c; min-height: 100px; }
+        .message-content h3 { margin: 0 0 15px 0; color: #e74c3c; font-size: 18px; }
+        .message-text { color: #212529; font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word; }
+        .footer { text-align: center; padding: 20px; background: #f8f9fa; color: #6c757d; font-size: 13px; }
+        .priority-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; color: white; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .action-button { display: inline-block; background: #e74c3c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px; font-weight: bold; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
           <h1>🍜 VIET BOWLS</h1>
-          <p>New Contact Message - ${contactMessage.subject.toUpperCase()}</p>
+          <p>Admin Notification - New Contact Message</p>
+          <div class="message-number">MESSAGE #${contactMessage.messageNumber || 'N/A'}</div>
         </div>
         
         <div class="content">
-          <p>A new contact message has been received from the website.</p>
+          <div class="alert-box">
+            <strong>⚡ Action Required:</strong> A new contact message has been received and requires your attention.
+          </div>
           
           <div class="customer-info">
-            <h3>Customer Information</h3>
+            <h3>📋 Customer Information</h3>
+            <div class="detail-row">
+              <span class="label">Message #:</span>
+              <span class="value" style="font-weight: bold; color: #e74c3c;">#${contactMessage.messageNumber || 'N/A'}</span>
+            </div>
             <div class="detail-row">
               <span class="label">Name:</span>
-              <span class="value">${contactMessage.name}</span>
+              <span class="value"><strong>${contactMessage.name}</strong></span>
             </div>
             <div class="detail-row">
               <span class="label">Email:</span>
-              <span class="value">${contactMessage.email}</span>
+              <span class="value"><a href="mailto:${contactMessage.email}" style="color: #0071e3; text-decoration: none;">${contactMessage.email}</a></span>
             </div>
             <div class="detail-row">
               <span class="label">Subject:</span>
@@ -1050,7 +1081,7 @@ const generateAdminNotificationEmailHTML = (contactMessage) => {
               <span class="label">Priority:</span>
               <span class="value">
                 <span class="priority-badge" style="background-color: ${getPriorityColor(contactMessage.priority)};">
-                  ${contactMessage.priority.toUpperCase()}
+                  ${contactMessage.priority}
                 </span>
               </span>
             </div>
@@ -1060,19 +1091,23 @@ const generateAdminNotificationEmailHTML = (contactMessage) => {
             </div>
           </div>
           
-          <div class="message-details">
-            <h3>Message Content</h3>
-            <p>${contactMessage.message}</p>
+          <div class="message-content">
+            <h3>💬 Message Content</h3>
+            <div class="message-text">${contactMessage.message}</div>
           </div>
           
-          <p><strong>Action Required:</strong> Please review this message and respond appropriately.</p>
-          
-          <p>You can manage this message through the admin panel.</p>
+          <p style="margin: 20px 0; color: #6c757d; font-size: 14px;">
+            <strong>📌 Next Steps:</strong><br>
+            1. Review the message content above<br>
+            2. Respond via email: <a href="mailto:${contactMessage.email}" style="color: #0071e3;">${contactMessage.email}</a><br>
+            3. Update status in the admin panel
+          </p>
         </div>
         
         <div class="footer">
-          <p>This is an automated notification email.</p>
-          <p>© 2024 VIET BOWLS. All rights reserved.</p>
+          <p><strong>VIET BOWLS - Admin Panel</strong></p>
+          <p>This is an automated notification email for Message #${contactMessage.messageNumber || 'N/A'}</p>
+          <p style="margin: 10px 0 0 0; font-size: 12px;">© ${new Date().getFullYear()} VIET BOWLS. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -1106,27 +1141,39 @@ const generateAdminNotificationEmailText = (contactMessage) => {
   }
   
   return `
-VIET BOWLS - New Contact Message
+========================================
+🍜 VIET BOWLS - ADMIN NOTIFICATION
+========================================
 
-A new contact message has been received from the website.
+📬 NEW CONTACT MESSAGE #${contactMessage.messageNumber || 'N/A'}
 
-CUSTOMER INFORMATION:
-Name: ${contactMessage.name}
-Email: ${contactMessage.email}
-Subject: ${getSubjectText(contactMessage.subject)}
-Priority: ${contactMessage.priority.toUpperCase()}
+⚡ PRIORITY: ${contactMessage.priority.toUpperCase()}
+
+========================================
+
+👤 CUSTOMER INFORMATION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Name:     ${contactMessage.name}
+Email:    ${contactMessage.email}
+Subject:  ${getSubjectText(contactMessage.subject)}
 Received: ${formatDate(contactMessage.createdAt)}
 
-MESSAGE CONTENT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💬 MESSAGE CONTENT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${contactMessage.message}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-ACTION REQUIRED: Please review this message and respond appropriately.
+========================================
+📌 ACTION REQUIRED:
+1. Review the message above
+2. Reply to: ${contactMessage.email}
+3. Update status in admin panel
+========================================
 
-You can manage this message through the admin panel.
-
----
-This is an automated notification email.
-© 2024 VIET BOWLS. All rights reserved.
+This is an automated notification for Message #${contactMessage.messageNumber || 'N/A'}
+© ${new Date().getFullYear()} VIET BOWLS. All rights reserved.
   `
 }
 
@@ -1231,7 +1278,7 @@ const getEmailTranslations = (lang) => {
 };
 
 // Calculate item price including box fee and options (same logic as frontend)
-const calculateItemPrice = (item) => {
+const calculateItemPrice = async (item, globalBoxFee = 0.3) => {
   // Tính giá gốc (chưa bao gồm box fee)
   let basePrice = 0;
   
@@ -1262,13 +1309,13 @@ const calculateItemPrice = (item) => {
     basePrice = 0;
   }
   
-  // Thêm tiền hộp 0.3€ nếu không tắt
+  // Thêm tiền hộp nếu không tắt (dùng globalBoxFee từ settings)
   const isBoxFeeDisabled = item.disableBoxFee === true || 
                          item.disableBoxFee === "true" || 
                          item.disableBoxFee === 1 || 
                          item.disableBoxFee === "1" ||
                          (typeof item.disableBoxFee === 'string' && item.disableBoxFee.toLowerCase() === 'true');
-  const boxFee = isBoxFeeDisabled ? 0 : 0.3;
+  const boxFee = isBoxFeeDisabled ? 0 : globalBoxFee;
   const finalPrice = Number(basePrice) + boxFee;
   
   return finalPrice;

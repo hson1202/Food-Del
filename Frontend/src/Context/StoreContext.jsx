@@ -16,6 +16,7 @@ const StoreContextProvider =(props)=>{
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLoadingFood, setIsLoadingFood] = useState(false);
     const [foodPagination, setFoodPagination] = useState(null);
+    const [boxFee, setBoxFee] = useState(0.3); // Default box fee, will be fetched from backend
 
     const addToCart =async (itemId, itemData = null) =>{  
         if (!cartItems[itemId]) {  
@@ -111,8 +112,8 @@ const StoreContextProvider =(props)=>{
                                            itemInfo.disableBoxFee === 1 || 
                                            itemInfo.disableBoxFee === "1" ||
                                            (typeof itemInfo.disableBoxFee === 'string' && itemInfo.disableBoxFee.toLowerCase() === 'true');
-                    const boxFee = isBoxFeeDisabled ? 0 : 0.3;
-                    const finalPrice = Number(basePrice) + boxFee;
+                    const itemBoxFee = isBoxFeeDisabled ? 0 : boxFee;
+                    const finalPrice = Number(basePrice) + itemBoxFee;
                     
                     // Debug log
                     if (isBoxFeeDisabled) {
@@ -154,6 +155,22 @@ const StoreContextProvider =(props)=>{
         if (!foodPagination || !foodPagination.hasMore || isLoadingFood) return;
         await fetchFoodList(foodPagination.page + 1, true);
     }
+    
+    const fetchBoxFee = async () => {
+        try {
+            const response = await axios.get(url + "/api/delivery/restaurant-location");
+            if (response.data.success && response.data.data) {
+                const fee = response.data.data.boxFee;
+                if (fee !== undefined && fee !== null) {
+                    setBoxFee(Number(fee));
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching box fee:', error);
+            // Keep default 0.3 if fetch fails
+        }
+    }
+    
     const loadCartData = async (token) => {
         try {
             const response = await axios.post(url+"/api/cart/get",{},{headers:{token}});
@@ -189,6 +206,7 @@ const StoreContextProvider =(props)=>{
     useEffect(()=>{
         async function loadData(){
             await fetchFoodList();
+            await fetchBoxFee(); // Fetch box fee from restaurant settings
             
             // Check for token in localStorage
             const localToken = localStorage.getItem("token");
@@ -232,7 +250,8 @@ const StoreContextProvider =(props)=>{
         isLoadingFood,
         foodPagination,
         loadMoreFood,
-        fetchFoodList
+        fetchFoodList,
+        boxFee  // Dynamic box fee from restaurant settings
     }
 
     return (

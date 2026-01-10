@@ -248,6 +248,38 @@ const getAllOrders = async (req, res) => {
     }
 };
 
+// Get top selling products
+const getTopProducts = async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 5;
+        
+        // Aggregate orders to find top products
+        const topProducts = await orderModel.aggregate([
+            { $match: { status: { $in: ['Delivered', 'delivered', 'Completed', 'completed'] } } },
+            { $unwind: '$items' },
+            { $group: {
+                _id: '$items.name',
+                totalSold: { $sum: '$items.quantity' },
+                revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }
+            }},
+            { $sort: { totalSold: -1 } },
+            { $limit: limit }
+        ]);
+        
+        res.json({
+            success: true,
+            data: topProducts.map(p => ({
+                name: p._id,
+                totalSold: p.totalSold,
+                revenue: Math.round(p.revenue * 100) / 100
+            }))
+        });
+    } catch (error) {
+        console.error('Error fetching top products:', error);
+        res.status(500).json({ success: false, message: "Error fetching top products" });
+    }
+};
+
 // Get time-based statistics
 const getTimeStats = async (req, res) => {
     try {
@@ -916,6 +948,7 @@ const updateOrderStatus = async (req, res) => {
 export {
     getDashboardStats,
     getTimeStats,
+    getTopProducts,
     getRecentOrders,
     getAllUsers,
     updateUserStatus,

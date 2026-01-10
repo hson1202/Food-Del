@@ -2,6 +2,7 @@ import express from "express";
 import {
     getDashboardStats,
     getTimeStats,
+    getTopProducts,
     getRecentOrders,
     getAllUsers,
     updateUserStatus,
@@ -26,6 +27,7 @@ adminRouter.post("/signup", adminSignup);
 // Dashboard routes (protected with auth)
 adminRouter.get("/stats", authMiddleware, getDashboardStats);
 adminRouter.get("/time-stats", authMiddleware, getTimeStats);
+adminRouter.get("/top-products", authMiddleware, getTopProducts);
 adminRouter.get("/recent-orders", authMiddleware, getRecentOrders);
 adminRouter.get("/orders", authMiddleware, getAllOrders);
 adminRouter.put("/orders/:id/status", authMiddleware, updateOrderStatus);

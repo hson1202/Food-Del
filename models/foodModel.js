@@ -40,7 +40,24 @@ const foodSchema = new mongoose.Schema({
       default: 'add',
       required: true
     }
-  }]
+  }],
+  
+  // Time-based availability
+  availableFrom: { 
+    type: Date,
+    default: null  // null = always available
+  },
+  availableTo: { 
+    type: Date,
+    default: null  // null = always available
+  },
+  
+  // Daily time availability (for recurring schedule like lunch/dinner)
+  dailyAvailability: {
+    enabled: { type: Boolean, default: false },
+    timeFrom: { type: String },  // Format: "HH:MM" e.g. "11:00"
+    timeTo: { type: String }     // Format: "HH:MM" e.g. "14:30"
+  }
 }, { timestamps: true });
 
 // ---- helpers ----

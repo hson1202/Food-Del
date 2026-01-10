@@ -40,6 +40,7 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all'); // today/week/month/all
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -130,6 +131,11 @@ const Orders = () => {
   );
 
   const filteredOrders = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
     return orders.filter((order) => {
       const matchSearch =
         !searchTerm ||
@@ -139,9 +145,23 @@ const Orders = () => {
         order.shortOrderId?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchStatus = statusFilter === 'all' ? true : order.status === statusFilter;
-      return matchSearch && matchStatus;
+
+      // Time filter
+      let matchTime = true;
+      if (timeFilter !== 'all') {
+        const orderDate = new Date(order.createdAt || order.date || 0);
+        if (timeFilter === 'today') {
+          matchTime = orderDate >= today;
+        } else if (timeFilter === 'week') {
+          matchTime = orderDate >= weekAgo;
+        } else if (timeFilter === 'month') {
+          matchTime = orderDate >= monthAgo;
+        }
+      }
+
+      return matchSearch && matchStatus && matchTime;
     });
-  }, [orders, searchTerm, statusFilter]);
+  }, [orders, searchTerm, statusFilter, timeFilter]);
 
   const statusCounts = useMemo(() => {
     return STATUS_OPTIONS.reduce((acc, opt) => {
@@ -164,6 +184,7 @@ const Orders = () => {
   const clearFilters = useCallback(() => {
     setSearchTerm('');
     setStatusFilter('all');
+    setTimeFilter('all');
   }, []);
 
   const showOrderDetails = useCallback((order) => {
@@ -283,6 +304,37 @@ const Orders = () => {
             </button>
           ))}
         </div>
+
+        {/* Time Filter */}
+        <div className="time-filter-section">
+          <label className="filter-label">📅 {t('orders.timeFilter', 'Time Range')}:</label>
+          <div className="time-filter-pills">
+            <button
+              className={`time-pill ${timeFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setTimeFilter('all')}
+            >
+              {t('orders.time.all', 'All Time')}
+            </button>
+            <button
+              className={`time-pill ${timeFilter === 'today' ? 'active' : ''}`}
+              onClick={() => setTimeFilter('today')}
+            >
+              {t('orders.time.today', 'Today')}
+            </button>
+            <button
+              className={`time-pill ${timeFilter === 'week' ? 'active' : ''}`}
+              onClick={() => setTimeFilter('week')}
+            >
+              {t('orders.time.week', 'Last 7 Days')}
+            </button>
+            <button
+              className={`time-pill ${timeFilter === 'month' ? 'active' : ''}`}
+              onClick={() => setTimeFilter('month')}
+            >
+              {t('orders.time.month', 'Last 30 Days')}
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="orders-toolbar">
@@ -400,6 +452,9 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
       ? items.map((i) => `${i.name || 'Item'} ×${i.quantity || 1}`).join(', ')
       : `${items[0].name || 'Item'} ×${items[0].quantity || 1}, ${items[1].name || 'Item'} ×${items[1].quantity || 1}, +${items.length - 2} more`;
   const orderCode = `#${order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}`;
+  
+  // Check if order is new (within last 10 minutes)
+  const isNew = createdAt && (Date.now() - createdAt.getTime()) < 10 * 60 * 1000;
 
   if (isMobile) {
     return (
@@ -407,6 +462,7 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
         <td className="mobile-order-header">
           <div className="order-headline">
             <span className="order-code">{orderCode}</span>
+            {isNew && <span className="new-badge">🆕 NEW</span>}
             <span className="order-date">
               {prettyDate} · {prettyTime}
             </span>
@@ -449,10 +505,13 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
   }
 
   return (
-    <tr>
+    <tr className={isNew ? 'new-order-row' : ''}>
       <td data-label={t('orders.orderId', 'Order')}>
         <div className="order-id-block">
-          <p className="order-code">#{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}</p>
+          <p className="order-code">
+            #{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}
+            {isNew && <span className="new-badge">🆕 NEW</span>}
+          </p>
           <span className="order-date">
             {prettyDate} · {prettyTime}
           </span>

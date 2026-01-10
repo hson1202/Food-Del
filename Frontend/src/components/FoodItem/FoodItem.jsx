@@ -3,12 +3,18 @@ import './FoodItem.css'
 import { assets } from '../../assets/assets'
 import { StoreContext } from '../../Context/StoreContext'
 import { useTranslation } from 'react-i18next'
+import { isFoodAvailable, getAvailabilityStatus } from '../../utils/timeUtils'
 
-const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, sku, isPromotion, originalPrice, promotionPrice, soldCount = 0, likes = 0, options, onViewDetails, compact = false}) => {
+const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, sku, isPromotion, originalPrice, promotionPrice, soldCount = 0, likes = 0, options, onViewDetails, compact = false, availableFrom, availableTo, dailyAvailability}) => {
   const {cartItems, addToCart, removeFromCart, url} = useContext(StoreContext);
   const { i18n, t } = useTranslation();
   
   const currentLanguage = i18n.language;
+  
+  // Check food availability
+  const foodData = { availableFrom, availableTo, dailyAvailability };
+  const isAvailable = isFoodAvailable(foodData);
+  const availabilityInfo = getAvailabilityStatus(foodData, currentLanguage);
   
   // Function to get the appropriate name based on current language
   const getLocalizedName = () => {
@@ -214,6 +220,23 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
         {options && options.length > 0 && (
           <div className="options-badge">
             {t('food.customizable')}
+          </div>
+        )}
+
+        {/* Time Availability Badge */}
+        {(availableFrom || availableTo || dailyAvailability?.enabled) && (
+          <div className={`time-badge ${isAvailable ? 'available' : 'unavailable'}`}>
+            <span className="time-icon">⏰</span>
+            {availabilityInfo.timeInfo && (
+              <span className="time-text">{availabilityInfo.timeInfo}</span>
+            )}
+          </div>
+        )}
+
+        {/* Unavailable Overlay */}
+        {!isAvailable && (
+          <div className="unavailable-overlay">
+            <span className="unavailable-text">{availabilityInfo.message}</span>
           </div>
         )}
       </div>

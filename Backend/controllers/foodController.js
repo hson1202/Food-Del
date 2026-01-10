@@ -257,7 +257,10 @@ const removeFood = async (req, res) => {
 //update food status (active/inactive)
 const updateFoodStatus = async (req, res) => {
   try {
-    const { id, status } = req.body
+    // Support both URL param and body
+    const id = req.params.id || req.body.id;
+    const status = req.body.status;
+    
     if (!id || !status) {
       return res.status(400).json({ success: false, message: "ID and status are required" })
     }
@@ -416,6 +419,41 @@ const updateFood = async (req, res) => {
 }
 
 //update food quantity (for inventory management)
+// Quick update (price or quantity only)
+const quickUpdateFood = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { price, quantity } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Product ID is required" });
+    }
+    
+    const updateData = {};
+    if (price !== undefined) updateData.price = parseFloat(price);
+    if (quantity !== undefined) updateData.quantity = parseInt(quantity);
+    
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: "No fields to update" });
+    }
+    
+    const updatedFood = await foodModel.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+    
+    if (!updatedFood) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+    
+    res.json({ success: true, message: "Product updated successfully", data: updatedFood });
+  } catch (error) {
+    console.error('QUICK UPDATE ERROR:', error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 const updateFoodQuantity = async (req, res) => {
   try {
     const { id, quantity } = req.body
@@ -530,4 +568,4 @@ const processOrder = async (req, res) => {
   }
 }
 
-export { addFood, listFood, removeFood, updateFoodStatus, updateFood, updateFoodQuantity, processOrder }
+export { addFood, listFood, removeFood, updateFoodStatus, updateFood, updateFoodQuantity, quickUpdateFood, processOrder }

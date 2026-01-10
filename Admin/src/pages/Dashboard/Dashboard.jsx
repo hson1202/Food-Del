@@ -39,6 +39,8 @@ const Dashboard = ({ url }) => {
     year: { orders: 0, revenue: 0 }
   })
 
+  const [topProducts, setTopProducts] = useState([])
+
   const [isLoading, setIsLoading] = useState(true)
   const [trends, setTrends] = useState({
     orders: 0,
@@ -154,14 +156,16 @@ const Dashboard = ({ url }) => {
       
       // Fetch all data in parallel for better performance
       console.log('🚀 Starting API calls...')
-      const [statsResponse, timeResponse] = await Promise.allSettled([
+      const [statsResponse, timeResponse, topProductsResponse] = await Promise.allSettled([
         axios.get(`${config.BACKEND_URL}/api/admin/stats`, { headers: { 'token': adminToken } }),
-        axios.get(`${config.BACKEND_URL}/api/admin/time-stats`, { headers: { 'token': adminToken } })
+        axios.get(`${config.BACKEND_URL}/api/admin/time-stats`, { headers: { 'token': adminToken } }),
+        axios.get(`${config.BACKEND_URL}/api/admin/top-products?limit=3`, { headers: { 'token': adminToken } })
       ])
 
       console.log('📊 All API calls completed with status:', {
         stats: statsResponse.status,
-        time: timeResponse.status
+        time: timeResponse.status,
+        topProducts: topProductsResponse.status
       })
 
       // Handle stats response
@@ -217,6 +221,15 @@ const Dashboard = ({ url }) => {
           quarter: { orders: 0, revenue: 0 },
           year: { orders: 0, revenue: 0 }
         })
+      }
+
+      // Handle top products response
+      if (topProductsResponse.status === 'fulfilled' && topProductsResponse.value.data) {
+        console.log('✅ Top products response:', topProductsResponse.value.data)
+        setTopProducts(topProductsResponse.value.data.data || [])
+      } else {
+        console.error('❌ Top products fetch failed:', topProductsResponse.reason)
+        setTopProducts([])
       }
 
 
@@ -460,7 +473,54 @@ const Dashboard = ({ url }) => {
         </div>
       </div>
 
-      {/* (Đã xoá stats-grid theo yêu cầu, chỉ giữ lại phần chart và quick actions) */}
+      {/* Quick Stats - Today Overview */}
+      <div className="quick-stats-section">
+        <h2>📊 {t('dashboard.todayOverview') || 'Tổng quan hôm nay'}</h2>
+        <div className="quick-stats-grid">
+          <div className="quick-stat-card today-orders">
+            <div className="quick-stat-icon">📦</div>
+            <div className="quick-stat-content">
+              <div className="quick-stat-value">{timeStats.today?.orders || 0}</div>
+              <div className="quick-stat-label">{t('dashboard.ordersToday') || 'Đơn hôm nay'}</div>
+            </div>
+          </div>
+          
+          <div className="quick-stat-card today-revenue">
+            <div className="quick-stat-icon">💰</div>
+            <div className="quick-stat-content">
+              <div className="quick-stat-value">{formatCurrency(timeStats.today?.revenue || 0)}</div>
+              <div className="quick-stat-label">{t('dashboard.revenueToday') || 'Doanh thu hôm nay'}</div>
+            </div>
+          </div>
+          
+          <div className="quick-stat-card top-product">
+            <div className="quick-stat-icon">🔥</div>
+            <div className="quick-stat-content">
+              {topProducts.length > 0 ? (
+                <>
+                  <div className="quick-stat-value top-product-name">{topProducts[0].name}</div>
+                  <div className="quick-stat-label">{topProducts[0].totalSold} {t('dashboard.sold') || 'đã bán'}</div>
+                  {topProducts.length > 1 && (
+                    <div className="top-products-extra">
+                      {topProducts.slice(1).map((p, i) => (
+                        <div key={i} className="extra-product">
+                          <span>{p.name}</span>
+                          <span>×{p.totalSold}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="quick-stat-value">—</div>
+                  <div className="quick-stat-label">{t('dashboard.topProduct') || 'Món bán chạy'}</div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Time-based Stats */}
       <div className="time-stats-section">

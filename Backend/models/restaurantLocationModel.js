@@ -18,6 +18,12 @@ const restaurantLocationSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  boxFee: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0.3  // Default box fee in EUR
+  },
   isActive: {
     type: Boolean,
     default: true

@@ -357,6 +357,68 @@
     font-size: 0.9rem;
 }
 
+/* Time Availability Badge */
+.time-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.time-badge.available {
+    background: rgba(76, 175, 80, 0.95);
+    color: white;
+}
+
+.time-badge.unavailable {
+    background: rgba(244, 67, 54, 0.95);
+    color: white;
+}
+
+.time-icon {
+    font-size: 14px;
+}
+
+.time-text {
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+/* Unavailable Overlay */
+.unavailable-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    border-radius: 15px 15px 0 0;
+}
+
+.unavailable-text {
+    background: rgba(244, 67, 54, 0.95);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .food-item-info {
@@ -373,5 +435,21 @@
     
     .stat-item {
         font-size: 12px;
+    }
+
+    .time-badge {
+        bottom: 8px;
+        left: 8px;
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    .time-text {
+        font-size: 10px;
+    }
+
+    .unavailable-text {
+        font-size: 12px;
+        padding: 6px 12px;
     }
 }

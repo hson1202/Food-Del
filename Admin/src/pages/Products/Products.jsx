@@ -29,6 +29,14 @@ const Products = ({ url }) => {
   const [itemsPerPage, setItemsPerPage] = useState(12)
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
+  
+  // Bulk actions state
+  const [selectedProducts, setSelectedProducts] = useState([])
+  const [selectAll, setSelectAll] = useState(false)
+  
+  // Quick edit state
+  const [quickEditing, setQuickEditing] = useState(null) // { productId, field: 'price' | 'quantity' }
+  const [quickEditValue, setQuickEditValue] = useState('')
   const INITIAL_EDIT_FORM = {
     sku: '',
     name: '',
@@ -47,7 +55,13 @@ const Products = ({ url }) => {
     recommendPriority: 999,
     image: null,
     imagePreview: null,
-    options: []
+    options: [],
+    // Time-based availability
+    availableFrom: '',
+    availableTo: '',
+    dailyAvailabilityEnabled: false,
+    dailyTimeFrom: '',
+    dailyTimeTo: ''
   }
   const [editForm, setEditForm] = useState(INITIAL_EDIT_FORM)
   const [error, setError] = useState(null)
@@ -69,7 +83,13 @@ const Products = ({ url }) => {
     disableBoxFee: false,
     isRecommended: false,
     recommendPriority: 999,
-    options: [] // Thêm options array
+    options: [], // Thêm options array
+    // Time-based availability
+    availableFrom: '',
+    availableTo: '',
+    dailyAvailabilityEnabled: false,
+    dailyTimeFrom: '',
+    dailyTimeTo: ''
   })
 
   // State cho quản lý options - đơn giản hóa
@@ -166,6 +186,116 @@ const fetchCategories = async (signal) => {
   }
 };
 
+// Bulk selection handlers
+const handleSelectProduct = (productId) => {
+  setSelectedProducts(prev =>
+    prev.includes(productId)
+      ? prev.filter(id => id !== productId)
+      : [...prev, productId]
+  );
+};
+
+const handleSelectAll = () => {
+  if (selectAll) {
+    setSelectedProducts([]);
+  } else {
+    setSelectedProducts(filteredProducts.map(p => p._id));
+  }
+  setSelectAll(!selectAll);
+};
+
+// Bulk actions
+const handleBulkStatusChange = async (newStatus) => {
+  if (selectedProducts.length === 0) {
+    toast.warning('No products selected');
+    return;
+  }
+
+  const confirmMsg = `Are you sure you want to ${newStatus === 'active' ? 'show' : 'hide'} ${selectedProducts.length} product(s)?`;
+  if (!window.confirm(confirmMsg)) return;
+
+  try {
+    const promises = selectedProducts.map(productId =>
+      axios.put(
+        `${config.BACKEND_URL}/api/food/update-status/${productId}`,
+        { status: newStatus }
+      )
+    );
+
+    await Promise.all(promises);
+    toast.success(`✅ Updated ${selectedProducts.length} product(s)`);
+    setSelectedProducts([]);
+    setSelectAll(false);
+    fetchFoodList(false, undefined, true);
+  } catch (error) {
+    toast.error('Failed to update products: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+const handleBulkDelete = async () => {
+  if (selectedProducts.length === 0) {
+    toast.warning('No products selected');
+    return;
+  }
+
+  const confirmMsg = `⚠️ Are you sure you want to delete ${selectedProducts.length} product(s)? This action cannot be undone.`;
+  if (!window.confirm(confirmMsg)) return;
+
+  try {
+    const baseUrl = String(config.BACKEND_URL || '').replace(/\/+$/, '');
+    const promises = selectedProducts.map(productId =>
+      axios.delete(`${baseUrl}/api/food/remove/${encodeURIComponent(productId)}`)
+    );
+
+    await Promise.all(promises);
+    toast.success(`✅ Deleted ${selectedProducts.length} product(s)`);
+    setSelectedProducts([]);
+    setSelectAll(false);
+    fetchFoodList(false, undefined, false);
+  } catch (error) {
+    toast.error('Failed to delete products: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+// Quick edit handlers
+const handleQuickEdit = (productId, field, currentValue) => {
+  setQuickEditing({ productId, field });
+  setQuickEditValue(String(currentValue || ''));
+};
+
+const handleQuickEditSave = async (productId) => {
+  if (!quickEditing) return;
+
+  const value = parseFloat(quickEditValue);
+  if (isNaN(value) || value < 0) {
+    toast.error('Please enter a valid number');
+    return;
+  }
+
+  try {
+    const updateData = {
+      [quickEditing.field]: value
+    };
+
+    await axios.put(
+      `${config.BACKEND_URL}/api/food/quick-update/${productId}`,
+      updateData
+    );
+
+    toast.success(`✅ Updated ${quickEditing.field} successfully`);
+    setQuickEditing(null);
+    setQuickEditValue('');
+    fetchFoodList(false, undefined, true);
+  } catch (error) {
+    toast.error('Failed to update: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+const handleQuickEditCancel = () => {
+  setQuickEditing(null);
+  setQuickEditValue('');
+};
+
   const handleDeleteProduct = async (productId) => {
     if (!productId) {
       toast.error('Missing product id')
@@ -226,7 +356,13 @@ const fetchCategories = async (signal) => {
       disableBoxFee: product.disableBoxFee || false,
       isRecommended: product.isRecommended || false,
       recommendPriority: product.recommendPriority !== undefined ? product.recommendPriority : 999,
-      options: product.options || [] // Ensure options are included
+      options: product.options || [], // Ensure options are included
+      // Time-based availability
+      availableFrom: product.availableFrom ? new Date(product.availableFrom).toISOString().slice(0, 16) : '',
+      availableTo: product.availableTo ? new Date(product.availableTo).toISOString().slice(0, 16) : '',
+      dailyAvailabilityEnabled: product.dailyAvailability?.enabled || false,
+      dailyTimeFrom: product.dailyAvailability?.timeFrom || '',
+      dailyTimeTo: product.dailyAvailability?.timeTo || ''
     });
   };
 
@@ -384,6 +520,25 @@ const fetchCategories = async (signal) => {
       formData.set('disableBoxFee', String(!!editForm.disableBoxFee));    // boolean -> "true"/"false"
       formData.set('isRecommended', String(!!editForm.isRecommended));    // boolean -> "true"/"false"
       formData.set('recommendPriority', String(Number(editForm.recommendPriority) || 999));
+      
+      // Time-based availability fields
+      if (editForm.availableFrom) {
+        formData.set('availableFrom', editForm.availableFrom);
+      }
+      if (editForm.availableTo) {
+        formData.set('availableTo', editForm.availableTo);
+      }
+      if (editForm.dailyAvailabilityEnabled) {
+        formData.set('dailyAvailabilityEnabled', 'true');
+        if (editForm.dailyTimeFrom) {
+          formData.set('dailyTimeFrom', editForm.dailyTimeFrom);
+        }
+        if (editForm.dailyTimeTo) {
+          formData.set('dailyTimeTo', editForm.dailyTimeTo);
+        }
+      } else {
+        formData.set('dailyAvailabilityEnabled', 'false');
+      }
       
       // Debug: Log formData values
       console.log('🔍 Edit Form Data:', {
@@ -553,6 +708,23 @@ const fetchCategories = async (signal) => {
     
     if (newProduct.image) {
       formData.append('image', newProduct.image)
+    }
+
+    // Time-based availability
+    if (newProduct.availableFrom) {
+      formData.append('availableFrom', newProduct.availableFrom)
+    }
+    if (newProduct.availableTo) {
+      formData.append('availableTo', newProduct.availableTo)
+    }
+    if (newProduct.dailyAvailabilityEnabled) {
+      formData.append('dailyAvailabilityEnabled', 'true')
+      if (newProduct.dailyTimeFrom) {
+        formData.append('dailyTimeFrom', newProduct.dailyTimeFrom)
+      }
+      if (newProduct.dailyTimeTo) {
+        formData.append('dailyTimeTo', newProduct.dailyTimeTo)
+      }
     }
 
     // Add options data
@@ -1196,6 +1368,123 @@ const fetchCategories = async (signal) => {
               )}
             </div>
 
+            {/* Time-Based Availability Section */}
+            <div className="form-section time-availability-section">
+              <h3>🕐 {t('editProduct.timeAvailability', 'Time-Based Availability')}</h3>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>
+                Set specific times or dates when this product should be available
+              </p>
+              
+              {/* Daily Time Availability */}
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={newProduct.dailyAvailabilityEnabled || false}
+                    onChange={(e) => setNewProduct({ ...newProduct, dailyAvailabilityEnabled: e.target.checked })}
+                  />
+                  Enable Daily Time Availability (e.g., Lunch: 11:00-14:30)
+                </label>
+                <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                  Product will only be available during this time window every day
+                </small>
+              </div>
+              
+              {newProduct.dailyAvailabilityEnabled && (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="dailyTimeFrom">Available From (Daily)</label>
+                    <input
+                      type="time"
+                      id="dailyTimeFrom"
+                      value={newProduct.dailyTimeFrom || ''}
+                      onChange={(e) => setNewProduct({ ...newProduct, dailyTimeFrom: e.target.value })}
+                      placeholder="11:00"
+                    />
+                    <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                      Start time (24h format)
+                    </small>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="dailyTimeTo">Available Until (Daily)</label>
+                    <input
+                      type="time"
+                      id="dailyTimeTo"
+                      value={newProduct.dailyTimeTo || ''}
+                      onChange={(e) => setNewProduct({ ...newProduct, dailyTimeTo: e.target.value })}
+                      placeholder="14:30"
+                    />
+                    <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                      End time (24h format)
+                    </small>
+                  </div>
+                </div>
+              )}
+
+              {/* Date Range Availability */}
+              <div className="form-group" style={{ marginTop: '20px' }}>
+                <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                  Date Range Availability (Optional)
+                </label>
+                <small style={{ display: 'block', marginBottom: '10px', color: '#666' }}>
+                  Set specific start/end dates for special events or seasonal items
+                </small>
+                
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="availableFrom">Available From Date</label>
+                    <input
+                      type="datetime-local"
+                      id="availableFrom"
+                      value={newProduct.availableFrom || ''}
+                      onChange={(e) => setNewProduct({ ...newProduct, availableFrom: e.target.value })}
+                    />
+                    <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                      Product starts being available from this date/time
+                    </small>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="availableTo">Available Until Date</label>
+                    <input
+                      type="datetime-local"
+                      id="availableTo"
+                      value={newProduct.availableTo || ''}
+                      onChange={(e) => setNewProduct({ ...newProduct, availableTo: e.target.value })}
+                    />
+                    <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                      Product stops being available after this date/time
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview/Info Box */}
+              {(newProduct.dailyAvailabilityEnabled || newProduct.availableFrom || newProduct.availableTo) && (
+                <div style={{ 
+                  marginTop: '15px', 
+                  padding: '12px', 
+                  backgroundColor: '#e3f2fd',
+                  borderRadius: '5px',
+                  border: '1px solid #90caf9'
+                }}>
+                  <strong style={{ color: '#1976d2' }}>⏰ Availability Summary:</strong>
+                  <ul style={{ marginTop: '8px', marginBottom: '0', paddingLeft: '20px', color: '#555' }}>
+                    {newProduct.dailyAvailabilityEnabled && newProduct.dailyTimeFrom && newProduct.dailyTimeTo && (
+                      <li>Daily: {newProduct.dailyTimeFrom} - {newProduct.dailyTimeTo}</li>
+                    )}
+                    {newProduct.availableFrom && (
+                      <li>From: {new Date(newProduct.availableFrom).toLocaleString()}</li>
+                    )}
+                    {newProduct.availableTo && (
+                      <li>Until: {new Date(newProduct.availableTo).toLocaleString()}</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+
             {/* Variant Options Section - Redesigned like Shopify */}
             <div className="options-section">
               <div className="section-header">
@@ -1800,6 +2089,58 @@ const fetchCategories = async (signal) => {
         </div>
       </div>
 
+      {/* Bulk Actions Toolbar */}
+      {filteredProducts.length > 0 && (
+        <div className="bulk-actions-bar">
+          <div className="bulk-select-all">
+            <input
+              type="checkbox"
+              id="select-all"
+              checked={selectAll}
+              onChange={handleSelectAll}
+              className="bulk-checkbox"
+            />
+            <label htmlFor="select-all">
+              {selectAll ? `Selected ${selectedProducts.length}` : 'Select All'}
+            </label>
+          </div>
+
+          {selectedProducts.length > 0 && (
+            <div className="bulk-actions">
+              <span className="bulk-count">{selectedProducts.length} selected</span>
+              <button
+                onClick={() => handleBulkStatusChange('active')}
+                className="bulk-btn bulk-show"
+                title="Show selected products"
+              >
+                👁️ Show
+              </button>
+              <button
+                onClick={() => handleBulkStatusChange('inactive')}
+                className="bulk-btn bulk-hide"
+                title="Hide selected products"
+              >
+                🚫 Hide
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="bulk-btn bulk-delete"
+                title="Delete selected products"
+              >
+                🗑️ Delete
+              </button>
+              <button
+                onClick={() => { setSelectedProducts([]); setSelectAll(false); }}
+                className="bulk-btn bulk-cancel"
+                title="Clear selection"
+              >
+                ✖️ Clear
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Products Grid */}
       <div className="products-section">
         {isLoading ? (
@@ -1812,7 +2153,16 @@ const fetchCategories = async (signal) => {
                 console.log(`DEBUG - Rendering test product: ${product.name}, status: "${product.status}", filter: ${statusFilter}`)
               }
             return (
-              <div key={product._id} className="product-card">
+              <div key={product._id} className={`product-card ${selectedProducts.includes(product._id) ? 'selected' : ''}`}>
+                <div className="product-select-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product._id)}
+                    onChange={() => handleSelectProduct(product._id)}
+                    className="product-checkbox"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
                 <div className="product-image">
                   <img 
                     src={
@@ -1847,11 +2197,33 @@ const fetchCategories = async (signal) => {
                     {product.description && (
                       <p className="product-description">{product.description}</p>
                     )}
-                    <div className="product-quantity">
+                    <div className="product-quantity quick-edit-field">
                       <span className="quantity-label">Stock:</span>
-                      <span className={`quantity-value ${(product.quantity || 0) === 0 ? 'out-of-stock' : (product.quantity || 0) <= 5 ? 'low-stock' : 'in-stock'}`}>
-                        {product.quantity || 0}
-                      </span>
+                      {quickEditing?.productId === product._id && quickEditing?.field === 'quantity' ? (
+                        <div className="quick-edit-input-group">
+                          <input
+                            type="number"
+                            value={quickEditValue}
+                            onChange={(e) => setQuickEditValue(e.target.value)}
+                            className="quick-edit-input"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleQuickEditSave(product._id);
+                              if (e.key === 'Escape') handleQuickEditCancel();
+                            }}
+                          />
+                          <button onClick={() => handleQuickEditSave(product._id)} className="quick-edit-save" title="Save">✓</button>
+                          <button onClick={handleQuickEditCancel} className="quick-edit-cancel" title="Cancel">✕</button>
+                        </div>
+                      ) : (
+                        <span 
+                          className={`quantity-value editable ${(product.quantity || 0) === 0 ? 'out-of-stock' : (product.quantity || 0) <= 5 ? 'low-stock' : 'in-stock'}`}
+                          onClick={() => handleQuickEdit(product._id, 'quantity', product.quantity)}
+                          title="Click to edit"
+                        >
+                          {product.quantity || 0} ✏️
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="product-pricing">
@@ -1864,7 +2236,35 @@ const fetchCategories = async (signal) => {
                         </div>
                       </div>
                     ) : (
-                      <div className="regular-price">€{(Number(product.price) || 0).toFixed(2)}</div>
+                      <div className="regular-price-wrapper quick-edit-field">
+                        {quickEditing?.productId === product._id && quickEditing?.field === 'price' ? (
+                          <div className="quick-edit-input-group">
+                            <span className="currency-symbol">€</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={quickEditValue}
+                              onChange={(e) => setQuickEditValue(e.target.value)}
+                              className="quick-edit-input price-input"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleQuickEditSave(product._id);
+                                if (e.key === 'Escape') handleQuickEditCancel();
+                              }}
+                            />
+                            <button onClick={() => handleQuickEditSave(product._id)} className="quick-edit-save" title="Save">✓</button>
+                            <button onClick={handleQuickEditCancel} className="quick-edit-cancel" title="Cancel">✕</button>
+                          </div>
+                        ) : (
+                          <div 
+                            className="regular-price editable"
+                            onClick={() => handleQuickEdit(product._id, 'price', product.price)}
+                            title="Click to edit"
+                          >
+                            €{(Number(product.price) || 0).toFixed(2)} ✏️
+                          </div>
+                        )}
+                      </div>
                     )}
                     
                     {/* Display variant options if available - Compact view */}

@@ -25,6 +25,12 @@ const restaurantLocationSchema = new mongoose.Schema({
   isPrimary: {
     type: Boolean,
     default: true
+  },
+  boxFee: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0.3  // Default 0.3€
   }
 }, {
   timestamps: true

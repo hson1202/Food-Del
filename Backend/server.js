@@ -200,6 +200,23 @@ eventBus.on('order:created', (order) => {
   }, 'orders')
 })
 
+eventBus.on('contact:created', (contactMessage) => {
+  // Broadcast to admin panel for realtime notification
+  broadcastEvent('contact_created', {
+    _id: contactMessage._id,
+    messageNumber: contactMessage.messageNumber,
+    name: contactMessage.name,
+    email: contactMessage.email,
+    subject: contactMessage.subject,
+    message: contactMessage.message,
+    priority: contactMessage.priority,
+    status: contactMessage.status,
+    createdAt: contactMessage.createdAt
+  }, 'messages')
+  
+  console.log(`🔔 Realtime notification broadcasted for contact message #${contactMessage.messageNumber} from ${contactMessage.name}`)
+})
+
 // Serve local uploads (Render has persistent filesystem, unlike Vercel)
 app.use("/uploads", express.static("uploads"))
 app.use("/images", express.static("uploads"))

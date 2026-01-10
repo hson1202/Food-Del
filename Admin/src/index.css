@@ -30,6 +30,11 @@ body {
   padding-top: 60px; /* Space for fixed navbar */
 }
 
+/* Remove padding for login page */
+body:has(.login-container) {
+  padding-top: 0;
+}
+
 body.sidebar-locked {
   overflow: hidden;
 }

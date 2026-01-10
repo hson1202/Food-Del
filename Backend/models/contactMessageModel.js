@@ -1,6 +1,10 @@
 import mongoose from 'mongoose'
 
 const contactMessageSchema = new mongoose.Schema({
+  messageNumber: {
+    type: Number,
+    unique: true
+  },
   name: {
     type: String,
     required: [true, 'Name is required'],
@@ -64,7 +68,28 @@ const contactMessageSchema = new mongoose.Schema({
   timestamps: true
 })
 
+// Auto-increment messageNumber before save
+contactMessageSchema.pre('save', async function(next) {
+  if (this.isNew && !this.messageNumber) {
+    try {
+      // Find the highest messageNumber
+      const lastMessage = await this.constructor.findOne({}, { messageNumber: 1 })
+        .sort({ messageNumber: -1 })
+        .lean()
+      
+      this.messageNumber = lastMessage ? (lastMessage.messageNumber + 1) : 1
+      console.log(`📋 Assigned messageNumber: ${this.messageNumber}`)
+    } catch (error) {
+      console.error('Error generating messageNumber:', error)
+      // Fallback to timestamp-based number if error
+      this.messageNumber = Date.now() % 1000000
+    }
+  }
+  next()
+})
+
 // Index for better query performance
+contactMessageSchema.index({ messageNumber: 1 }, { unique: true })
 contactMessageSchema.index({ status: 1, createdAt: -1 })
 contactMessageSchema.index({ subject: 1, status: 1 })
 contactMessageSchema.index({ email: 1 })
