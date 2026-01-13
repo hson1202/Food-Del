@@ -614,6 +614,22 @@ OrderSummary.propTypes = {
 const OrderDetailsModal = React.memo(({ order, onClose }) => {
   const { t } = useTranslation();
   const deliveryFee = Number(order.deliveryInfo?.deliveryFee ?? 0);
+
+  const formatFullAddress = (addr) => {
+    if (!addr) return 'N/A';
+    const street = (addr.street || '').trim();
+    const house = (addr.houseNumber || '').toString().trim();
+    const streetAlreadyHasNumber = /^\d+/.test(street);
+    const streetHasHouse = house && street.toLowerCase().includes(house.toLowerCase());
+    const line1 =
+      house && street && !streetAlreadyHasNumber && !streetHasHouse
+        ? `${house} ${street}`.trim()
+        : (street || house);
+    const city = (addr.city || '').trim();
+    const state = (addr.state || '').trim();
+    const zip = (addr.zipcode || addr.postalCode || '').toString().trim();
+    return [line1, [zip, city, state].filter(Boolean).join(' ')].filter(Boolean).join(', ') || 'N/A';
+  };
   const copyId = () => {
     const id = order.shortOrderId || order._id || '';
     navigator.clipboard.writeText(id).then(() => toast.success(t('orders.copied', 'Order ID copied')));
@@ -682,9 +698,7 @@ const OrderDetailsModal = React.memo(({ order, onClose }) => {
               <div className="full">
                 <p className="meta-label">{t('orders.address', 'Address')}</p>
                 <p className="meta-value">
-                  {order.address?.street
-                    ? `${order.address.street}, ${order.address.city || ''} ${order.address.state || ''}`
-                    : 'N/A'}
+                  {formatFullAddress(order.address)}
                 </p>
               </div>
             </div>

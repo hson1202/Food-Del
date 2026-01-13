@@ -6,7 +6,7 @@ import config from '../../config/config'
 
 
 const TrackOrder = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [trackingCode, setTrackingCode] = useState('')
   const [phone, setPhone] = useState('')
   const [order, setOrder] = useState(null)
@@ -34,7 +34,15 @@ const TrackOrder = () => {
       if (response.data.success) {
         setOrder(response.data.data)
       } else {
-        setError(response.data.message || t('trackOrder.errors.notFound'))
+        const serverMsg = (response.data.message || '').toLowerCase();
+        if (serverMsg.includes('required')) {
+          setError(t('trackOrder.errors.missingFields'));
+        } else if (serverMsg.includes('not found')) {
+          setError(t('trackOrder.errors.notFound'));
+        } else {
+          // Avoid showing backend English messages directly; show translated fallback.
+          setError(t('trackOrder.errors.notFound'));
+        }
       }
     } catch (error) {
       console.error('Error tracking order:', error)
@@ -54,14 +62,38 @@ const TrackOrder = () => {
     }
   }
 
+  const getStatusLabel = (status) => {
+    if (status === 'Pending') return t('myOrders.status.pending');
+    if (status === 'Out for delivery') return t('myOrders.status.outForDelivery');
+    if (status === 'Delivered') return t('myOrders.status.delivered');
+    if (status === 'Cancelled') return t('myOrders.status.cancelled');
+    return status;
+  }
+
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const locale = i18n?.language || undefined;
+    return new Date(dateString).toLocaleString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     })
+  }
+
+  const formatFullAddress = (addr) => {
+    if (!addr) return '';
+    const street = (addr.street || '').trim();
+    const house = (addr.houseNumber || '').toString().trim();
+    // Avoid duplicating if street already starts with a number (or already contains the house number)
+    const streetAlreadyHasNumber = /^\d+/.test(street);
+    const streetHasHouse = house && street.toLowerCase().includes(house.toLowerCase());
+    const line1 = house && street && !streetAlreadyHasNumber && !streetHasHouse
+      ? `${house} ${street}`.trim()
+      : (street || house);
+    const city = (addr.city || '').trim();
+    const zip = (addr.zipcode || addr.postalCode || '').toString().trim();
+    return [line1, [zip, city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
   }
 
   return (
@@ -147,7 +179,7 @@ const TrackOrder = () => {
                 <h3>📍 {t('trackOrder.result.deliveryAddress')}</h3>
                 <div className="info-item">
                   <span className="label">{t('trackOrder.result.address')}:</span>
-                  <span className="value">{order.address.street}</span>
+                  <span className="value">{formatFullAddress(order.address)}</span>
                 </div>
                 <div className="info-item">
                   <span className="label">{t('trackOrder.result.city')}:</span>
@@ -155,7 +187,7 @@ const TrackOrder = () => {
                 </div>
                 <div className="info-item">
                   <span className="label">{t('trackOrder.result.postalCode')}:</span>
-                  <span className="value">{order.address.postalCode}</span>
+                  <span className="value">{order.address.zipcode || order.address.postalCode}</span>
                 </div>
               </div>
 
@@ -180,7 +212,7 @@ const TrackOrder = () => {
               <div className="order-info-card status-card">
                 <h3>📊 {t('trackOrder.result.orderStatus')}</h3>
                 <div className="status-badge" style={{ backgroundColor: getStatusColor(order.status) }}>
-                  {order.status}
+                  {getStatusLabel(order.status)}
                 </div>
                 <div className="order-type">
                   {t('trackOrder.result.type')}: <span>{order.orderType === 'guest' ? t('trackOrder.result.guest') : t('trackOrder.result.registered')}</span>

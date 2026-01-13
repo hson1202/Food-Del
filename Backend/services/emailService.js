@@ -1277,6 +1277,19 @@ const getEmailTranslations = (lang) => {
   return translations[langCode] || translations['vi']; // Default to Vietnamese
 };
 
+// Build a human-friendly "house number + street" line for orders.
+// Avoid duplicating if street already contains a leading number or includes the house number.
+const formatOrderStreetLine = (address = {}) => {
+  const street = (address.street || '').toString().trim();
+  const house = (address.houseNumber || '').toString().trim();
+  if (!street && !house) return '';
+  if (!house) return street;
+  const streetAlreadyHasNumber = /^\d+/.test(street);
+  const streetHasHouse = street && street.toLowerCase().includes(house.toLowerCase());
+  if (streetAlreadyHasNumber || streetHasHouse) return street || house;
+  return `${house} ${street}`.trim();
+};
+
 // Calculate item price including box fee and options (same logic as frontend)
 const calculateItemPrice = async (item, globalBoxFee = 0.3) => {
   // Tính giá gốc (chưa bao gồm box fee)
@@ -1447,7 +1460,7 @@ const generateOrderConfirmationEmailHTML = (order) => {
           <div class="address-section">
             <h3>📍 ${t.deliveryAddress}</h3>
             <p>
-              <strong>${order.address.street}</strong><br>
+              <strong>${formatOrderStreetLine(order.address) || order.address.street}</strong><br>
               ${order.address.city}, ${order.address.state}<br>
               ${order.address.zipcode}, ${order.address.country}
             </p>
@@ -1543,7 +1556,7 @@ ${t.deliveryFee}: ${formatCurrency(deliveryFee)}
 ${t.total}: ${formatCurrency(order.amount)}
 
 ${t.deliveryAddress.toUpperCase()}:
-${order.address.street}
+${formatOrderStreetLine(order.address) || order.address.street}
 ${order.address.city}, ${order.address.state}
 ${order.address.zipcode}, ${order.address.country}
 ${t.phone}: ${order.customerInfo.phone}
@@ -1786,7 +1799,7 @@ const generateAdminOrderNotificationEmailHTML = async (order) => {
             <div class="info-row">
               <div class="info-label">Địa chỉ:</div>
               <div class="info-value">
-                ${order.address.street}, ${order.address.city}, ${order.address.state} ${order.address.zipcode}
+                ${formatOrderStreetLine(order.address) || order.address.street}${order.address.city ? `, ${order.address.city}` : ''}${order.address.state ? `, ${order.address.state}` : ''}${order.address.zipcode ? ` ${order.address.zipcode}` : ''}
               </div>
             </div>
           </div>
@@ -1886,7 +1899,7 @@ const generateAdminOrderNotificationEmailText = async (order) => {
 THÔNG TIN KHÁCH HÀNG:
 Tên: ${order.customerInfo.name}
 SĐT: ${order.customerInfo.phone}
-${order.customerInfo.email ? `Email: ${order.customerInfo.email}\n` : ''}Địa chỉ: ${order.address.street}, ${order.address.city}, ${order.address.state} ${order.address.zipcode}
+ ${order.customerInfo.email ? `Email: ${order.customerInfo.email}\n` : ''}Địa chỉ: ${formatOrderStreetLine(order.address) || order.address.street}${order.address.city ? `, ${order.address.city}` : ''}${order.address.state ? `, ${order.address.state}` : ''}${order.address.zipcode ? ` ${order.address.zipcode}` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

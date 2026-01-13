@@ -12,7 +12,7 @@ import '../../i18n'
 
 const PlaceOrder = () => {
   const { t, i18n } = useTranslation();
-  const { getTotalCartAmount, food_list, cartItems, cartItemsData, url, setCartItems } = useContext(StoreContext);
+  const { getTotalCartAmount, food_list, cartItems, cartItemsData, url, setCartItems, boxFee } = useContext(StoreContext);
   const { token, isAuthenticated, user } = useAuth();
   const [data, setData] = useState({
     firstName: "",
@@ -240,6 +240,38 @@ const PlaceOrder = () => {
     return patterns.some(pattern => pattern.test(address));
   };
 
+  const escapeRegExp = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Pick a clean street line for storing in order.address.street (avoid long geocoded strings / duplicates)
+  const getStreetLineForOrder = () => {
+    const streetFromComponents = (deliveryAddress?.street || '').trim();
+    if (streetFromComponents) return streetFromComponents;
+
+    const raw = (deliveryAddress?.address || '').trim();
+    if (!raw) return '';
+
+    // Try to strip noisy region fragments if present (e.g. "Region of Nitra")
+    let s = raw.replace(/,\s*region of[^,]+/gi, '').replace(/\s+region of[^,]+/gi, '');
+
+    // If we already store city/zip separately, remove them from the street line to avoid duplication in admin/email
+    const city = (deliveryAddress?.city || '').trim();
+    const zip = (deliveryAddress?.zipcode || deliveryAddress?.postalCode || '').toString().trim();
+    if (city) {
+      s = s.replace(new RegExp(`,\\s*${escapeRegExp(city)}\\b`, 'gi'), '');
+      s = s.replace(new RegExp(`\\b${escapeRegExp(city)}\\b`, 'gi'), '');
+    }
+    if (zip) {
+      s = s.replace(new RegExp(`,\\s*${escapeRegExp(zip)}\\b`, 'g'), '');
+      s = s.replace(new RegExp(`\\b${escapeRegExp(zip)}\\b`, 'g'), '');
+    }
+
+    // Cleanup punctuation
+    s = s.replace(/\s*,\s*/g, ', ').replace(/,{2,}/g, ',').replace(/^,|,$/g, '').trim();
+
+    // If stripping made it empty, fall back to the raw string
+    return s || raw;
+  };
+
   // Simple retry helper for transient errors (e.g., 502/503/network)
   const postWithRetry = async (endpoint, data, options, retries = 2, delayMs = 800) => {
     try {
@@ -359,7 +391,9 @@ const PlaceOrder = () => {
     
     let orderData = {
       address: {
-        street: deliveryAddress.address,
+        // Store short street line (for admin/driver), keep full geocoded string separately for reference
+        street: getStreetLineForOrder(),
+        fullAddress: deliveryAddress.address,
         houseNumber: deliveryAddress.houseNumber || '',
         city: deliveryAddress.city || '',
         state: deliveryAddress.state || '',
@@ -429,7 +463,8 @@ const PlaceOrder = () => {
         // Không xóa cart ngay lập tức, để popup hiển thị trước
         // Cart sẽ được xóa khi user đóng popup
       } else {
-        alert(`❌ ${response.data.message || t('placeOrder.errors.unknownError')}`);
+        // Avoid showing backend English messages directly; show translated, user-friendly errors.
+        alert(t('placeOrder.errors.general'));
       }
     } catch (error) {
       console.error('Error placing order:', error);
@@ -490,7 +525,11 @@ const PlaceOrder = () => {
       if (error.response) {
         // Server responded with error
         console.log('Error response:', error.response.data);
-        errorMessage = error.response.data.message || t('placeOrder.errors.serverError', { status: error.response.status });
+        const status = error.response.status;
+        // Avoid showing backend English messages directly; show translated, user-friendly errors.
+        errorMessage = status >= 500
+          ? t('placeOrder.errors.serverError', { status })
+          : t('placeOrder.errors.general');
       } else if (error.request) {
         // Network error
         errorMessage = t('placeOrder.errors.networkError');
@@ -499,7 +538,7 @@ const PlaceOrder = () => {
         errorMessage = error.message || t('placeOrder.errors.unknownError');
       }
       
-      alert(`❌ ${errorMessage}`);
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -777,8 +816,8 @@ const PlaceOrder = () => {
                   <div className="house-warning-enhanced">
                     <div className="warning-icon">⚠️</div>
                     <div className="warning-content">
-                      <strong>Thiếu số nhà!</strong>
-                      <p>Địa chỉ bạn chọn không có số nhà. Vui lòng nhập số nhà để tránh giao sai địa chỉ.</p>
+                      <strong>{t('placeOrder.form.houseNumberWarningTitle')}</strong>
+                      <p>{t('placeOrder.form.houseNumberWarningBody')}</p>
                     </div>
                   </div>
                 )}
@@ -876,7 +915,7 @@ const PlaceOrder = () => {
               </div>
               {hasItemsWithBoxFee() && (
                 <div className='cart-total-details box-fee-note'>
-                  <p className="box-fee-text">{t('placeOrder.cart.boxFeeNote')}</p>
+                  <p className="box-fee-text">{t('placeOrder.cart.boxFeeNote', { boxFee: formatPrice(boxFee) })}</p>
                 </div>
               )}
               <hr />

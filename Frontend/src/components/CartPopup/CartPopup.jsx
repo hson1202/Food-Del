@@ -464,7 +464,7 @@ const CartPopup = ({ onClose }) => {
               </div>
               {hasItemsWithBoxFee() && (
                 <div className="summary-row box-fee-note">
-                  <span className="box-fee-text">{t('cartPopup.boxFeeNote')}</span>
+                  <span className="box-fee-text">{t('cartPopup.boxFeeNote', { boxFee: formatPrice(boxFee) })}</span>
                 </div>
               )}
               <div className="summary-row total">

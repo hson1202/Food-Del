@@ -42,21 +42,33 @@ const placeOrder = async (req,res) => {
         // Extract deliveryInfo from request body if provided
         const { deliveryInfo } = req.body;
 
-        // Validate address fields
-        const requiredAddressFields = ['street', 'city', 'state', 'zipcode', 'country'];
-        for (const field of requiredAddressFields) {
-            if (!address[field]) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Address field '${field}' is required`
-                });
-            }
+        // Normalize address payload (support older keys / optional fields)
+        // NOTE: We intentionally do NOT require city/state/zipcode/country because map/reverse-geocode can fail.
+        const normalizedAddress = {
+            ...address,
+            street: (address.street || address.address || '').trim(),
+            houseNumber: (address.houseNumber || '').toString().trim(),
+            // accept postalCode alias from older frontend pages
+            zipcode: (address.zipcode || address.postalCode || '').toString().trim(),
+        };
+
+        if (!normalizedAddress.street) {
+            return res.status(400).json({
+                success: false,
+                message: "Address field 'street' is required"
+            });
         }
 
         // ============================================
         // ✨ BACKEND VALIDATION: Kiểm tra số nhà
         // ============================================
         // Helper function to check if address has house number
+        const isCoordinateString = (s) => {
+            if (!s) return false;
+            // e.g. "48.12345, 17.12345"
+            return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(String(s).trim());
+        };
+
         const hasHouseNumber = (addr) => {
             if (!addr) return false;
             const patterns = [
@@ -68,8 +80,11 @@ const placeOrder = async (req,res) => {
             return patterns.some(pattern => pattern.test(addr));
         };
 
-        const addressHasNumber = hasHouseNumber(address.street);
-        const hasManualHouseNumber = address.houseNumber && address.houseNumber.trim().length > 0;
+        // If street looks like coordinates, never treat digits as a "house number"
+        const addressHasNumber =
+            !isCoordinateString(normalizedAddress.street) &&
+            hasHouseNumber(normalizedAddress.street);
+        const hasManualHouseNumber = normalizedAddress.houseNumber && normalizedAddress.houseNumber.trim().length > 0;
 
         if (!addressHasNumber && !hasManualHouseNumber) {
             return res.status(400).json({
@@ -132,7 +147,7 @@ const placeOrder = async (req,res) => {
             userId: validUserId, // Sẽ có giá trị nếu user đã đăng nhập và hợp lệ
             items: processedItems, // Sử dụng processedItems đã được xử lý options
             amount: amount,
-            address: address,
+            address: normalizedAddress,
             customerInfo: customerInfo,
             orderType: validUserId ? 'registered' : 'guest', // Tự động set dựa trên userId
             language: req.body.language || 'vi', // Lưu ngôn ngữ khách hàng dùng khi đặt đơn
@@ -172,13 +187,13 @@ const placeOrder = async (req,res) => {
                             label: 'Home', // Default label for first address
                             fullName: customerInfo.name || '',
                             phone: customerInfo.phone || '',
-                            street: address.street || '',
-                            houseNumber: address.houseNumber || '',
-                            city: address.city || '',
-                            state: address.state || '',
-                            zipcode: address.zipcode || '',
-                            country: address.country || 'Slovakia',
-                            coordinates: address.coordinates || null,
+                            street: normalizedAddress.street || '',
+                            houseNumber: normalizedAddress.houseNumber || '',
+                            city: normalizedAddress.city || '',
+                            state: normalizedAddress.state || '',
+                            zipcode: normalizedAddress.zipcode || '',
+                            country: normalizedAddress.country || 'Slovakia',
+                            coordinates: normalizedAddress.coordinates || null,
                             isDefault: true // First address is always default
                         };
                         

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import config from '../../config/config'
+import useRestaurantInfo from '../../hooks/useRestaurantInfo'
 import './ContactUs.css'
 // Load all hero images at once using Vite glob import
 // You can place hero images in `src/assets/` and select by file name
@@ -8,6 +9,7 @@ const HERO_IMAGES = import.meta.glob('../../assets/*.{jpg,jpeg,png,webp}', { eag
 
 const ContactUs = () => {
   const { t } = useTranslation()
+  const { restaurantInfo, loading: infoLoading } = useRestaurantInfo()
   // Removed reservation tab - now separate page
   
   const [formData, setFormData] = useState({
@@ -167,7 +169,12 @@ const ContactUs = () => {
                     <div className="info-icon">📍</div>
                     <div className="info-content">
                       <h3>{t('contact.address.title')}</h3>
-                      <p dangerouslySetInnerHTML={{ __html: t('contact.address.content') }}></p>
+                      <p>
+                        {infoLoading 
+                          ? '...' 
+                          : restaurantInfo?.address || t('contact.address.content')
+                        }
+                      </p>
                     </div>
                   </div>
                   
@@ -175,7 +182,12 @@ const ContactUs = () => {
                     <div className="info-icon">📞</div>
                     <div className="info-content">
                       <h3>{t('contact.phone.title')}</h3>
-                      <p dangerouslySetInnerHTML={{ __html: t('contact.phone.content') }}></p>
+                      <p>
+                        {infoLoading 
+                          ? '...' 
+                          : restaurantInfo?.phone || t('contact.phone.content')
+                        }
+                      </p>
                     </div>
                   </div>
                   
@@ -183,7 +195,12 @@ const ContactUs = () => {
                     <div className="info-icon">✉️</div>
                     <div className="info-content">
                       <h3>{t('contact.email.title')}</h3>
-                      <p>{t('contact.email.content')}</p>
+                      <p>
+                        {infoLoading 
+                          ? '...' 
+                          : restaurantInfo?.email || t('contact.email.content')
+                        }
+                      </p>
                     </div>
                   </div>
                   
@@ -191,7 +208,15 @@ const ContactUs = () => {
                     <div className="info-icon">🕒</div>
                     <div className="info-content">
                       <h3>{t('contact.openingHours')}</h3>
-                      <p>{t('contact.weekdays')}<br />{t('contact.sunday')}</p>
+                      <p>
+                        {infoLoading ? '...' : (
+                          <>
+                            {restaurantInfo?.openingHours?.weekdays || t('contact.weekdays')}
+                            <br />
+                            {restaurantInfo?.openingHours?.sunday || t('contact.sunday')}
+                          </>
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -314,16 +339,20 @@ const ContactUs = () => {
         <div className="container">
           <h2>{t('contact.map.title')}</h2>
           <div className="map-container">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7259.207931926322!2d17.8716162!3d48.1491049!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b6d006b93bc13%3A0x625b631240812045!2sVIET%20BOWLS!5e1!3m2!1svi!2s!4v1754748088309!5m2!1svi!2s" 
-              width="100%" 
-              height="450" 
-              style={{border:0}} 
-              allowFullScreen="" 
-              loading="lazy" 
-              referrerPolicy="no-referrer-when-downgrade"
-              title="VIET BOWLS Location"
-            ></iframe>
+            {infoLoading ? (
+              <div style={{ textAlign: 'center', padding: '2rem' }}>Loading map...</div>
+            ) : (
+              <iframe 
+                src={restaurantInfo?.googleMapsUrl || "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7259.207931926322!2d17.8716162!3d48.1491049!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b6d006b93bc13%3A0x625b631240812045!2sVIET%20BOWLS!5e1!3m2!1svi!2s!4v1754748088309!5m2!1svi!2s"}
+                width="100%" 
+                height="450" 
+                style={{border:0}} 
+                allowFullScreen="" 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="VIET BOWLS Location"
+              ></iframe>
+            )}
           </div>
         </div>
       </div>

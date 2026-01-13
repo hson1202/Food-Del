@@ -22,6 +22,20 @@ const AccountOrdersPage = () => {
             return;
         }
 
+    const formatFullAddress = (addr) => {
+        if (!addr) return '';
+        const street = (addr.street || '').trim();
+        const house = (addr.houseNumber || '').toString().trim();
+        const streetAlreadyHasNumber = /^\d+/.test(street);
+        const streetHasHouse = house && street.toLowerCase().includes(house.toLowerCase());
+        const line1 = house && street && !streetAlreadyHasNumber && !streetHasHouse
+            ? `${house} ${street}`.trim()
+            : (street || house);
+        const city = (addr.city || '').trim();
+        const zip = (addr.zipcode || addr.postalCode || '').toString().trim();
+        return [line1, [zip, city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    };
+
         try {
             setLoading(true);
             const response = await axios.get(
@@ -89,15 +103,15 @@ const AccountOrdersPage = () => {
             {loading && (
                 <div className="loading-state">
                     <div className="loading-spinner"></div>
-                    <p>{t('myOrders.loading') || 'Loading orders...'}</p>
+                    <p>{t('myOrders.loading')}</p>
                 </div>
             )}
 
             {!loading && orders.length === 0 && (
                 <div className="orders-card">
                     <div className="no-orders">
-                        <h3>{t('myOrders.empty.title') || 'No orders yet'}</h3>
-                        <p>{t('myOrders.empty.subtitle') || 'You haven\'t placed any orders yet.'}</p>
+                        <h3>{t('myOrders.empty.title')}</h3>
+                        <p>{t('myOrders.empty.subtitle')}</p>
                     </div>
                 </div>
             )}
@@ -105,9 +119,9 @@ const AccountOrdersPage = () => {
             {!loading && orders.length > 0 && (
                 <div className="orders-card">
                     <div className="orders-card-header">
-                        <h3>{t('myOrders.list.title') || 'Order History'}</h3>
+                        <h3>{t('myOrders.list.title')}</h3>
                         <span className="orders-count">
-                            {t('myOrders.list.count', { count: orders.length }) || `${orders.length} order${orders.length !== 1 ? 's' : ''}`}
+                            {t('myOrders.list.count', { count: orders.length })}
                         </span>
                     </div>
 
@@ -158,7 +172,7 @@ const AccountOrdersPage = () => {
                                 {expandedId === order._id && (
                                     <div className="order-details">
                                         <div className="order-details-section">
-                                            <h4>{t('myOrders.details.itemsTitle') || 'Items'}</h4>
+                                            <h4>{t('myOrders.details.itemsTitle')}</h4>
                                             <div className="order-items-list">
                                                 {order.items.map((item, idx) => (
                                                     <div key={idx} className="order-item-detail">
@@ -173,20 +187,19 @@ const AccountOrdersPage = () => {
                                         </div>
 
                                         <div className="order-details-section">
-                                            <h4>{t('myOrders.details.deliveryTitle') || 'Delivery Address'}</h4>
+                                            <h4>{t('myOrders.details.deliveryTitle')}</h4>
                                             <p className="details-address">
-                                                {order.address?.street}, {order.address?.city}{' '}
-                                                {order.address?.postalCode}
+                                                {formatFullAddress(order.address)}
                                             </p>
                                             {order.preferredDeliveryTime && (
                                                 <p className="details-note">
-                                                    {t('myOrders.details.preferredTime') || 'Preferred time'}{' '}
+                                                    {t('myOrders.details.preferredTime')}{' '}
                                                     <span>{order.preferredDeliveryTime}</span>
                                                 </p>
                                             )}
                                             {order.note && (
                                                 <p className="details-note">
-                                                    {t('myOrders.details.note') || 'Note'}{' '}
+                                                    {t('myOrders.details.note')}{' '}
                                                     <span>{order.note}</span>
                                                 </p>
                                             )}

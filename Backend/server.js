@@ -21,6 +21,7 @@ import localUploadRouter from "./routes/localUploadRoute.js"
 import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 import emailTestRouter from "./routes/emailTestRoute.js"
 import deliveryRouter from "./routes/deliveryRoute.js"
+import restaurantInfoRouter from "./routes/restaurantInfoRoutes.js"
 import eventBus from "./services/eventBus.js"
 import authMiddleware, { verifyAdmin } from "./middleware/auth.js"
 
@@ -140,6 +141,7 @@ app.use("/api/upload", localUploadRouter)
 app.use("/api/upload-cloud", uploadRouter)  // Keep Cloudinary as backup
 app.use("/api/cloudinary", cloudinarySignRouter)
 app.use("/api/delivery", deliveryRouter)
+app.use("/api/restaurant-info", restaurantInfoRouter)
 
 // --- Server-Sent Events (SSE) for realtime notifications ---
 const sseClients = []
@@ -248,7 +250,8 @@ app.get("/api", (req, res) => {
       "/api/blog",
       "/api/reservation",
       "/api/contact",
-      "/api/delivery"
+      "/api/delivery",
+      "/api/restaurant-info"
     ]
   })
 })
@@ -450,7 +453,8 @@ app.use("*", (req, res) => {
       "/api/order",
       "/api/admin",
       "/api/category",
-      "/api/parent-category"
+      "/api/parent-category",
+      "/api/restaurant-info"
     ]
   })
 })

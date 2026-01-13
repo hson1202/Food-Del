@@ -34,12 +34,12 @@ const MyOrders = () => {
                 setOrders(response.data.data || []);
             } else {
                 setOrders([]);
-                setError(response.data.message || 'Failed to load orders');
+                setError(t('myOrders.errors.fetchFailed'));
             }
         } catch (error) {
             console.error('Error fetching user orders:', error);
             setOrders([]);
-            setError(error.response?.data?.message || 'Failed to load orders. Please try again.');
+            setError(t('myOrders.errors.fetchFailed'));
         } finally {
             setLoading(false);
         }
@@ -88,6 +88,20 @@ const MyOrders = () => {
         return parts.join(' · ');
     };
 
+    const formatFullAddress = (addr) => {
+        if (!addr) return '';
+        const street = (addr.street || '').trim();
+        const house = (addr.houseNumber || '').toString().trim();
+        const streetAlreadyHasNumber = /^\d+/.test(street);
+        const streetHasHouse = house && street.toLowerCase().includes(house.toLowerCase());
+        const line1 = house && street && !streetAlreadyHasNumber && !streetHasHouse
+            ? `${house} ${street}`.trim()
+            : (street || house);
+        const city = (addr.city || '').trim();
+        const zip = (addr.zipcode || addr.postalCode || '').toString().trim();
+        return [line1, [zip, city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    };
+
     const getStatusLabel = (status) => {
         if (status === 'Delivered') return t('myOrders.status.delivered');
         if (status === 'Cancelled') return t('myOrders.status.cancelled');
@@ -128,7 +142,7 @@ const MyOrders = () => {
             {error && (
                 <div className="orders-card">
                     <div className="no-orders">
-                        <h3 style={{ color: '#dc3545' }}>Error</h3>
+                        <h3 style={{ color: '#dc3545' }}>{t('common.error')}</h3>
                         <p>{error}</p>
                     </div>
                 </div>
@@ -217,8 +231,7 @@ const MyOrders = () => {
                                             <div className="order-details-section">
                                                 <h4>{t('myOrders.details.deliveryTitle')}</h4>
                                                 <p className="details-address">
-                                                    {order.address?.street}, {order.address?.city}{' '}
-                                                    {order.address?.postalCode}
+                                                    {formatFullAddress(order.address)}
                                                 </p>
                                                 {order.preferredDeliveryTime && (
                                                     <p className="details-note">

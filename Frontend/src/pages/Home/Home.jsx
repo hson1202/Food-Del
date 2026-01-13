@@ -9,12 +9,14 @@ import TodaySpecialMenu from '../../components/TodaySpecialMenu/TodaySpecialMenu
 import ProductDetail from '../../components/ProductDetail/ProductDetail';
 import { aboutImages, teamImages } from '../../assets/assets';
 import config from '../../config/config';
+import useRestaurantInfo from '../../hooks/useRestaurantInfo';
 
 import axios from 'axios';
 
 const Home = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { restaurantInfo, loading: infoLoading } = useRestaurantInfo()
   const [category, setCategory] = useState("All");
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -308,16 +310,20 @@ const Home = () => {
         <div className="container">
           <h2>{t('contact.map.title')}</h2>
           <div className="map-container">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12630.561638352605!2d17.871616!3d48.149105!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b6d006b93bc13%3A0x625b631240812045!2sVIET%20BOWLS!5e1!3m2!1svi!2sus!4v1754749939682!5m2!1svi!2sus" 
-              width="100%" 
-              height="450" 
-              style={{border:0}} 
-              allowFullScreen="" 
-              loading="lazy" 
-              referrerPolicy="no-referrer-when-downgrade"
-              title="VietBow Restaurant Location"
-            ></iframe>
+            {infoLoading ? (
+              <div style={{ textAlign: 'center', padding: '2rem' }}>Loading map...</div>
+            ) : (
+              <iframe 
+                src={restaurantInfo?.googleMapsUrl || "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12630.561638352605!2d17.871616!3d48.149105!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b6d006b93bc13%3A0x625b631240812045!2sVIET%20BOWLS!5e1!3m2!1svi!2sus!4v1754749939682!5m2!1svi!2sus"}
+                width="100%" 
+                height="450" 
+                style={{border:0}} 
+                allowFullScreen="" 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="VietBowls Restaurant Location"
+              ></iframe>
+            )}
           </div>
         </div>
       </div>

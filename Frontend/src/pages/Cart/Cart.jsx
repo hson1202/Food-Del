@@ -10,9 +10,17 @@ import { useTranslation } from 'react-i18next';
 const Cart = () => {
 
 
-  const {cartItems,food_list,removeFromCart,getTotalCartAmount,url}=useContext(StoreContext);
+  const {cartItems,food_list,removeFromCart,getTotalCartAmount,url,boxFee}=useContext(StoreContext);
   const navigate= useNavigate();
   const { t } = useTranslation();
+
+  // Format price helper
+  const formatPrice = (price) => {
+    const n = Number(price);
+    if (isNaN(n) || n < 0) return '0';
+    const formatted = n.toFixed(2);
+    return formatted.replace(/\.00$/, '');
+  }
 
   // Helper function to check if box fee is disabled for an item
   const isBoxFeeDisabled = (item) => {
@@ -76,7 +84,7 @@ const Cart = () => {
             </div>
             {hasItemsWithBoxFee() && (
               <div className='cart-total-details box-fee-note'>
-                <p className="box-fee-text">{t('cart.boxFeeNote')}</p>
+                <p className="box-fee-text">{t('cart.boxFeeNote', { boxFee: formatPrice(boxFee) })}</p>
               </div>
             )}
             <hr/>

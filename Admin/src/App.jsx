@@ -16,6 +16,7 @@ import EmailTest from './pages/EmailTest/EmailTest'
 import Add from './pages/Add/Add'
 import Login from './pages/Login/Login'
 import DeliveryZones from './pages/DeliveryZones/DeliveryZones'
+import RestaurantInfo from './pages/RestaurantInfo/RestaurantInfo'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './i18n';
@@ -167,6 +168,7 @@ const App = () => {
           <Route path='/admin/blog' element={<Blog url={url}/>}/>
           <Route path='/admin/reservations' element={<Reservations url={url}/>}/>
           <Route path='/admin/delivery-zones' element={<DeliveryZones url={url}/>}/>
+          <Route path='/admin/restaurant-info' element={<RestaurantInfo url={url}/>}/>
           <Route path='/admin/messages' element={<Messages url={url}/>}/>
           <Route path='/admin/email-test' element={<EmailTest url={url}/>}/>
           <Route path='/admin/add' element={<Add url={url}/>}/>
