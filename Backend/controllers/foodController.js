@@ -8,9 +8,23 @@ const addFood = async (req, res) => {
       nameVI, nameEN, nameSK,
       isPromotion, promotionPrice,
       soldCount, quantity, slug, options, disableBoxFee,
-      isRecommended, recommendPriority
+      isRecommended, recommendPriority,
+      availableFrom, availableTo,
+      dailyAvailabilityEnabled, dailyTimeFrom, dailyTimeTo,
+      weeklyScheduleEnabled, weeklyScheduleDays
       // slug có thể để trống để model tự tạo
     } = req.body;
+
+    // DEBUG: Log time-based fields
+    console.log('🔍 TIME FIELDS DEBUG:', {
+      availableFrom,
+      availableTo,
+      dailyAvailabilityEnabled,
+      dailyTimeFrom,
+      dailyTimeTo,
+      weeklyScheduleEnabled,
+      weeklyScheduleDays
+    });
 
     if (!sku?.trim()) return res.status(400).json({ success: false, message: "SKU is required" });
     if (!name?.trim()) return res.status(400).json({ success: false, message: "Name is required" });
@@ -83,7 +97,38 @@ const addFood = async (req, res) => {
       status: "active",
       disableBoxFee: disableBoxFeeBool,
       isRecommended: isRecommendedBool,
-      recommendPriority: recommendPriorityNum
+      recommendPriority: recommendPriorityNum,
+      // Time-based availability
+      availableFrom: availableFrom || null,
+      availableTo: availableTo || null,
+      dailyAvailability: {
+        enabled: dailyAvailabilityEnabled === true || dailyAvailabilityEnabled === "true",
+        timeFrom: dailyTimeFrom?.trim() || null,
+        timeTo: dailyTimeTo?.trim() || null
+      },
+      weeklySchedule: (() => {
+        const isEnabled = weeklyScheduleEnabled === true || weeklyScheduleEnabled === "true";
+        let daysArray = [];
+        
+        if (weeklyScheduleDays) {
+          try {
+            // Parse if it's a JSON string
+            const parsed = typeof weeklyScheduleDays === 'string' ? JSON.parse(weeklyScheduleDays) : weeklyScheduleDays;
+            // Validate it's an array of numbers 0-6
+            if (Array.isArray(parsed) && parsed.every(d => Number.isInteger(d) && d >= 0 && d <= 6)) {
+              daysArray = parsed;
+            }
+          } catch (e) {
+            console.error('Error parsing weeklyScheduleDays:', e);
+          }
+        }
+        
+        // Auto-disable if no days selected (prevents showing food on all days)
+        return {
+          enabled: isEnabled && daysArray.length > 0,
+          days: daysArray
+        };
+      })()
     });
 
     // Add options if provided
@@ -292,7 +337,10 @@ const updateFood = async (req, res) => {
       nameVI, nameEN, nameSK,
       isPromotion, promotionPrice,
       soldCount, quantity, slug, options, disableBoxFee,
-      isRecommended, recommendPriority
+      isRecommended, recommendPriority,
+      availableFrom, availableTo,
+      dailyAvailabilityEnabled, dailyTimeFrom, dailyTimeTo,
+      weeklyScheduleEnabled, weeklyScheduleDays
     } = req.body
 
     // Validate required fields
@@ -356,7 +404,38 @@ const updateFood = async (req, res) => {
       soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
       disableBoxFee: Boolean(disableBoxFeeBool), // Ensure it's always a boolean, explicitly set
       isRecommended: Boolean(isRecommendedBool),
-      recommendPriority: recommendPriorityNum
+      recommendPriority: recommendPriorityNum,
+      // Time-based availability
+      availableFrom: availableFrom || null,
+      availableTo: availableTo || null,
+      dailyAvailability: {
+        enabled: dailyAvailabilityEnabled === true || dailyAvailabilityEnabled === "true",
+        timeFrom: dailyTimeFrom?.trim() || null,
+        timeTo: dailyTimeTo?.trim() || null
+      },
+      weeklySchedule: (() => {
+        const isEnabled = weeklyScheduleEnabled === true || weeklyScheduleEnabled === "true";
+        let daysArray = [];
+        
+        if (weeklyScheduleDays) {
+          try {
+            // Parse if it's a JSON string
+            const parsed = typeof weeklyScheduleDays === 'string' ? JSON.parse(weeklyScheduleDays) : weeklyScheduleDays;
+            // Validate it's an array of numbers 0-6
+            if (Array.isArray(parsed) && parsed.every(d => Number.isInteger(d) && d >= 0 && d <= 6)) {
+              daysArray = parsed;
+            }
+          } catch (e) {
+            console.error('Error parsing weeklyScheduleDays:', e);
+          }
+        }
+        
+        // Auto-disable if no days selected (prevents showing food on all days)
+        return {
+          enabled: isEnabled && daysArray.length > 0,
+          days: daysArray
+        };
+      })()
     }
 
     // If new image uploaded, update image field with Cloudinary URL or local filename

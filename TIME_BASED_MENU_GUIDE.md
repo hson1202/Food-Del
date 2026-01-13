@@ -171,6 +171,55 @@ Content-Type: multipart/form-data
 
 ## 🎨 CÁCH HIỂN THỊ TRÊN FRONTEND
 
+### **✨ NEW: Today's Special Menu Component**
+
+Component mới **TodaySpecialMenu** tự động hiển thị các món có time-based availability:
+
+```
+┌─────────────────────────────────────────────────┐
+│  🕐 Menu Hôm Nay              🕐 14:30          │ ← Gradient Header
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  🌅 Bữa Sáng (06:00 - 11:00)         3 món     │
+│  ┌──────┐ ┌──────┐ ┌──────┐                   │
+│  │ Phở  │ │ Bánh │ │ Cháo │                   │
+│  └──────┘ └──────┘ └──────┘                   │
+│                                                 │
+│  🍱 Bữa Trưa (11:00 - 15:00)         5 món     │
+│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐│
+│  │ Cơm  │ │ Bún  │ │ Mì   │ │ Lẩu  │ │ Gỏi  ││
+│  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘│
+│                                                 │
+│  🌙 Bữa Tối (17:00 - 22:00)          4 món     │
+│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐          │
+│  │ Set  │ │ Nướng│ │ Lẩu  │ │ Hải  │          │
+│  └──────┘ └──────┘ └──────┘ └──────┘          │
+└─────────────────────────────────────────────────┘
+```
+
+**Tính năng:**
+- ✅ Tự động filter món đang available
+- ✅ Phân loại theo khung giờ (Sáng/Trưa/Tối/Đặc biệt)
+- ✅ Auto-refresh mỗi phút
+- ✅ Multilingual (VI/EN/SK)
+- ✅ Responsive design
+- ✅ Real-time clock hiển thị giờ hiện tại
+
+**Cách sử dụng:**
+```jsx
+import TodaySpecialMenu from './components/TodaySpecialMenu/TodaySpecialMenu'
+
+function Home() {
+  return (
+    <>
+      <Header />
+      <TodaySpecialMenu />  {/* Add here */}
+      <FoodDisplay />
+    </>
+  )
+}
+```
+
 ### **Món đang available:**
 ```
 ┌─────────────────────┐
@@ -382,11 +431,15 @@ POST /api/food/add
 
 ## ✅ CHECKLIST
 
-- [ ] Database schema đã update (foodModel.js)
-- [ ] Backend controller đã update (foodController.js)
-- [ ] Frontend utils đã tạo (timeUtils.js)
-- [ ] FoodItem component đã update
-- [ ] CSS đã thêm time badges
+- [x] Database schema đã update (foodModel.js)
+- [x] Backend controller đã update (foodController.js)
+- [x] Frontend utils đã tạo (timeUtils.js)
+- [x] FoodItem component đã update
+- [x] CSS đã thêm time badges
+- [x] **TodaySpecialMenu component đã tạo** ✨ NEW
+- [x] **Multilingual support (VI/EN/SK)** ✨ NEW
+- [x] **Auto-refresh functionality** ✨ NEW
+- [x] **Responsive design** ✨ NEW
 - [ ] Test với Postman
 - [ ] Test trên frontend
 - [ ] Test các edge cases (midnight, timezone)

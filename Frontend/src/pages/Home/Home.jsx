@@ -5,6 +5,7 @@ import './Home.css'
 import Header from '../../components/Header/Header';
 import ExploreMenu from '../../components/ExploreMenu/ExploreMenu';
 import FoodDisplay from '../../components/FoodDisplay/FoodDisplay';
+import TodaySpecialMenu from '../../components/TodaySpecialMenu/TodaySpecialMenu';
 import ProductDetail from '../../components/ProductDetail/ProductDetail';
 import { aboutImages, teamImages } from '../../assets/assets';
 import config from '../../config/config';
@@ -71,6 +72,10 @@ const Home = () => {
         categories={categories}
         loading={loading}
       />
+      
+      {/* Menu Hôm Nay - Món Ăn Theo Khung Giờ */}
+      <TodaySpecialMenu />
+      
       <FoodDisplay category={category} onViewDetails={handleViewDetails}/>
       
       {/* Product Detail Popup */}

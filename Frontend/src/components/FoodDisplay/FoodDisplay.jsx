@@ -2,6 +2,7 @@ import React, { useContext, useRef, useState, useEffect } from 'react'
 import './FoodDisplay.css'
 import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../FoodItem/FoodItem'
+import { isFoodAvailable } from '../../utils/timeUtils'
 
 const FoodDisplay = ({category, onViewDetails}) => {
     const {food_list} = useContext(StoreContext)
@@ -44,9 +45,9 @@ const FoodDisplay = ({category, onViewDetails}) => {
         }
     }
 
-    const filteredFoodList = food_list.filter(item => 
-        category === "All" || category === item.category
-    )
+    const filteredFoodList = food_list
+        .filter(item => category === "All" || category === item.category)
+        .filter(item => isFoodAvailable(item))
 
     return (
         <div className='food-display' id='food-display'>
@@ -76,6 +77,7 @@ const FoodDisplay = ({category, onViewDetails}) => {
                         availableFrom={item.availableFrom}
                         availableTo={item.availableTo}
                         dailyAvailability={item.dailyAvailability}
+                        weeklySchedule={item.weeklySchedule}
                         onViewDetails={onViewDetails}
                     />
                 ))}

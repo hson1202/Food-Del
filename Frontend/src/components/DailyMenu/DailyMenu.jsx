@@ -4,6 +4,7 @@ import { StoreContext } from '../../Context/StoreContext'
 import FoodItem from '../FoodItem/FoodItem'
 import ProductDetail from '../ProductDetail/ProductDetail'
 import { useTranslation } from 'react-i18next'
+import { isFoodAvailable } from '../../utils/timeUtils'
 
 const DailyMenu = () => {
   const { food_list, isLoadingFood } = useContext(StoreContext)
@@ -30,7 +31,7 @@ const DailyMenu = () => {
              food.category?.toLowerCase().includes('daily') ||
              food.category === 'DENNÉ MENU' ||
              food.category === 'Daily Menu'
-    })
+    }).filter(food => isFoodAvailable(food))
 
     // Group by day if items have dayOfWeek field
     if (selectedDay !== null) {
@@ -141,6 +142,7 @@ const DailyMenu = () => {
                         availableFrom={item.availableFrom}
                         availableTo={item.availableTo}
                         dailyAvailability={item.dailyAvailability}
+                        weeklySchedule={item.weeklySchedule}
                         onViewDetails={handleViewDetails}
                         compact={false}
                       />

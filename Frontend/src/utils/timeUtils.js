@@ -26,6 +26,22 @@ export const isFoodAvailable = (food) => {
     }
   }
 
+  // Check weekly schedule (day of week availability)
+  if (food.weeklySchedule?.enabled) {
+    const { days } = food.weeklySchedule;
+    
+    // If weekly schedule is enabled, days array MUST have at least one day
+    if (!days || !Array.isArray(days) || days.length === 0) {
+      return false; // Not available - no days configured
+    }
+    
+    const currentDay = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+    
+    if (!days.includes(currentDay)) {
+      return false; // Not available on this day of week
+    }
+  }
+
   // Check daily time-based availability (dailyAvailability)
   if (food.dailyAvailability?.enabled) {
     const { timeFrom, timeTo } = food.dailyAvailability;
@@ -54,25 +70,55 @@ export const getAvailabilityStatus = (food, language = 'vi') => {
       available: 'Có sẵn',
       notYetAvailable: 'Chưa có',
       noLongerAvailable: 'Hết giờ',
+      notAvailableToday: 'Không phục vụ hôm nay',
       availableTime: 'Phục vụ',
       from: 'từ',
-      to: 'đến'
+      to: 'đến',
+      days: {
+        0: 'Chủ Nhật',
+        1: 'Thứ 2',
+        2: 'Thứ 3',
+        3: 'Thứ 4',
+        4: 'Thứ 5',
+        5: 'Thứ 6',
+        6: 'Thứ 7'
+      }
     },
     en: {
       available: 'Available',
       notYetAvailable: 'Not yet available',
       noLongerAvailable: 'No longer available',
+      notAvailableToday: 'Not available today',
       availableTime: 'Available',
       from: 'from',
-      to: 'to'
+      to: 'to',
+      days: {
+        0: 'Sunday',
+        1: 'Monday',
+        2: 'Tuesday',
+        3: 'Wednesday',
+        4: 'Thursday',
+        5: 'Friday',
+        6: 'Saturday'
+      }
     },
     sk: {
       available: 'Dostupné',
       notYetAvailable: 'Ešte nie je k dispozícii',
       noLongerAvailable: 'Už nie je k dispozícii',
+      notAvailableToday: 'Dnes nie je k dispozícii',
       availableTime: 'Dostupné',
       from: 'od',
-      to: 'do'
+      to: 'do',
+      days: {
+        0: 'Nedeľa',
+        1: 'Pondelok',
+        2: 'Utorok',
+        3: 'Streda',
+        4: 'Štvrtok',
+        5: 'Piatok',
+        6: 'Sobota'
+      }
     }
   };
 
@@ -97,6 +143,32 @@ export const getAvailabilityStatus = (food, language = 'vi') => {
         available: false,
         message: t.noLongerAvailable,
         timeInfo: `${t.to} ${formatDateTime(availableTo, language)}`
+      };
+    }
+  }
+
+  // Check weekly schedule (day of week availability)
+  if (food.weeklySchedule?.enabled) {
+    const { days } = food.weeklySchedule;
+    
+    // If weekly schedule is enabled, days array MUST have at least one day
+    if (!days || !Array.isArray(days) || days.length === 0) {
+      return {
+        available: false,
+        message: t.notAvailableToday,
+        timeInfo: t.noDaysConfigured || 'No days configured'
+      };
+    }
+    
+    const currentDay = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+    
+    if (!days.includes(currentDay)) {
+      // Not available today - show which days it's available
+      const dayNames = days.map(d => t.days[d]).join(', ');
+      return {
+        available: false,
+        message: t.notAvailableToday,
+        timeInfo: dayNames
       };
     }
   }

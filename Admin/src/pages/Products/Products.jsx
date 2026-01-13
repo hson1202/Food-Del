@@ -61,7 +61,9 @@ const Products = ({ url }) => {
     availableTo: '',
     dailyAvailabilityEnabled: false,
     dailyTimeFrom: '',
-    dailyTimeTo: ''
+    dailyTimeTo: '',
+    weeklyScheduleEnabled: false,
+    weeklyScheduleDays: []
   }
   const [editForm, setEditForm] = useState(INITIAL_EDIT_FORM)
   const [error, setError] = useState(null)
@@ -89,7 +91,9 @@ const Products = ({ url }) => {
     availableTo: '',
     dailyAvailabilityEnabled: false,
     dailyTimeFrom: '',
-    dailyTimeTo: ''
+    dailyTimeTo: '',
+    weeklyScheduleEnabled: false,
+    weeklyScheduleDays: []
   })
 
   // State cho quản lý options - đơn giản hóa
@@ -362,7 +366,9 @@ const handleQuickEditCancel = () => {
       availableTo: product.availableTo ? new Date(product.availableTo).toISOString().slice(0, 16) : '',
       dailyAvailabilityEnabled: product.dailyAvailability?.enabled || false,
       dailyTimeFrom: product.dailyAvailability?.timeFrom || '',
-      dailyTimeTo: product.dailyAvailability?.timeTo || ''
+      dailyTimeTo: product.dailyAvailability?.timeTo || '',
+      weeklyScheduleEnabled: product.weeklySchedule?.enabled || false,
+      weeklyScheduleDays: product.weeklySchedule?.days || []
     });
   };
 
@@ -538,6 +544,14 @@ const handleQuickEditCancel = () => {
         }
       } else {
         formData.set('dailyAvailabilityEnabled', 'false');
+      }
+      if (editForm.weeklyScheduleEnabled) {
+        formData.set('weeklyScheduleEnabled', 'true');
+        if (editForm.weeklyScheduleDays && editForm.weeklyScheduleDays.length > 0) {
+          formData.set('weeklyScheduleDays', JSON.stringify(editForm.weeklyScheduleDays));
+        }
+      } else {
+        formData.set('weeklyScheduleEnabled', 'false');
       }
       
       // Debug: Log formData values
@@ -724,6 +738,12 @@ const handleQuickEditCancel = () => {
       }
       if (newProduct.dailyTimeTo) {
         formData.append('dailyTimeTo', newProduct.dailyTimeTo)
+      }
+    }
+    if (newProduct.weeklyScheduleEnabled) {
+      formData.append('weeklyScheduleEnabled', 'true')
+      if (newProduct.weeklyScheduleDays && newProduct.weeklyScheduleDays.length > 0) {
+        formData.append('weeklyScheduleDays', JSON.stringify(newProduct.weeklyScheduleDays))
       }
     }
 
@@ -1422,6 +1442,73 @@ const handleQuickEditCancel = () => {
                 </div>
               )}
 
+              {/* Weekly Schedule */}
+              <div className="form-group" style={{ marginTop: '20px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={newProduct.weeklyScheduleEnabled || false}
+                    onChange={(e) => setNewProduct({ ...newProduct, weeklyScheduleEnabled: e.target.checked })}
+                  />
+                  Enable Weekly Schedule (Choose days of the week)
+                </label>
+                <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                  Product will only be available on selected days of the week
+                </small>
+              </div>
+
+              {newProduct.weeklyScheduleEnabled && (
+                <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
+                  <label style={{ fontWeight: '600', marginBottom: '10px', display: 'block' }}>
+                    Select Days:
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {[
+                      { value: 1, label: 'Monday', labelVI: 'Thứ 2' },
+                      { value: 2, label: 'Tuesday', labelVI: 'Thứ 3' },
+                      { value: 3, label: 'Wednesday', labelVI: 'Thứ 4' },
+                      { value: 4, label: 'Thursday', labelVI: 'Thứ 5' },
+                      { value: 5, label: 'Friday', labelVI: 'Thứ 6' },
+                      { value: 6, label: 'Saturday', labelVI: 'Thứ 7' },
+                      { value: 0, label: 'Sunday', labelVI: 'Chủ Nhật' }
+                    ].map(day => (
+                      <label key={day.value} style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '5px', 
+                        padding: '8px 12px',
+                        backgroundColor: (newProduct.weeklyScheduleDays || []).includes(day.value) ? '#1976d2' : '#fff',
+                        color: (newProduct.weeklyScheduleDays || []).includes(day.value) ? '#fff' : '#333',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        border: '1px solid #ddd',
+                        transition: 'all 0.2s'
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={(newProduct.weeklyScheduleDays || []).includes(day.value)}
+                          onChange={(e) => {
+                            const days = newProduct.weeklyScheduleDays || [];
+                            if (e.target.checked) {
+                              setNewProduct({ ...newProduct, weeklyScheduleDays: [...days, day.value] });
+                            } else {
+                              setNewProduct({ ...newProduct, weeklyScheduleDays: days.filter(d => d !== day.value) });
+                            }
+                          }}
+                          style={{ display: 'none' }}
+                        />
+                        {day.label}
+                      </label>
+                    ))}
+                  </div>
+                  {newProduct.weeklyScheduleDays && newProduct.weeklyScheduleDays.length > 0 && (
+                    <small style={{ display: 'block', marginTop: '10px', color: '#666' }}>
+                      Selected: {newProduct.weeklyScheduleDays.length} day(s)
+                    </small>
+                  )}
+                </div>
+              )}
+
               {/* Date Range Availability */}
               <div className="form-group" style={{ marginTop: '20px' }}>
                 <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>
@@ -1461,7 +1548,7 @@ const handleQuickEditCancel = () => {
               </div>
 
               {/* Preview/Info Box */}
-              {(newProduct.dailyAvailabilityEnabled || newProduct.availableFrom || newProduct.availableTo) && (
+              {(newProduct.dailyAvailabilityEnabled || newProduct.weeklyScheduleEnabled || newProduct.availableFrom || newProduct.availableTo) && (
                 <div style={{ 
                   marginTop: '15px', 
                   padding: '12px', 
@@ -1473,6 +1560,9 @@ const handleQuickEditCancel = () => {
                   <ul style={{ marginTop: '8px', marginBottom: '0', paddingLeft: '20px', color: '#555' }}>
                     {newProduct.dailyAvailabilityEnabled && newProduct.dailyTimeFrom && newProduct.dailyTimeTo && (
                       <li>Daily: {newProduct.dailyTimeFrom} - {newProduct.dailyTimeTo}</li>
+                    )}
+                    {newProduct.weeklyScheduleEnabled && newProduct.weeklyScheduleDays && newProduct.weeklyScheduleDays.length > 0 && (
+                      <li>Days: {newProduct.weeklyScheduleDays.sort().map(d => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]).join(', ')}</li>
                     )}
                     {newProduct.availableFrom && (
                       <li>From: {new Date(newProduct.availableFrom).toLocaleString()}</li>

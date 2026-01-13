@@ -13,6 +13,15 @@ const addFood = async (req, res) => {
       // slug có thể để trống để model tự tạo
     } = req.body;
 
+    // DEBUG: Log time-based fields
+    console.log('🔍 TIME FIELDS DEBUG:', {
+      availableFrom,
+      availableTo,
+      dailyAvailabilityEnabled,
+      dailyTimeFrom,
+      dailyTimeTo
+    });
+
     if (!sku?.trim()) return res.status(400).json({ success: false, message: "SKU is required" });
     if (!name?.trim()) return res.status(400).json({ success: false, message: "Name is required" });
     if (price === undefined || price === null || isNaN(Number(price)))

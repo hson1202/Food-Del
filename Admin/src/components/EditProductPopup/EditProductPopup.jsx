@@ -15,6 +15,7 @@ const EditProductPopup = ({
 }) => {
   const { t } = useTranslation();
   const [showOptionsForm, setShowOptionsForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic'); // basic, translations, options, settings, availability
   const [currentOption, setCurrentOption] = useState({
     name: '',
     nameVI: '',
@@ -270,71 +271,161 @@ const EditProductPopup = ({
         </div>
 
         <div className="edit-product-popup-content">
+          {/* Tab Navigation */}
+          <div className="tab-navigation">
+            <button 
+              type="button"
+              className={`tab-btn ${activeTab === 'basic' ? 'active' : ''}`}
+              onClick={() => setActiveTab('basic')}
+            >
+              📝 {t('editProduct.basicInfo')}
+            </button>
+            <button 
+              type="button"
+              className={`tab-btn ${activeTab === 'translations' ? 'active' : ''}`}
+              onClick={() => setActiveTab('translations')}
+            >
+              🌐 {t('editProduct.translations')}
+            </button>
+            <button 
+              type="button"
+              className={`tab-btn ${activeTab === 'options' ? 'active' : ''}`}
+              onClick={() => setActiveTab('options')}
+            >
+              🔄 {t('editProduct.optionsVariants')}
+            </button>
+            <button 
+              type="button"
+              className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              ⚙️ {t('editProduct.settings')}
+            </button>
+            <button 
+              type="button"
+              className={`tab-btn ${activeTab === 'availability' ? 'active' : ''}`}
+              onClick={() => setActiveTab('availability')}
+            >
+              🕐 {t('editProduct.timeAvailability')}
+            </button>
+          </div>
+
           <form onSubmit={onSubmit}>
-            {/* Basic Information */}
-            <div className="form-section">
-              <h3 className="section-title">{t('editProduct.basicInfo')}</h3>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t('products.sku')} *</label>
-                  <input
-                    type="text"
-                    name="sku"
-                    value={editForm.sku || ''}
+            {/* BASIC TAB */}
+            {activeTab === 'basic' && (
+              <div className="tab-content">
+                <div className="form-row-3">
+                  <div className="form-group">
+                    <label>{t('products.sku')} *</label>
+                    <input
+                      type="text"
+                      name="sku"
+                      value={editForm.sku || ''}
+                      onChange={onInputChange}
+                      required
+                      placeholder={t('products.skuPlaceholder')}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('products.price')} *</label>
+                    <input
+                      type="number"
+                      name="price"
+                      value={editForm.price || ''}
+                      onChange={onInputChange}
+                      step="0.01"
+                      min="0"
+                      required
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('common.quantity')} *</label>
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={editForm.quantity || ''}
+                      onChange={onInputChange}
+                      required
+                      min="0"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t('products.name')} *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={editForm.name || ''}
+                      onChange={onInputChange}
+                      required
+                      placeholder={t('products.namePlaceholder')}
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>{t('products.category')} *</label>
+                    <select
+                      name="category"
+                      value={editForm.category || ''}
+                      onChange={onInputChange}
+                      required
+                    >
+                      <option value="">{t('products.selectCategory')}</option>
+                      {categories?.map(category => (
+                        <option key={category._id} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group full-width">
+                  <label>{t('products.description')}</label>
+                  <textarea
+                    name="description"
+                    value={editForm.description || ''}
                     onChange={onInputChange}
-                    required
-                    placeholder={t('products.skuPlaceholder')}
+                    rows="3"
+                    placeholder={t('products.descriptionPlaceholder')}
                   />
                 </div>
-                
-                <div className="form-group">
-                  <label>{t('products.price')} *</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={editForm.price || ''}
-                    onChange={onInputChange}
-                    step="0.01"
-                    min="0"
-                    required
-                    placeholder="0.00"
-                  />
+
+                {/* Image Upload - Inline */}
+                <div className="image-upload-inline">
+                  <label className="upload-label">
+                    {editForm.imagePreview ? t('editProduct.newImagePreview') : t('editProduct.currentImage')}
+                  </label>
+                  <div className="image-preview-inline">
+                    <img 
+                      src={imageSrc}
+                      alt="Product" 
+                      className="product-thumb"
+                      loading="lazy"
+                    />
+                    <input
+                      type="file"
+                      id="edit-image-upload"
+                      onChange={onImageChange}
+                      accept="image/*"
+                      className="image-input"
+                    />
+                    <label htmlFor="edit-image-upload" className="image-upload-btn">
+                      📁 {t('editProduct.chooseNewImage')}
+                    </label>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t('products.name')} *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={editForm.name || ''}
-                    onChange={onInputChange}
-                    required
-                    placeholder={t('products.namePlaceholder')}
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label>{t('products.category')} *</label>
-                  <select
-                    name="category"
-                    value={editForm.category || ''}
-                    onChange={onInputChange}
-                    required
-                  >
-                    <option value="">{t('products.selectCategory')}</option>
-                    {categories?.map(category => (
-                      <option key={category._id} value={category.name}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row">
+            {/* TRANSLATIONS TAB */}
+            {activeTab === 'translations' && (
+              <div className="tab-content">
+                <p className="tab-description">{t('editProduct.translationsDescription')}</p>
                 <div className="form-group">
                   <label>{t('products.nameVI')}</label>
                   <input
@@ -345,7 +436,6 @@ const EditProductPopup = ({
                     placeholder={t('products.nameVIPlaceholder') || t('products.nameVI')}
                   />
                 </div>
-                
                 <div className="form-group">
                   <label>{t('products.nameEN')}</label>
                   <input
@@ -356,9 +446,6 @@ const EditProductPopup = ({
                     placeholder={t('products.nameENPlaceholder') || t('products.nameEN')}
                   />
                 </div>
-              </div>
-
-              <div className="form-row">
                 <div className="form-group">
                   <label>{t('products.nameSK')}</label>
                   <input
@@ -369,620 +456,603 @@ const EditProductPopup = ({
                     placeholder={t('products.nameSKPlaceholder') || t('products.nameSK')}
                   />
                 </div>
-                
-                <div className="form-group">
-                  <label>{t('common.quantity')} *</label>
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={editForm.quantity || ''}
-                    onChange={onInputChange}
-                    required
-                    min="0"
-                    placeholder="0"
-                  />
-                </div>
               </div>
+            )}
 
-              <div className="form-group full-width">
-                <label>{t('products.description')}</label>
-                <textarea
-                  name="description"
-                  value={editForm.description || ''}
-                  onChange={onInputChange}
-                  rows="4"
-                  placeholder={t('products.descriptionPlaceholder')}
-                />
-              </div>
-            </div>
+            {/* OPTIONS TAB */}
+            {activeTab === 'options' && (
+              <div className="tab-content">
+                <p className="tab-description">{t('editProduct.optionsDescription')}</p>
 
-            {/* Product Image */}
-            <div className="form-section">
-              <h3 className="section-title">{t('editProduct.productImage')}</h3>
-              
-              <div className="image-upload-section">
-                <div className="current-image">
-                  <img 
-                    src={imageSrc}
-                    alt={editForm.imagePreview ? t('editProduct.newImagePreview') : t('editProduct.currentImage')} 
-                    className="current-product-image"
-                    loading="lazy"
-                  />
-                  <p className="image-label">
-                    {editForm.imagePreview ? t('editProduct.newImagePreview') : t('editProduct.currentImage')}
-                  </p>
-                </div>
-                
-                <input
-                  type="file"
-                  id="edit-image-upload"
-                  onChange={onImageChange}
-                  accept="image/*"
-                  className="image-input"
-                />
-                <label htmlFor="edit-image-upload" className="image-upload-label">
-                  {t('editProduct.chooseNewImage')}
-                </label>
-                <small className="form-help">
-                  {t('editProduct.uploadImageHelp')}
-                </small>
-              </div>
-            </div>
-
-            {/* Variant Options Section */}
-            <div className="form-section">
-              <h3 className="section-title">{t('editProduct.optionsVariants')}</h3>
-              <p className="section-description">{t('editProduct.optionsDescription')}</p>
-
-              {/* Display existing options */}
-              {editForm.options && editForm.options.length > 0 && (
-                <div className="existing-options">
-                  <h4>{t('editProduct.currentOptions')}</h4>
-                  <div className="options-list">
-                    {editForm.options.map((option, optionIndex) => (
-                      <div key={optionIndex} className="option-card">
-                        <div className="option-header">
-                          <div className="option-info">
-                            <h5>{option.name}</h5>
-                            <span className="pricing-mode">{option.pricingMode}</span>
+                {/* Display existing options */}
+                {editForm.options && editForm.options.length > 0 && (
+                  <div className="existing-options">
+                    <h4>{t('editProduct.currentOptions')}</h4>
+                    <div className="options-list">
+                      {editForm.options.map((option, optionIndex) => (
+                        <div key={optionIndex} className="option-card">
+                          <div className="option-header">
+                            <div className="option-info">
+                              <h5>{option.name}</h5>
+                              <span className="pricing-mode">{option.pricingMode}</span>
+                            </div>
+                            <div className="option-actions">
+                              <button 
+                                type="button" 
+                                onClick={() => editOption(optionIndex)}
+                                className="btn btn-edit"
+                              >
+                                {t('editProduct.edit')}
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => deleteOption(optionIndex)}
+                                className="btn btn-delete"
+                              >
+                                {t('editProduct.delete')}
+                              </button>
+                            </div>
                           </div>
-                          <div className="option-actions">
-                            <button 
-                              type="button" 
-                              onClick={() => editOption(optionIndex)}
-                              className="btn btn-edit"
-                            >
-                              {t('editProduct.edit')}
-                            </button>
-                            <button 
-                              type="button" 
-                              onClick={() => deleteOption(optionIndex)}
-                              className="btn btn-delete"
-                            >
-                              {t('editProduct.delete')}
-                            </button>
+                          
+                          <div className="choices-grid">
+                            {option.choices.map((choice, choiceIndex) => (
+                              <div 
+                                key={choiceIndex} 
+                                className={`choice-card ${option.defaultChoiceCode === choice.code ? 'default' : ''}`}
+                              >
+                                <div className="choice-code">{choice.code}</div>
+                                <div className="choice-label">{choice.label}</div>
+                                <div className="choice-price">€{choice.price}</div>
+                                {choice.image && <div className="choice-image">📷</div>}
+                                {option.defaultChoiceCode === choice.code && (
+                                  <div className="default-badge">{t('editProduct.default')}</div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add/Edit Option Form */}
+                {showOptionsForm && (
+                  <div className="option-form">
+                    <div className="form-header">
+                      <h4>{editingOptionIndex >= 0 ? t('editProduct.editOption') : t('editProduct.addNewOption')}</h4>
+                      <button 
+                        type="button" 
+                        onClick={resetOptionsForm}
+                        className="btn btn-secondary btn-sm"
+                      >
+                        {t('editProduct.cancel')}
+                      </button>
+                    </div>
+                    
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>{t('editProduct.optionName')}</label>
+                        <input
+                          type="text"
+                          value={currentOption.name}
+                          onChange={(e) => handleOptionChange('name', e.target.value)}
+                          placeholder={t('editProduct.optionNamePlaceholder')}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>{t('editProduct.pricingMode')}</label>
+                        <select
+                          value={currentOption.pricingMode}
+                          onChange={(e) => handleOptionChange('pricingMode', e.target.value)}
+                        >
+                          <option value="add">{t('editProduct.pricingModeAdd')}</option>
+                          <option value="override">{t('editProduct.pricingModeOverride')}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>{t('editProduct.optionNameSK')}</label>
+                        <input
+                          type="text"
+                          value={currentOption.nameSK || ''}
+                          onChange={(e) => handleOptionChange('nameSK', e.target.value)}
+                          placeholder={t('editProduct.optionNamePlaceholder')}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>{t('editProduct.optionNameVI')}</label>
+                        <input
+                          type="text"
+                          value={currentOption.nameVI || ''}
+                          onChange={(e) => handleOptionChange('nameVI', e.target.value)}
+                          placeholder={t('editProduct.optionNamePlaceholder')}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>{t('editProduct.optionNameEN')}</label>
+                        <input
+                          type="text"
+                          value={currentOption.nameEN || ''}
+                          onChange={(e) => handleOptionChange('nameEN', e.target.value)}
+                          placeholder={t('editProduct.optionNamePlaceholder')}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Choices Management */}
+                    <div className="choices-section">
+                      <h5>{t('editProduct.choices')}</h5>
+                      
+                      {/* Display existing choices */}
+                      {currentOption.choices.length > 0 && (
                         <div className="choices-grid">
-                          {option.choices.map((choice, choiceIndex) => (
-                            <div 
-                              key={choiceIndex} 
-                              className={`choice-card ${option.defaultChoiceCode === choice.code ? 'default' : ''}`}
-                            >
+                          {currentOption.choices.map((choice, index) => (
+                            <div key={index} className="choice-card">
                               <div className="choice-code">{choice.code}</div>
                               <div className="choice-label">{choice.label}</div>
                               <div className="choice-price">€{choice.price}</div>
                               {choice.image && <div className="choice-image">📷</div>}
-                              {option.defaultChoiceCode === choice.code && (
-                                <div className="default-badge">{t('editProduct.default')}</div>
-                              )}
+                              <div className="choice-actions">
+                                <button 
+                                  type="button" 
+                                  onClick={() => editChoice(index)}
+                                  className="btn btn-edit btn-sm"
+                                  title={t('editProduct.edit')}
+                                >
+                                  ✏️
+                                </button>
+                                <button 
+                                  type="button" 
+                                  onClick={() => deleteChoice(index)}
+                                  className="btn btn-delete btn-sm"
+                                  title={t('editProduct.delete')}
+                                >
+                                  🗑️
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      )}
 
-              {/* Add/Edit Option Form */}
-              {showOptionsForm && (
-                <div className="option-form">
-                  <div className="form-header">
-                    <h4>{editingOptionIndex >= 0 ? t('editProduct.editOption') : t('editProduct.addNewOption')}</h4>
-                    <button 
-                      type="button" 
-                      onClick={resetOptionsForm}
-                      className="btn btn-secondary btn-sm"
-                    >
-                      {t('editProduct.cancel')}
-                    </button>
-                  </div>
-                  
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('editProduct.optionName')}</label>
-                      <input
-                        type="text"
-                        value={currentOption.name}
-                        onChange={(e) => handleOptionChange('name', e.target.value)}
-                        placeholder={t('editProduct.optionNamePlaceholder')}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>{t('editProduct.pricingMode')}</label>
-                      <select
-                        value={currentOption.pricingMode}
-                        onChange={(e) => handleOptionChange('pricingMode', e.target.value)}
-                      >
-                        <option value="add">{t('editProduct.pricingModeAdd')}</option>
-                        <option value="override">{t('editProduct.pricingModeOverride')}</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('editProduct.optionNameSK')}</label>
-                      <input
-                        type="text"
-                        value={currentOption.nameSK || ''}
-                        onChange={(e) => handleOptionChange('nameSK', e.target.value)}
-                        placeholder={t('editProduct.optionNamePlaceholder')}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>{t('editProduct.optionNameVI')}</label>
-                      <input
-                        type="text"
-                        value={currentOption.nameVI || ''}
-                        onChange={(e) => handleOptionChange('nameVI', e.target.value)}
-                        placeholder={t('editProduct.optionNamePlaceholder')}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('editProduct.optionNameEN')}</label>
-                      <input
-                        type="text"
-                        value={currentOption.nameEN || ''}
-                        onChange={(e) => handleOptionChange('nameEN', e.target.value)}
-                        placeholder={t('editProduct.optionNamePlaceholder')}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Choices Management */}
-                  <div className="choices-section">
-                    <h5>{t('editProduct.choices')}</h5>
-                    
-                    {/* Display existing choices */}
-                    {currentOption.choices.length > 0 && (
-                      <div className="choices-grid">
-                        {currentOption.choices.map((choice, index) => (
-                          <div key={index} className="choice-card">
-                            <div className="choice-code">{choice.code}</div>
-                            <div className="choice-label">{choice.label}</div>
-                            <div className="choice-price">€{choice.price}</div>
-                            {choice.image && <div className="choice-image">📷</div>}
-                            <div className="choice-actions">
-                              <button 
-                                type="button" 
-                                onClick={() => editChoice(index)}
-                                className="btn btn-edit btn-sm"
-                              >
-                                ✏️
-                              </button>
-                              <button 
-                                type="button" 
-                                onClick={() => deleteChoice(index)}
-                                className="btn btn-delete btn-sm"
-                              >
-                                🗑️
-                              </button>
-                            </div>
+                      {/* Add/Edit Choice Form */}
+                      <div className="choice-form">
+                        <h6>{editingChoiceIndex >= 0 ? t('editProduct.editChoice') : t('editProduct.addNewChoice')}</h6>
+                        
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>{t('editProduct.choiceCode')}</label>
+                            <input
+                              type="text"
+                              value={currentChoice.code}
+                              onChange={(e) => handleChoiceChange('code', e.target.value)}
+                              placeholder={t('editProduct.choiceCodePlaceholder')}
+                            />
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          <div className="form-group">
+                            <label>{t('editProduct.choicePrice')}</label>
+                            <input
+                              type="number"
+                              value={currentChoice.price}
+                              onChange={(e) => handleChoiceChange('price', e.target.value)}
+                              placeholder="0.00"
+                              step="0.01"
+                              min="0"
+                            />
+                          </div>
+                        </div>
 
-                    {/* Add/Edit Choice Form */}
-                    <div className="choice-form">
-                      <h6>{editingChoiceIndex >= 0 ? t('editProduct.editChoice') : t('editProduct.addNewChoice')}</h6>
-                      
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>{t('editProduct.choiceCode')}</label>
-                          <input
-                            type="text"
-                            value={currentChoice.code}
-                            onChange={(e) => handleChoiceChange('code', e.target.value)}
-                            placeholder={t('editProduct.choiceCodePlaceholder')}
-                          />
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>{t('editProduct.choiceLabel')}</label>
+                            <input
+                              type="text"
+                              value={currentChoice.label}
+                              onChange={(e) => handleChoiceChange('label', e.target.value)}
+                              placeholder={t('editProduct.choiceLabelPlaceholder')}
+                            />
+                          </div>
                         </div>
-                        <div className="form-group">
-                          <label>{t('editProduct.choicePrice')}</label>
-                          <input
-                            type="number"
-                            value={currentChoice.price}
-                            onChange={(e) => handleChoiceChange('price', e.target.value)}
-                            placeholder="0.00"
-                            step="0.01"
-                            min="0"
-                          />
-                        </div>
-                      </div>
 
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>{t('editProduct.choiceLabel')}</label>
-                          <input
-                            type="text"
-                            value={currentChoice.label}
-                            onChange={(e) => handleChoiceChange('label', e.target.value)}
-                            placeholder={t('editProduct.choiceLabelPlaceholder')}
-                          />
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>{t('editProduct.choiceLabelSK')}</label>
+                            <input
+                              type="text"
+                              value={currentChoice.labelSK || ''}
+                              onChange={(e) => handleChoiceChange('labelSK', e.target.value)}
+                              placeholder={t('editProduct.choiceLabelPlaceholder')}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>{t('editProduct.choiceLabelVI')}</label>
+                            <input
+                              type="text"
+                              value={currentChoice.labelVI || ''}
+                              onChange={(e) => handleChoiceChange('labelVI', e.target.value)}
+                              placeholder={t('editProduct.choiceLabelPlaceholder')}
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>{t('editProduct.choiceLabelSK')}</label>
-                          <input
-                            type="text"
-                            value={currentChoice.labelSK || ''}
-                            onChange={(e) => handleChoiceChange('labelSK', e.target.value)}
-                            placeholder={t('editProduct.choiceLabelPlaceholder')}
-                          />
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>{t('editProduct.choiceLabelEN')}</label>
+                            <input
+                              type="text"
+                              value={currentChoice.labelEN || ''}
+                              onChange={(e) => handleChoiceChange('labelEN', e.target.value)}
+                              placeholder={t('editProduct.choiceLabelPlaceholder')}
+                            />
+                          </div>
                         </div>
-                        <div className="form-group">
-                          <label>{t('editProduct.choiceLabelVI')}</label>
-                          <input
-                            type="text"
-                            value={currentChoice.labelVI || ''}
-                            onChange={(e) => handleChoiceChange('labelVI', e.target.value)}
-                            placeholder={t('editProduct.choiceLabelPlaceholder')}
-                          />
-                        </div>
-                      </div>
 
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>{t('editProduct.choiceLabelEN')}</label>
-                          <input
-                            type="text"
-                            value={currentChoice.labelEN || ''}
-                            onChange={(e) => handleChoiceChange('labelEN', e.target.value)}
-                            placeholder={t('editProduct.choiceLabelPlaceholder')}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="choice-form-actions">
-                        <button 
-                          type="button" 
-                          onClick={addChoice}
-                          className="btn btn-primary"
-                        >
-                          {editingChoiceIndex >= 0 ? t('editProduct.updateChoice') : t('editProduct.addChoice')}
-                        </button>
-                        {editingChoiceIndex >= 0 && (
+                        <div className="choice-form-actions">
                           <button 
                             type="button" 
-                            onClick={resetChoiceForm}
-                            className="btn btn-secondary"
+                            onClick={addChoice}
+                            className="btn btn-primary"
                           >
-                            {t('editProduct.cancelEdit')}
+                            {editingChoiceIndex >= 0 ? t('editProduct.updateChoice') : t('editProduct.addChoice')}
                           </button>
-                        )}
+                          {editingChoiceIndex >= 0 && (
+                            <button 
+                              type="button" 
+                              onClick={resetChoiceForm}
+                              className="btn btn-secondary"
+                            >
+                              {t('editProduct.cancelEdit')}
+                            </button>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Default Choice Selection */}
+                      {currentOption.choices.length > 0 && (
+                        <div className="default-choice-section">
+                          <label>{t('editProduct.defaultChoice')}</label>
+                          <select
+                            value={currentOption.defaultChoiceCode}
+                            onChange={(e) => handleOptionChange('defaultChoiceCode', e.target.value)}
+                          >
+                            <option value="">{t('editProduct.selectDefaultChoice')}</option>
+                            {currentOption.choices.map((choice) => (
+                              <option key={choice.code} value={choice.code}>
+                                {choice.code} - {choice.label} (€{choice.price})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Default Choice Selection */}
-                    {currentOption.choices.length > 0 && (
-                      <div className="default-choice-section">
-                        <label>{t('editProduct.defaultChoice')}</label>
-                        <select
-                          value={currentOption.defaultChoiceCode}
-                          onChange={(e) => handleOptionChange('defaultChoiceCode', e.target.value)}
-                        >
-                          <option value="">{t('editProduct.selectDefaultChoice')}</option>
-                          {currentOption.choices.map((choice) => (
-                            <option key={choice.code} value={choice.code}>
-                              {choice.code} - {choice.label} (€{choice.price})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
+                    <div className="option-form-actions">
+                      <button 
+                        type="button" 
+                        onClick={addOption}
+                        className="btn btn-primary"
+                        disabled={!currentOption.name || currentOption.choices.length === 0 || !currentOption.defaultChoiceCode}
+                      >
+                        {editingOptionIndex >= 0 ? t('editProduct.updateOption') : t('editProduct.addOption')}
+                      </button>
+                    </div>
                   </div>
+                )}
 
-                  <div className="option-form-actions">
-                    <button 
-                      type="button" 
-                      onClick={addOption}
-                      className="btn btn-primary"
-                      disabled={!currentOption.name || currentOption.choices.length === 0 || !currentOption.defaultChoiceCode}
-                    >
-                      {editingOptionIndex >= 0 ? t('editProduct.updateOption') : t('editProduct.addOption')}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Add Option Button */}
-              {!showOptionsForm && (
-                <button 
-                  type="button" 
-                  onClick={() => setShowOptionsForm(true)}
-                  className="btn btn-success btn-add-option"
-                >
-                  {t('editProduct.addVariantOption')}
-                </button>
-              )}
-            </div>
-
-            {/* Promotion Section */}
-            <div className="form-section">
-              <h3 className="section-title">{t('editProduct.promotion')}</h3>
-              
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={editForm.isPromotion || false}
-                    onChange={(e) => onInputChange({
-                      target: {
-                        name: 'isPromotion',
-                        type: 'checkbox',
-                        checked: e.target.checked
-                      }
-                    })}
-                  />
-                  {t('editProduct.enablePromotion')}
-                </label>
+                {/* Add Option Button */}
+                {!showOptionsForm && (
+                  <button 
+                    type="button" 
+                    onClick={() => setShowOptionsForm(true)}
+                    className="btn btn-success btn-add-option"
+                  >
+                    <span className="btn-icon" aria-hidden="true">➕</span>
+                    {t('editProduct.addVariantOption')}
+                  </button>
+                )}
               </div>
-              
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={editForm.disableBoxFee || false}
-                    onChange={(e) => onInputChange({
-                      target: {
-                        name: 'disableBoxFee',
-                        type: 'checkbox',
-                        checked: e.target.checked
-                      }
-                    })}
-                  />
-                  {t('editProduct.disableBoxFee')}
-                </label>
-                <small className="form-help">
-                  {t('editProduct.disableBoxFeeHelp')}
-                </small>
-                <div style={{ 
-                  marginTop: '10px', 
-                  padding: '10px', 
-                  backgroundColor: editForm.disableBoxFee ? '#e8f5e9' : '#fff3e0',
-                  borderRadius: '5px',
-                  border: '1px solid #ddd'
-                }}>
-                  <strong>{t('editProduct.priceDisplay')}</strong>
-                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1976d2', marginTop: '5px' }}>
+            )}
+
+            {/* SETTINGS TAB */}
+            {activeTab === 'settings' && (
+              <div className="tab-content">
+                {/* Promotion */}
+                <div className="settings-group">
+                  <h4 className="settings-title">💰 {t('editProduct.promotion')}</h4>
+                  <div className="form-group checkbox-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editForm.isPromotion || false}
+                        onChange={(e) => onInputChange({
+                          target: {
+                            name: 'isPromotion',
+                            type: 'checkbox',
+                            checked: e.target.checked
+                          }
+                        })}
+                      />
+                      {t('editProduct.enablePromotion')}
+                    </label>
+                  </div>
+                  
+                  {editForm.isPromotion && (
+                    <div className="promotion-inline">
+                      <div className="form-group">
+                        <label>{t('editProduct.promotionPrice')}</label>
+                        <input
+                          type="number"
+                          name="promotionPrice"
+                          value={editForm.promotionPrice || ''}
+                          onChange={onInputChange}
+                          step="0.01"
+                          min="0"
+                          placeholder={t('editProduct.promotionPrice')}
+                          required
+                        />
+                      </div>
+                      
+                      {discountAmount > 0 && (
+                        <div className="discount-badge-inline">
+                          💸 -{discountAmount.toFixed(2)}€
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Box Fee */}
+                <div className="settings-group">
+                  <h4 className="settings-title">📦 {t('editProduct.boxFee')}</h4>
+                  <div className="form-group checkbox-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editForm.disableBoxFee || false}
+                        onChange={(e) => onInputChange({
+                          target: {
+                            name: 'disableBoxFee',
+                            type: 'checkbox',
+                            checked: e.target.checked
+                          }
+                        })}
+                      />
+                      {t('editProduct.disableBoxFee')}
+                    </label>
+                  </div>
+                  <div className="price-preview-compact">
+                    <strong>Final Price: </strong>
                     €{(() => {
                       const basePrice = Number(editForm.price) || 0;
                       const boxFee = editForm.disableBoxFee ? 0 : 0.3;
-                      const finalPrice = basePrice + boxFee;
-                      return finalPrice.toFixed(2);
-                    })()}
-                    {!editForm.disableBoxFee && (
-                      <span style={{ fontSize: '12px', color: '#666', fontWeight: 'normal', marginLeft: '5px' }}>
-                        ({t('editProduct.originalPriceLabel')} €{(Number(editForm.price) || 0).toFixed(2)} + {t('editProduct.boxFeeLabel')} €0.30)
-                      </span>
-                    )}
-                    {editForm.disableBoxFee && (
-                      <span style={{ fontSize: '12px', color: '#4caf50', fontWeight: 'normal', marginLeft: '5px' }}>
-                        ({t('editProduct.boxFeeDisabled')})
-                      </span>
-                    )}
+                      return (basePrice + boxFee).toFixed(2);
+                    })()} 
+                    {!editForm.disableBoxFee && <small>(+€0.30 box)</small>}
                   </div>
                 </div>
-              </div>
-              
-              {editForm.isPromotion && (
-                <div className="promotion-details">
-                  <div className="form-group">
-                    <label>{t('editProduct.promotionPrice')}</label>
-                    <input
-                      type="number"
-                      name="promotionPrice"
-                      value={editForm.promotionPrice || ''}
-                      onChange={onInputChange}
-                      step="0.01"
-                      min="0"
-                      placeholder={t('editProduct.promotionPrice')}
-                      required
-                    />
-                    <small className="form-help">
-                      {t('editProduct.promotionPriceHelp')}
-                    </small>
+
+                {/* Recommendations */}
+                <div className="settings-group">
+                  <h4 className="settings-title">⭐ {t('editProduct.recommendations')}</h4>
+                  <div className="form-group checkbox-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editForm.isRecommended || false}
+                        onChange={(e) => onInputChange({
+                          target: {
+                            name: 'isRecommended',
+                            type: 'checkbox',
+                            checked: e.target.checked
+                          }
+                        })}
+                      />
+                      {t('editProduct.showInRecommendations')}
+                    </label>
                   </div>
                   
-                  {discountAmount > 0 && (
-                    <div className="discount-info">
-                      <div className="discount-badge">
-                        {t('editProduct.promotionActive')}{discountAmount.toFixed(2)}
+                  {editForm.isRecommended && (
+                    <div className="form-group">
+                      <label>{t('editProduct.recommendPriority')} (1-999)</label>
+                      <input
+                        type="number"
+                        name="recommendPriority"
+                        value={editForm.recommendPriority !== undefined ? editForm.recommendPriority : 999}
+                        onChange={onInputChange}
+                        min="1"
+                        max="999"
+                        placeholder="999"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* AVAILABILITY TAB */}
+            {activeTab === 'availability' && (
+              <div className="tab-content">
+                <p className="tab-description">
+                  {t('editProduct.timeAvailabilityDescription')}
+                </p>
+                
+                {/* Daily Time Availability */}
+                <div className="availability-group">
+                  <div className="form-group checkbox-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editForm.dailyAvailabilityEnabled || false}
+                        onChange={(e) => onInputChange({
+                          target: {
+                            name: 'dailyAvailabilityEnabled',
+                            type: 'checkbox',
+                            checked: e.target.checked
+                          }
+                        })}
+                      />
+                      {t('editProduct.enableDailyAvailability')}
+                    </label>
+                  </div>
+                  
+                  {editForm.dailyAvailabilityEnabled && (
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>{t('editProduct.dailyTimeFrom')}</label>
+                        <input
+                          type="time"
+                          name="dailyTimeFrom"
+                          value={editForm.dailyTimeFrom || ''}
+                          onChange={onInputChange}
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>{t('editProduct.dailyTimeTo')}</label>
+                        <input
+                          type="time"
+                          name="dailyTimeTo"
+                          value={editForm.dailyTimeTo || ''}
+                          onChange={onInputChange}
+                        />
                       </div>
                     </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            {/* Recommendations Section */}
-            <div className="form-section">
-              <h3 className="section-title">{t('editProduct.recommendations')}</h3>
-              <p className="section-description">
-                {t('editProduct.recommendationsDescription')}
-              </p>
-              
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={editForm.isRecommended || false}
-                    onChange={(e) => onInputChange({
-                      target: {
-                        name: 'isRecommended',
-                        type: 'checkbox',
-                        checked: e.target.checked
-                      }
-                    })}
-                  />
-                  {t('editProduct.showInRecommendations')}
-                </label>
-                <small className="form-help">
-                  {t('editProduct.showInRecommendationsHelp')}
-                </small>
-              </div>
-              
-              {editForm.isRecommended && (
-                <div className="form-group">
-                  <label>{t('editProduct.recommendPriority')}</label>
-                  <input
-                    type="number"
-                    name="recommendPriority"
-                    value={editForm.recommendPriority !== undefined ? editForm.recommendPriority : 999}
-                    onChange={onInputChange}
-                    min="1"
-                    max="999"
-                    placeholder="999"
-                  />
-                  <small className="form-help">
-                    {t('editProduct.recommendPriorityHelp')}
-                  </small>
-                </div>
-              )}
-            </div>
-            
-            {/* Time-Based Availability Section */}
-            <div className="form-section">
-              <h3 className="section-title">🕐 {t('editProduct.timeAvailability', 'Time-Based Availability')}</h3>
-              <p className="section-description">
-                Set specific times or dates when this product should be available
-              </p>
-              
-              {/* Daily Time Availability */}
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={editForm.dailyAvailabilityEnabled || false}
-                    onChange={(e) => onInputChange({
-                      target: {
-                        name: 'dailyAvailabilityEnabled',
-                        type: 'checkbox',
-                        checked: e.target.checked
-                      }
-                    })}
-                  />
-                  Enable Daily Time Availability
-                </label>
-                <small className="form-help">
-                  Product will only be available during this time window every day (e.g., Lunch: 11:00-14:30)
-                </small>
-              </div>
-              
-              {editForm.dailyAvailabilityEnabled && (
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Available From (Daily)</label>
-                    <input
-                      type="time"
-                      name="dailyTimeFrom"
-                      value={editForm.dailyTimeFrom || ''}
-                      onChange={onInputChange}
-                      placeholder="11:00"
-                    />
-                    <small className="form-help">Start time (24h format)</small>
+                {/* Weekly Schedule */}
+                <div className="availability-group">
+                  <div className="form-group checkbox-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editForm.weeklyScheduleEnabled || false}
+                        onChange={(e) => onInputChange({
+                          target: {
+                            name: 'weeklyScheduleEnabled',
+                            type: 'checkbox',
+                            checked: e.target.checked
+                          }
+                        })}
+                      />
+                      {t('editProduct.enableWeeklySchedule', 'Enable Weekly Schedule')}
+                    </label>
+                    <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
+                      {t('editProduct.weeklyScheduleHelp', 'Product will only be available on selected days of the week')}
+                    </small>
                   </div>
                   
-                  <div className="form-group">
-                    <label>Available Until (Daily)</label>
-                    <input
-                      type="time"
-                      name="dailyTimeTo"
-                      value={editForm.dailyTimeTo || ''}
-                      onChange={onInputChange}
-                      placeholder="14:30"
-                    />
-                    <small className="form-help">End time (24h format)</small>
-                  </div>
+                  {editForm.weeklyScheduleEnabled && (
+                    <div style={{ marginTop: '15px' }}>
+                      <label style={{ fontWeight: '600', marginBottom: '10px', display: 'block' }}>
+                        {t('editProduct.selectDays', 'Select Days:')}
+                      </label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        {[
+                          { value: 1, label: 'Monday', labelVI: 'Thứ 2' },
+                          { value: 2, label: 'Tuesday', labelVI: 'Thứ 3' },
+                          { value: 3, label: 'Wednesday', labelVI: 'Thứ 4' },
+                          { value: 4, label: 'Thursday', labelVI: 'Thứ 5' },
+                          { value: 5, label: 'Friday', labelVI: 'Thứ 6' },
+                          { value: 6, label: 'Saturday', labelVI: 'Thứ 7' },
+                          { value: 0, label: 'Sunday', labelVI: 'Chủ Nhật' }
+                        ].map(day => (
+                          <label key={day.value} style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '5px', 
+                            padding: '8px 12px',
+                            backgroundColor: (editForm.weeklyScheduleDays || []).includes(day.value) ? '#1976d2' : '#fff',
+                            color: (editForm.weeklyScheduleDays || []).includes(day.value) ? '#fff' : '#333',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            border: '1px solid #ddd',
+                            transition: 'all 0.2s'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={(editForm.weeklyScheduleDays || []).includes(day.value)}
+                              onChange={(e) => {
+                                const days = editForm.weeklyScheduleDays || [];
+                                const newDays = e.target.checked 
+                                  ? [...days, day.value] 
+                                  : days.filter(d => d !== day.value);
+                                onInputChange({
+                                  target: {
+                                    name: 'weeklyScheduleDays',
+                                    value: newDays
+                                  }
+                                });
+                              }}
+                              style={{ display: 'none' }}
+                            />
+                            {day.label}
+                          </label>
+                        ))}
+                      </div>
+                      {editForm.weeklyScheduleDays && editForm.weeklyScheduleDays.length > 0 && (
+                        <small style={{ display: 'block', marginTop: '10px', color: '#666' }}>
+                          {t('editProduct.selectedDays', 'Selected')}: {editForm.weeklyScheduleDays.length} {t('editProduct.days', 'day(s)')}
+                        </small>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {/* Date Range Availability */}
-              <div className="form-group" style={{ marginTop: '20px' }}>
-                <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>
-                  Date Range Availability (Optional)
-                </label>
-                <small className="form-help" style={{ marginBottom: '10px', display: 'block' }}>
-                  Set specific start/end dates for special events or seasonal items
-                </small>
-                
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Available From Date</label>
-                    <input
-                      type="datetime-local"
-                      name="availableFrom"
-                      value={editForm.availableFrom || ''}
-                      onChange={onInputChange}
-                    />
-                    <small className="form-help">Product starts being available from this date/time</small>
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Available Until Date</label>
-                    <input
-                      type="datetime-local"
-                      name="availableTo"
-                      value={editForm.availableTo || ''}
-                      onChange={onInputChange}
-                    />
-                    <small className="form-help">Product stops being available after this date/time</small>
+                {/* Date Range Availability */}
+                <div className="availability-group">
+                  <label className="group-title">{t('editProduct.dateRangeAvailability')}</label>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>{t('editProduct.availableFromDate')}</label>
+                      <input
+                        type="datetime-local"
+                        name="availableFrom"
+                        value={editForm.availableFrom || ''}
+                        onChange={onInputChange}
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>{t('editProduct.availableToDate')}</label>
+                      <input
+                        type="datetime-local"
+                        name="availableTo"
+                        value={editForm.availableTo || ''}
+                        onChange={onInputChange}
+                      />
+                    </div>
                   </div>
                 </div>
+
+                {/* Preview */}
+                {(editForm.dailyAvailabilityEnabled || editForm.weeklyScheduleEnabled || editForm.availableFrom || editForm.availableTo) && (
+                  <div className="availability-preview-compact">
+                    <strong>⏰ Active Restrictions:</strong>
+                    <ul>
+                      {editForm.dailyAvailabilityEnabled && editForm.dailyTimeFrom && editForm.dailyTimeTo && (
+                        <li>Daily: {editForm.dailyTimeFrom} - {editForm.dailyTimeTo}</li>
+                      )}
+                      {editForm.weeklyScheduleEnabled && editForm.weeklyScheduleDays && editForm.weeklyScheduleDays.length > 0 && (
+                        <li>Days: {editForm.weeklyScheduleDays.sort().map(d => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d]).join(', ')}</li>
+                      )}
+                      {editForm.availableFrom && (
+                        <li>From: {new Date(editForm.availableFrom).toLocaleString()}</li>
+                      )}
+                      {editForm.availableTo && (
+                        <li>Until: {new Date(editForm.availableTo).toLocaleString()}</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
               </div>
-
-              {/* Preview/Info Box */}
-              {(editForm.dailyAvailabilityEnabled || editForm.availableFrom || editForm.availableTo) && (
-                <div className="availability-preview" style={{ 
-                  marginTop: '15px', 
-                  padding: '12px', 
-                  backgroundColor: '#e3f2fd',
-                  borderRadius: '5px',
-                  border: '1px solid #90caf9'
-                }}>
-                  <strong style={{ color: '#1976d2' }}>⏰ Availability Summary:</strong>
-                  <ul style={{ marginTop: '8px', marginBottom: '0', paddingLeft: '20px', color: '#555' }}>
-                    {editForm.dailyAvailabilityEnabled && editForm.dailyTimeFrom && editForm.dailyTimeTo && (
-                      <li>Daily: {editForm.dailyTimeFrom} - {editForm.dailyTimeTo}</li>
-                    )}
-                    {editForm.availableFrom && (
-                      <li>From: {new Date(editForm.availableFrom).toLocaleString()}</li>
-                    )}
-                    {editForm.availableTo && (
-                      <li>Until: {new Date(editForm.availableTo).toLocaleString()}</li>
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
+            )}
             
             {/* Form Actions */}
             <div className="form-actions">

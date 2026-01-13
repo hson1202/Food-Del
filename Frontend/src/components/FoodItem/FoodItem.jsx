@@ -5,14 +5,14 @@ import { StoreContext } from '../../Context/StoreContext'
 import { useTranslation } from 'react-i18next'
 import { isFoodAvailable, getAvailabilityStatus } from '../../utils/timeUtils'
 
-const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, sku, isPromotion, originalPrice, promotionPrice, soldCount = 0, likes = 0, options, onViewDetails, compact = false, availableFrom, availableTo, dailyAvailability}) => {
+const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, sku, isPromotion, originalPrice, promotionPrice, soldCount = 0, likes = 0, options, onViewDetails, compact = false, availableFrom, availableTo, dailyAvailability, weeklySchedule}) => {
   const {cartItems, addToCart, removeFromCart, url} = useContext(StoreContext);
   const { i18n, t } = useTranslation();
   
   const currentLanguage = i18n.language;
   
   // Check food availability
-  const foodData = { availableFrom, availableTo, dailyAvailability };
+  const foodData = { availableFrom, availableTo, dailyAvailability, weeklySchedule };
   const isAvailable = isFoodAvailable(foodData);
   const availabilityInfo = getAvailabilityStatus(foodData, currentLanguage);
   
@@ -178,6 +178,7 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
                 className="add-compact"
                 aria-label={t('food.addToCart')}
                 onClick={() => addToCart(id)}
+                disabled={!isAvailable}
               >
                 +
               </button>
@@ -187,7 +188,7 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
                   −
                 </button>
                 <span className="quantity-small">{cartItems[id]}</span>
-                <button className="qty-btn-small" onClick={() => addToCart(id)} aria-label={t('food.increase')}>
+                <button className="qty-btn-small" onClick={() => addToCart(id)} aria-label={t('food.increase')} disabled={!isAvailable}>
                   +
                 </button>
               </div>
@@ -224,7 +225,7 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
         )}
 
         {/* Time Availability Badge */}
-        {(availableFrom || availableTo || dailyAvailability?.enabled) && (
+        {(availableFrom || availableTo || dailyAvailability?.enabled || weeklySchedule?.enabled) && (
           <div className={`time-badge ${isAvailable ? 'available' : 'unavailable'}`}>
             <span className="time-icon">⏰</span>
             {availabilityInfo.timeInfo && (
@@ -277,6 +278,7 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
             <button 
               className="add-to-cart-btn"
               onClick={() => addToCart(id)}
+              disabled={!isAvailable}
             >
               {t('food.addToCart')}
             </button>
@@ -286,7 +288,7 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
                 <img src={assets.remove_icon_red} alt="" />
               </button>
               <span className="quantity">{cartItems[id]}</span>
-              <button className="qty-btn" onClick={() => addToCart(id)}>
+              <button className="qty-btn" onClick={() => addToCart(id)} disabled={!isAvailable}>
                 <img src={assets.add_icon_green} alt="" />
               </button>
             </div>

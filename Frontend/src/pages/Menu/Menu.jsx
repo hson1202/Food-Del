@@ -9,6 +9,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import config from '../../config/config'
+import { isFoodAvailable } from '../../utils/timeUtils'
 
 const Menu = () => {
   const { food_list, isLoadingFood } = useContext(StoreContext)
@@ -109,10 +110,11 @@ const Menu = () => {
   }, [getLocalizedName])
 
   const filteredFoods = useMemo(() => {
-    if (!searchTerm) return food_list
+    const availableFoods = food_list.filter((food) => isFoodAvailable(food))
+    if (!searchTerm) return availableFoods
 
     const searchLower = normalizeValue(searchTerm)
-    return food_list.filter((food) => {
+    return availableFoods.filter((food) => {
       const localizedName = getLocalizedName(food)
       const description = food.description || ''
       return (
@@ -346,6 +348,10 @@ const Menu = () => {
                           soldCount={food.soldCount}
                           likes={food.likes}
                           options={food.options}
+                          availableFrom={food.availableFrom}
+                          availableTo={food.availableTo}
+                          dailyAvailability={food.dailyAvailability}
+                          weeklySchedule={food.weeklySchedule}
                           onViewDetails={handleViewDetails}
                           compact={isMobile}
                         />

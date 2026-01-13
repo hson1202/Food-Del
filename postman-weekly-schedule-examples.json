@@ -1,0 +1,492 @@
+{
+  "info": {
+    "_postman_id": "weekly-schedule-examples",
+    "name": "Weekly Schedule Examples",
+    "description": "Examples for testing Weekly Schedule feature",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Add Weekend Buffet (Sat-Sun)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "multipart/form-data"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "WEEKEND-BUFFET-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Buffet Cuối Tuần",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Buffet Cuối Tuần",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Weekend Buffet",
+              "type": "text"
+            },
+            {
+              "key": "nameSK",
+              "value": "Víkendový bufet",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Buffet cao cấp chỉ phục vụ cuối tuần - Thứ 7 và Chủ Nhật",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "299",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Đặc Biệt",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "30",
+              "type": "text"
+            },
+            {
+              "key": "status",
+              "value": "active",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleDays",
+              "value": "[0, 6]",
+              "type": "text",
+              "description": "0=Sunday, 6=Saturday"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/food/add",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "food", "add"]
+        },
+        "description": "Add a buffet that's only available on weekends (Saturday & Sunday)"
+      }
+    },
+    {
+      "name": "2. Add Weekday Office Lunch (Mon-Fri)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "OFFICE-LUNCH-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Cơm Văn Phòng",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Cơm Văn Phòng",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Office Lunch",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Cơm trưa dành cho văn phòng - Chỉ phục vụ Thứ 2 đến Thứ 6",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "75",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Ngày",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "100",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleDays",
+              "value": "[1, 2, 3, 4, 5]",
+              "type": "text",
+              "description": "Monday to Friday"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/food/add",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "food", "add"]
+        },
+        "description": "Add an office lunch only available Monday to Friday"
+      }
+    },
+    {
+      "name": "3. Add Pho Bo (Mon & Thu only)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "PHO-BO-MON-THU",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Phở Bò Tái Đặc Biệt",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Phở Bò Tái Đặc Biệt",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Special Beef Pho",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Phở bò tái đặc biệt - Chỉ có vào Thứ 2 và Thứ 5",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "85",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Món Phở",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "50",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleDays",
+              "value": "[1, 4]",
+              "type": "text",
+              "description": "1=Monday, 4=Thursday"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/food/add",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "food", "add"]
+        },
+        "description": "Add Pho Bo that's only available on Monday & Thursday"
+      }
+    },
+    {
+      "name": "4. Add Hotpot (Weekend Evening + Weekly)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "HOTPOT-WEEKEND-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Lẩu Hải Sản Tối Cuối Tuần",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Lẩu Hải Sản Tối Cuối Tuần",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "Weekend Evening Seafood Hotpot",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Lẩu hải sản cao cấp - Chỉ T6, T7, CN buổi tối",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "450",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Cao Cấp",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "20",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleDays",
+              "value": "[5, 6, 0]",
+              "type": "text",
+              "description": "Friday, Saturday, Sunday"
+            },
+            {
+              "key": "dailyAvailabilityEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeFrom",
+              "value": "17:00",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeTo",
+              "value": "22:00",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/food/add",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "food", "add"]
+        },
+        "description": "Combine Weekly Schedule (Fri-Sat-Sun) with Daily Time (17:00-22:00)"
+      }
+    },
+    {
+      "name": "5. Add Complete Example (All 3 types)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "PREMIUM-COMPLETE-001",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Menu Premium Tháng 2",
+              "type": "text"
+            },
+            {
+              "key": "nameVI",
+              "value": "Menu Premium Tháng 2",
+              "type": "text"
+            },
+            {
+              "key": "nameEN",
+              "value": "February Premium Menu",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "value": "Menu đặc biệt tháng 2 - Chỉ T6,T7,CN từ 18h-22h",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "550",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Menu Cao Cấp",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "10",
+              "type": "text"
+            },
+            {
+              "key": "availableFrom",
+              "value": "2026-02-01T00:00:00.000Z",
+              "type": "text",
+              "description": "Date Range: February only"
+            },
+            {
+              "key": "availableTo",
+              "value": "2026-02-28T23:59:59.000Z",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleDays",
+              "value": "[5, 6, 0]",
+              "type": "text",
+              "description": "Weekly: Fri, Sat, Sun"
+            },
+            {
+              "key": "dailyAvailabilityEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "dailyTimeFrom",
+              "value": "18:00",
+              "type": "text",
+              "description": "Daily: Evening only"
+            },
+            {
+              "key": "dailyTimeTo",
+              "value": "22:00",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/food/add",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "food", "add"]
+        },
+        "description": "Complete example combining all 3 types:\n1. Date Range (Feb only)\n2. Weekly Schedule (Fri-Sat-Sun)\n3. Daily Time (18:00-22:00)\n\nWill only show if:\n- Current date is in February 2026\n- AND today is Friday, Saturday, or Sunday\n- AND current time is between 18:00-22:00"
+      }
+    },
+    {
+      "name": "6. Update Product - Add Weekly Schedule",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "sku",
+              "value": "EXISTING-SKU",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "value": "Updated Product Name",
+              "type": "text"
+            },
+            {
+              "key": "price",
+              "value": "100",
+              "type": "text"
+            },
+            {
+              "key": "category",
+              "value": "Test Category",
+              "type": "text"
+            },
+            {
+              "key": "quantity",
+              "value": "50",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleEnabled",
+              "value": "true",
+              "type": "text"
+            },
+            {
+              "key": "weeklyScheduleDays",
+              "value": "[0, 6]",
+              "type": "text",
+              "description": "Add weekend schedule to existing product"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/food/update/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "food", "update", ":id"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "PRODUCT_ID_HERE"
+            }
+          ]
+        },
+        "description": "Update an existing product to add weekly schedule"
+      }
+    },
+    {
+      "name": "7. List All Foods (Check Weekly Schedule)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/food/list",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "food", "list"]
+        },
+        "description": "Get all foods and check weeklySchedule field in response"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    }
+  ]
+}

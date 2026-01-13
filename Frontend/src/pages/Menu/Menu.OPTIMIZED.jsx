@@ -12,6 +12,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import config from '../../config/config';
+import { isFoodAvailable } from '../../utils/timeUtils';
 
 const Menu = () => {
   const { 
@@ -71,6 +72,9 @@ const Menu = () => {
   // Memoize filtered foods để tránh re-calculate mỗi render
   const filteredFoods = useMemo(() => {
     return food_list.filter(food => {
+      // Filter by availability (weekly/day/time/date)
+      const matchesAvailability = isFoodAvailable(food);
+
       // Filter by category
       const matchesCategory = selectedCategory === 'All' || food.category === selectedCategory;
       
@@ -82,7 +86,7 @@ const Menu = () => {
         food.nameSK?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         food.description?.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
       
-      return matchesCategory && matchesSearch;
+      return matchesAvailability && matchesCategory && matchesSearch;
     });
   }, [food_list, selectedCategory, debouncedSearchTerm]);
 
@@ -174,6 +178,10 @@ const Menu = () => {
                     soldCount={food.soldCount}
                     likes={food.likes}
                     options={food.options}
+                    availableFrom={food.availableFrom}
+                    availableTo={food.availableTo}
+                    dailyAvailability={food.dailyAvailability}
+                    weeklySchedule={food.weeklySchedule}
                     onViewDetails={handleViewDetails}
                     compact={isMobile}
                   />
