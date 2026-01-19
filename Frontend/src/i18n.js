@@ -544,7 +544,37 @@ const resources = {
       'productDetail.close': 'Đóng',
 
       // Cart Popup
-      'cartPopup.optionSeparator': ': '
+      'cartPopup.optionSeparator': ': ',
+
+      // Manual Location Picker
+      'manualPicker.title': 'Đặt vị trí trên bản đồ',
+      'manualPicker.searchPlaceholder': '🔍 Tìm kiếm địa chỉ...',
+      'manualPicker.cancel': 'Hủy',
+      'manualPicker.useLocation': 'Dùng vị trí này',
+      'manualPicker.error': 'Vui lòng đặt điểm đánh dấu trên bản đồ trước.',
+
+      // Daily Menu
+      'dailyMenu.loading': 'Đang tải menu hàng ngày...',
+      'dailyMenu.noItems': 'Chưa có menu hàng ngày',
+      'dailyMenu.noItemsDesc': 'Menu hàng ngày sẽ xuất hiện ở đây khi có sẵn.',
+      'dailyMenu.menu': 'Menu',
+
+      // Login Popup
+      'login.signUp': 'Đăng ký',
+      'login.login': 'Đăng nhập',
+      'login.pleaseWait': 'Vui lòng đợi...',
+      'login.createAccount': 'Tạo tài khoản',
+      'login.yourName': 'Tên của bạn',
+      'login.yourEmail': 'Email của bạn',
+      'login.password': 'Mật khẩu',
+      'login.terms': 'Bằng cách tiếp tục, tôi đồng ý với điều khoản sử dụng & chính sách bảo mật.',
+      'login.createNewAccount': 'Tạo tài khoản mới?',
+      'login.clickHere': 'Nhấn vào đây',
+      'login.alreadyHaveAccount': 'Đã có tài khoản?',
+      'login.loginHere': 'Đăng nhập tại đây',
+
+      // Explore Menu
+      'exploreMenu.loadingCategories': 'Đang tải danh mục...'
     }
   },
   en: {
@@ -1090,7 +1120,37 @@ const resources = {
       'productDetail.close': 'Close',
 
       // Cart Popup
-      'cartPopup.optionSeparator': ': '
+      'cartPopup.optionSeparator': ': ',
+
+      // Manual Location Picker
+      'manualPicker.title': 'Drop a pin on the map',
+      'manualPicker.searchPlaceholder': '🔍 Search for address...',
+      'manualPicker.cancel': 'Cancel',
+      'manualPicker.useLocation': 'Use this location',
+      'manualPicker.error': 'Please drop a pin on the map first.',
+
+      // Daily Menu
+      'dailyMenu.loading': 'Loading daily menu...',
+      'dailyMenu.noItems': 'No daily menu available',
+      'dailyMenu.noItemsDesc': 'Daily menu items will appear here when available.',
+      'dailyMenu.menu': 'Menu',
+
+      // Login Popup
+      'login.signUp': 'Sign Up',
+      'login.login': 'Login',
+      'login.pleaseWait': 'Please wait...',
+      'login.createAccount': 'Create Account',
+      'login.yourName': 'Your Name',
+      'login.yourEmail': 'Your Email',
+      'login.password': 'Password',
+      'login.terms': 'By continuing, I agree to the terms of use & privacy policy.',
+      'login.createNewAccount': 'Create a new account?',
+      'login.clickHere': 'Click here',
+      'login.alreadyHaveAccount': 'Already have an account?',
+      'login.loginHere': 'Login here',
+
+      // Explore Menu
+      'exploreMenu.loadingCategories': 'Loading categories...'
     }
   },
   sk: {
@@ -1695,7 +1755,37 @@ const resources = {
       'productDetail.close': 'Zavrieť',
 
       // Cart Popup
-      'cartPopup.optionSeparator': ': '
+      'cartPopup.optionSeparator': ': ',
+
+      // Manual Location Picker
+      'manualPicker.title': 'Označte miesto na mape',
+      'manualPicker.searchPlaceholder': '🔍 Hľadať adresu...',
+      'manualPicker.cancel': 'Zrušiť',
+      'manualPicker.useLocation': 'Použiť túto polohu',
+      'manualPicker.error': 'Prosím, najprv označte bod na mape.',
+
+      // Daily Menu
+      'dailyMenu.loading': 'Načítava sa denné menu...',
+      'dailyMenu.noItems': 'Denné menu nie je k dispozícii',
+      'dailyMenu.noItemsDesc': 'Denné menu sa zobrazí tu, keď bude dostupné.',
+      'dailyMenu.menu': 'Menu',
+
+      // Login Popup
+      'login.signUp': 'Registrácia',
+      'login.login': 'Prihlásenie',
+      'login.pleaseWait': 'Prosím čakajte...',
+      'login.createAccount': 'Vytvoriť účet',
+      'login.yourName': 'Vaše meno',
+      'login.yourEmail': 'Váš email',
+      'login.password': 'Heslo',
+      'login.terms': 'Pokračovaním súhlasím s podmienkami používania a zásadami ochrany osobných údajov.',
+      'login.createNewAccount': 'Vytvoriť nový účet?',
+      'login.clickHere': 'Kliknite tu',
+      'login.alreadyHaveAccount': 'Už máte účet?',
+      'login.loginHere': 'Prihláste sa tu',
+
+      // Explore Menu
+      'exploreMenu.loadingCategories': 'Načítava sa kategórie...'
     }
   }
 };

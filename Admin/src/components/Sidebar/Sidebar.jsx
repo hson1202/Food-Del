@@ -22,7 +22,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       >
         <div className="sidebar__inner">
           <div className="sidebar-header">
-            <h2>Admin Panel</h2>
+            <h2>{t('nav.adminPanel')}</h2>
             <button 
               className="sidebar-close" 
               onClick={onClose}
@@ -69,7 +69,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </div>
-              <p>Parent Categories</p>
+              <p>{t('nav.parentCategories')}</p>
             </NavLink>
 
             <NavLink to="/admin/products" className="sidebar-option" onClick={onClose}>
@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
                 </svg>
               </div>
-              <p>Reservations</p>
+              <p>{t('nav.reservations')}</p>
             </NavLink>
 
             <NavLink to="/admin/delivery-zones" className="sidebar-option" onClick={onClose}>
@@ -96,7 +96,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <path d="M18 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.1.9-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1 .89 0 1.69.39 2.24 1H15V6H3z"/>
                 </svg>
               </div>
-              <p>Delivery Zones</p>
+              <p>{t('nav.deliveryZones')}</p>
             </NavLink>
 
             <NavLink to="/admin/restaurant-info" className="sidebar-option" onClick={onClose}>
@@ -105,7 +105,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
                 </svg>
               </div>
-              <p>Restaurant Info</p>
+              <p>{t('nav.restaurantInfo')}</p>
             </NavLink>
 
             <NavLink to="/admin/messages" className="sidebar-option" onClick={onClose}>
@@ -114,7 +114,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
                 </svg>
               </div>
-              <p>Messages</p>
+              <p>{t('nav.messages')}</p>
             </NavLink>
 
             <NavLink to="/admin/email-test" className="sidebar-option" onClick={onClose}>
@@ -123,7 +123,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                 </svg>
               </div>
-              <p>Email Test</p>
+              <p>{t('nav.emailTest')}</p>
             </NavLink>
 
             <NavLink to="/admin/users" className="sidebar-option" onClick={onClose}>

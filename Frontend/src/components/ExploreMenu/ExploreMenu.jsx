@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react'
 import './ExploreMenu.css'
 import config from '../../config/config'
+import { useTranslation } from 'react-i18next'
 
 const ExploreMenu = ({category, setCategory, categories, loading, hideHeader = false}) => {
+  const { t } = useTranslation()
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -34,12 +36,12 @@ const ExploreMenu = ({category, setCategory, categories, loading, hideHeader = f
       <div className='explore-menu' id='explore-menu'>
         {!hideHeader && (
           <>
-            <h1>Explore our menu</h1>
-            <p className='explore-menu-text'>Choose from a diverse menu featuring a delectable array of dishes. Our mission is to satisfy your cravings and elevate your dining experience, one delicious meal at a time.</p>
+            <h1>{t('menu.explore')}</h1>
+            <p className='explore-menu-text'>{t('menu.subtitle')}</p>
           </>
         )}
         <div className='explore-menu-list'>
-          <div className='loading-categories'>Loading categories...</div>
+          <div className='loading-categories'>{t('exploreMenu.loadingCategories')}</div>
         </div>
         {!hideHeader && <hr></hr>}
       </div>

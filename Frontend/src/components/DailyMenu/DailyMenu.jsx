@@ -107,19 +107,19 @@ const DailyMenu = () => {
         {isLoadingFood ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>Loading daily menu...</p>
+            <p>{t('dailyMenu.loading')}</p>
           </div>
         ) : dailyMenuItems.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📅</div>
-            <h3>No daily menu available</h3>
-            <p>Daily menu items will appear here when available.</p>
+            <h3>{t('dailyMenu.noItems')}</h3>
+            <p>{t('dailyMenu.noItemsDesc')}</p>
           </div>
         ) : (
           <div className="daily-menu-items">
             {Object.keys(groupedItems).map((menuNumber) => (
               <div key={menuNumber} className="menu-group">
-                <h3 className="menu-group-title">Menu {menuNumber}</h3>
+                <h3 className="menu-group-title">{t('dailyMenu.menu')} {menuNumber}</h3>
                 <div className="menu-items-grid">
                   {groupedItems[menuNumber].map((item) => (
                     <div key={item._id} className="menu-item-wrapper">

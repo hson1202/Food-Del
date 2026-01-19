@@ -8,7 +8,8 @@ import {
     toggleCategoryStatus,
     resetCategories,
     clearAllCategories,
-    getMenuStructure
+    getMenuStructure,
+    bulkUpdateCategorySortOrder
 } from "../controllers/categoryController.js";
 import { upload } from "../middleware/upload.js";
 
@@ -28,5 +29,6 @@ categoryRouter.delete("/:id", deleteCategory);
 categoryRouter.put("/:id/toggle", toggleCategoryStatus);
 categoryRouter.post("/reset", resetCategories);
 categoryRouter.post("/clear", clearAllCategories);
+categoryRouter.post("/bulk-update-order", bulkUpdateCategorySortOrder);
 
 export default categoryRouter; 

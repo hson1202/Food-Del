@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ManualLocationPicker.css';
@@ -99,6 +100,7 @@ const ManualLocationPicker = ({
   initialCoords,
   restaurantLocation
 }) => {
+  const { t } = useTranslation();
   const searchInputRef = useRef(null);
   const suggestionsRef = useRef(null);
   const [selectedCoords, setSelectedCoords] = useState(initialCoords || restaurantLocation || DEFAULT_COORDS);
@@ -263,7 +265,7 @@ const ManualLocationPicker = ({
 
   const handleConfirm = () => {
     if (!selectedCoords) {
-      setLocalError('Please drop a pin on the map first.');
+      setLocalError(t('manualPicker.error'));
       return;
     }
     onConfirm(selectedCoords);
@@ -277,7 +279,7 @@ const ManualLocationPicker = ({
     <div className="manual-picker-overlay">
       <div className="manual-picker">
         <div className="manual-picker-header">
-          <h3>Drop a pin on the map</h3>
+          <h3>{t('manualPicker.title')}</h3>
           <button type="button" onClick={onClose} aria-label="Close picker">
             ✖
           </button>
@@ -291,7 +293,7 @@ const ManualLocationPicker = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="🔍 Tìm kiếm địa chỉ..."
+                placeholder={t('manualPicker.searchPlaceholder')}
                 className="manual-picker-search-input"
                 autoComplete="off"
               />
@@ -348,10 +350,10 @@ const ManualLocationPicker = ({
             </div>
             <div className="manual-picker-actions">
               <button type="button" className="secondary" onClick={onClose}>
-                Cancel
+                {t('manualPicker.cancel')}
               </button>
               <button type="button" className="primary" onClick={handleConfirm}>
-                Use this location
+                {t('manualPicker.useLocation')}
               </button>
             </div>
           </div>

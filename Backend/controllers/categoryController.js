@@ -247,6 +247,61 @@ const getMenuStructure = async (req, res) => {
     }
 };
 
+// Bulk update category sortOrder (for reordering categories within a parent)
+const bulkUpdateCategorySortOrder = async (req, res) => {
+    try {
+        console.log('=== BULK UPDATE CATEGORY SORT ORDER ===');
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
+        
+        const { updates } = req.body; // Expected: [{ id: string, sortOrder: number }, ...]
+        
+        if (!Array.isArray(updates) || updates.length === 0) {
+            console.log('❌ Invalid updates array:', updates);
+            return res.status(400).json({ 
+                success: false, 
+                message: "Updates must be a non-empty array" 
+            });
+        }
+
+        // Validate all updates have required fields
+        const isValid = updates.every(u => u.id && typeof u.sortOrder === 'number');
+        if (!isValid) {
+            console.log('❌ Invalid update format:', updates);
+            return res.status(400).json({ 
+                success: false, 
+                message: "Each update must have 'id' and 'sortOrder'" 
+            });
+        }
+
+        console.log('✅ Valid updates received:', updates.length, 'items');
+
+        // Perform bulk update
+        const bulkOps = updates.map(update => ({
+            updateOne: {
+                filter: { _id: update.id },
+                update: { $set: { sortOrder: update.sortOrder } }
+            }
+        }));
+
+        console.log('Executing bulk write...');
+        const result = await categoryModel.bulkWrite(bulkOps);
+        console.log('✅ Bulk write result:', result);
+        
+        res.json({ 
+            success: true, 
+            message: `Updated ${result.modifiedCount} categories`,
+            data: { modifiedCount: result.modifiedCount }
+        });
+    } catch (error) {
+        console.error('❌ Error bulk updating category sort order:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Error updating category order", 
+            error: error.message 
+        });
+    }
+};
+
 export {
     getAllCategories,
     getAllCategoriesAdmin,
@@ -256,5 +311,6 @@ export {
     toggleCategoryStatus,
     resetCategories,
     clearAllCategories,
-    getMenuStructure
+    getMenuStructure,
+    bulkUpdateCategorySortOrder
 }; 

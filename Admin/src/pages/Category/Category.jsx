@@ -17,6 +17,9 @@ const Category = ({ url }) => {
   const [error, setError] = useState(null)
   const [imageErrors, setImageErrors] = useState(new Set())
   const [loadingImages, setLoadingImages] = useState(new Set())
+  const [viewMode, setViewMode] = useState('grouped') // 'grouped' or 'grid'
+  const [expandedGroups, setExpandedGroups] = useState(new Set()) // Track which groups are expanded
+  const [showAddForm, setShowAddForm] = useState(false) // Track if add form is visible
   
   // Environment info for debugging
   const envInfo = {
@@ -115,6 +118,7 @@ const Category = ({ url }) => {
       })
       toast.success(t('categories.addSuccess', 'Category added successfully'))
       setNewCategory({ name: '', description: '', image: null, parentCategory: '' })
+      setShowAddForm(false) // Close form after successful add
       fetchCategories()
     } catch (error) {
       console.error('Error adding category:', error)
@@ -215,6 +219,116 @@ const Category = ({ url }) => {
     }
   }
 
+  // Group categories by parent
+  const getGroupedCategories = () => {
+    const grouped = {}
+    
+    // Group by parent category
+    categories.forEach(cat => {
+      const parentId = typeof cat.parentCategory === 'object' 
+        ? cat.parentCategory?._id 
+        : cat.parentCategory || 'none'
+      
+      if (!grouped[parentId]) {
+        grouped[parentId] = []
+      }
+      grouped[parentId].push(cat)
+    })
+    
+    // Sort within each group by sortOrder
+    Object.keys(grouped).forEach(key => {
+      grouped[key].sort((a, b) => a.sortOrder - b.sortOrder)
+    })
+    
+    return grouped
+  }
+
+  // Toggle group expand/collapse
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId)
+      } else {
+        newSet.add(groupId)
+      }
+      return newSet
+    })
+  }
+
+  // Expand all groups
+  const expandAllGroups = () => {
+    const groupedCategories = getGroupedCategories()
+    setExpandedGroups(new Set(Object.keys(groupedCategories)))
+  }
+
+  // Collapse all groups
+  const collapseAllGroups = () => {
+    setExpandedGroups(new Set())
+  }
+
+  // Move category up in sort order
+  const moveCategoryUp = async (category, groupedCategories) => {
+    const parentId = typeof category.parentCategory === 'object'
+      ? category.parentCategory?._id
+      : category.parentCategory || 'none'
+    
+    const group = groupedCategories[parentId]
+    const currentIndex = group.findIndex(c => c._id === category._id)
+    
+    if (currentIndex <= 0) return // Already at top
+    
+    // Swap sortOrder with previous item
+    const updates = [
+      { id: group[currentIndex]._id, sortOrder: group[currentIndex - 1].sortOrder },
+      { id: group[currentIndex - 1]._id, sortOrder: group[currentIndex].sortOrder }
+    ]
+    
+    await updateCategorySortOrder(updates)
+  }
+
+  // Move category down in sort order
+  const moveCategoryDown = async (category, groupedCategories) => {
+    const parentId = typeof category.parentCategory === 'object'
+      ? category.parentCategory?._id
+      : category.parentCategory || 'none'
+    
+    const group = groupedCategories[parentId]
+    const currentIndex = group.findIndex(c => c._id === category._id)
+    
+    if (currentIndex >= group.length - 1) return // Already at bottom
+    
+    // Swap sortOrder with next item
+    const updates = [
+      { id: group[currentIndex]._id, sortOrder: group[currentIndex + 1].sortOrder },
+      { id: group[currentIndex + 1]._id, sortOrder: group[currentIndex].sortOrder }
+    ]
+    
+    await updateCategorySortOrder(updates)
+  }
+
+  // Call API to update sort order
+  const updateCategorySortOrder = async (updates) => {
+    try {
+      setIsLoading(true)
+      const apiUrl = `${config.BACKEND_URL}${config.API_ENDPOINTS.CATEGORY}/bulk-update-order`
+      
+      const response = await axios.post(apiUrl, { updates })
+      
+      if (response.data.success) {
+        toast.success('Đã cập nhật thứ tự thành công!')
+        fetchCategories()
+      } else {
+        toast.error(response.data.message || 'Không thể cập nhật thứ tự')
+      }
+    } catch (error) {
+      console.error('Error updating sort order:', error)
+      toast.error('Lỗi khi cập nhật thứ tự')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className='category-page'>
       <div className="category-header">
@@ -223,15 +337,41 @@ const Category = ({ url }) => {
           <p>{t('categories.subtitle', 'Manage your food categories')}</p>
         </div>
         <div className="header-actions">
+          <button 
+            className="btn-add-category" 
+            onClick={() => {
+              setShowAddForm(true);
+              // Scroll to form
+              setTimeout(() => {
+                document.getElementById('add-category-form')?.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'start' 
+                });
+              }, 100);
+            }}
+          >
+            ➕ Thêm mới
+          </button>
           <button className="refresh-btn" onClick={() => fetchCategories(true)}>
-            <span>🔄</span> {t('common.refresh') || 'Refresh'}
+            🔄 Refresh
           </button>
         </div>
       </div>
 
       {/* Add Category Form */}
       <div className="add-category-section" id="add-category-form">
-        <h2>{t('categories.addNew')}</h2>
+        <div 
+          className="add-category-header" 
+          onClick={() => setShowAddForm(!showAddForm)}
+          style={{ marginBottom: showAddForm ? '20px' : '0' }}
+        >
+          <span className="expand-icon">
+            {showAddForm ? '▼' : '▶'}
+          </span>
+          <h2>Thêm danh mục</h2>
+        </div>
+        
+        {showAddForm && (
         <form onSubmit={handleAddCategory} className="category-form">
           <div className="form-row">
             <div className="form-group">
@@ -297,15 +437,194 @@ const Category = ({ url }) => {
             </button>
           </div>
         </form>
+        )}
       </div>
 
       {/* Categories List */}
       <div className="categories-section">
-        <h2>{t('categories.list', 'Categories List')}</h2>
+        <div className="categories-section-header">
+          <h2>{t('categories.list', 'Categories List')}</h2>
+          <div className="header-controls">
+            <div className="view-mode-toggle">
+              <button 
+                className={`view-btn ${viewMode === 'grouped' ? 'active' : ''}`}
+                onClick={() => setViewMode('grouped')}
+              >
+                📁 Grouped View
+              </button>
+              <button 
+                className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+              >
+                🔲 Grid View
+              </button>
+            </div>
+            {viewMode === 'grouped' && (
+              <div className="expand-controls">
+                <button className="expand-btn" onClick={expandAllGroups}>
+                  ⬇️ Mở tất cả
+                </button>
+                <button className="expand-btn" onClick={collapseAllGroups}>
+                  ⬆️ Đóng tất cả
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
         {categories.length === 0 ? (
           <div className="empty-state">
             <h3>{t('categories.noCategoriesTitle', 'No Categories Found')}</h3>
             <p>{t('categories.noCategories', 'Start by adding your first category')}</p>
+          </div>
+        ) : viewMode === 'grouped' ? (
+          <div className="categories-container">
+            {(() => {
+              const groupedCategories = getGroupedCategories()
+              return Object.keys(groupedCategories).map(parentId => {
+                const parentInfo = parentId !== 'none' 
+                  ? parentCategories.find(p => p._id === parentId)
+                  : null
+                const group = groupedCategories[parentId]
+                
+                const isExpanded = expandedGroups.has(parentId)
+                
+                return (
+                  <div key={parentId} className="category-group">
+                    <div 
+                      className="category-group-header" 
+                      onClick={() => toggleGroup(parentId)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="group-header-left">
+                        <span className="expand-icon">
+                          {isExpanded ? '▼' : '▶'}
+                        </span>
+                        <h3>
+                          {parentInfo 
+                            ? `${parentInfo.icon ? `${parentInfo.icon} ` : ''}${parentInfo.name}` 
+                            : '📂 Không có Parent Category'}
+                        </h3>
+                      </div>
+                      <span className="category-count">{group.length} categories</span>
+                    </div>
+                    {isExpanded && (
+                      <div className="category-group-list">
+                      {group.map((category, index) => (
+                        <div key={category._id} className="category-list-item">
+                          {editingCategory && editingCategory._id === category._id ? (
+                            <form onSubmit={handleEditCategory} className="edit-form-inline">
+                              <div className="edit-form-content">
+                                <div className="form-group-inline">
+                                  <label>{t('categories.name')}</label>
+                                  <input
+                                    type="text"
+                                    value={editingCategory.name}
+                                    onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                                    required
+                                  />
+                                </div>
+                                <div className="form-group-inline">
+                                  <label>{t('categories.description')}</label>
+                                  <textarea
+                                    value={editingCategory.description}
+                                    onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
+                                    rows="2"
+                                  />
+                                </div>
+                                <div className="form-group-inline">
+                                  <label>{t('categories.parentCategory', 'Parent Category')}</label>
+                                  <div className="parent-select-row">
+                                    <select
+                                      value={editingCategory.parentCategory || ''}
+                                      onChange={(e) => setEditingCategory({ ...editingCategory, parentCategory: e.target.value })}
+                                    >
+                                      <option value="">{t('categories.parentCategoryNone', 'Không có parent')}</option>
+                                      {parentCategories.map((parent) => (
+                                        <option key={parent._id} value={parent._id}>
+                                          {parent.icon ? `${parent.icon} ` : ''}{parent.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                                <div className="form-group-inline">
+                                  <label>{t('categories.newImage', 'New Image')}</label>
+                                  <input
+                                    type="file"
+                                    onChange={(e) => setEditingCategory({ ...editingCategory, newImage: e.target.files[0] })}
+                                    accept="image/*"
+                                  />
+                                </div>
+                              </div>
+                              <div className="edit-actions-inline">
+                                <button type="submit" className="btn-success" disabled={isLoading}>
+                                  {isLoading ? t('common.loading') : t('common.save')}
+                                </button>
+                                <button type="button" onClick={cancelEditing} className="btn-secondary">
+                                  {t('common.cancel')}
+                                </button>
+                              </div>
+                            </form>
+                          ) : (
+                            <>
+                              <div className="category-list-image">
+                                <img 
+                                  src={
+                                    category.image && category.image.startsWith('http')
+                                      ? category.image
+                                      : category.image 
+                                        ? `${config.BACKEND_URL}${config.IMAGE_PATHS.CATEGORY}/${category.image}`
+                                        : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+'
+                                  }
+                                  alt={category.name}
+                                  onError={(e) => {
+                                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmZWJlZSIgc3Ryb2tlPSIjZmY2ODY4IiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSI1MCIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2ZmNjg2OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkVycm9yPC90ZXh0Pjwvc3ZnPg=='
+                                  }}
+                                />
+                              </div>
+                              <div className="category-list-info">
+                                <h4>{category.name}</h4>
+                                <p>{category.description || t('categories.noDescription', 'No description')}</p>
+                                <span className="category-sort-number">Order: {category.sortOrder}</span>
+                              </div>
+                              <div className="category-list-actions">
+                                <div className="sort-controls">
+                                  <button
+                                    className="btn-sort"
+                                    onClick={() => moveCategoryUp(category, groupedCategories)}
+                                    disabled={isLoading || index === 0}
+                                    title="Move up"
+                                  >
+                                    ⬆️
+                                  </button>
+                                  <button
+                                    className="btn-sort"
+                                    onClick={() => moveCategoryDown(category, groupedCategories)}
+                                    disabled={isLoading || index === group.length - 1}
+                                    title="Move down"
+                                  >
+                                    ⬇️
+                                  </button>
+                                </div>
+                                <div className="action-buttons">
+                                  <button onClick={() => startEditing(category)} className="btn-edit">
+                                    {t('common.edit')}
+                                  </button>
+                                  <button onClick={() => handleDeleteCategory(category._id)} className="btn-delete">
+                                    {t('common.delete')}
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            })()}
           </div>
         ) : (
                     <div className="categories-container">
