@@ -68,18 +68,26 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
+  line-height: 1.5;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .btn-add-category:hover {
   background: linear-gradient(135deg, #5568d3 0%, #6a4292 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-add-category:active {
+  transform: translateY(0);
 }
 
 /* Add Category Section */

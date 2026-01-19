@@ -283,6 +283,48 @@ const getMenuStructure = async (req, res) => {
     }
 };
 
+// Bulk update category sort order
+const bulkUpdateCategorySortOrder = async (req, res) => {
+    try {
+        const { updates } = req.body;
+        
+        if (!Array.isArray(updates) || updates.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Updates must be a non-empty array" 
+            });
+        }
+
+        console.log('Bulk updating category sort order:', updates);
+
+        // Update all categories in parallel
+        const updatePromises = updates.map(({ id, sortOrder }) => 
+            categoryModel.findByIdAndUpdate(
+                id,
+                { sortOrder: Number(sortOrder) },
+                { new: true, runValidators: true }
+            )
+        );
+
+        const results = await Promise.all(updatePromises);
+        
+        console.log('Update results:', results.map(r => ({ id: r._id, sortOrder: r.sortOrder })));
+
+        res.json({ 
+            success: true, 
+            message: `Updated ${results.length} categories`,
+            data: results
+        });
+    } catch (error) {
+        console.error('Error bulk updating category sort order:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Error updating sort order", 
+            error: error.message 
+        });
+    }
+};
+
 export {
     getAllCategories,
     getAllCategoriesAdmin,
@@ -292,5 +334,6 @@ export {
     toggleCategoryStatus,
     resetCategories,
     clearAllCategories,
-    getMenuStructure
+    getMenuStructure,
+    bulkUpdateCategorySortOrder
 }; 
