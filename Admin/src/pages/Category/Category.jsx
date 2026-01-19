@@ -268,6 +268,32 @@ const Category = ({ url }) => {
   }
 
   // Move category up in sort order
+  const buildReorderedUpdates = (group, fromIndex, toIndex) => {
+    const normalizedGroup = group.map((item, index) => ({
+      ...item,
+      sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : index
+    }))
+
+    // If duplicate or invalid sortOrder values exist, normalize to current order
+    const sortOrders = normalizedGroup.map((item) => item.sortOrder)
+    const hasDuplicate = new Set(sortOrders).size !== normalizedGroup.length
+    const needsNormalize = hasDuplicate || normalizedGroup.some((item, index) => item.sortOrder !== index && sortOrders.every((value) => value === sortOrders[0]))
+
+    const baseGroup = needsNormalize
+      ? normalizedGroup.map((item, index) => ({ ...item, sortOrder: index }))
+      : normalizedGroup
+
+    const reordered = [...baseGroup]
+    const temp = reordered[fromIndex]
+    reordered[fromIndex] = reordered[toIndex]
+    reordered[toIndex] = temp
+
+    return reordered.map((item, index) => ({
+      id: item._id,
+      sortOrder: index
+    }))
+  }
+
   const moveCategoryUp = async (category, groupedCategories) => {
     const parentId = typeof category.parentCategory === 'object'
       ? category.parentCategory?._id
@@ -278,12 +304,7 @@ const Category = ({ url }) => {
     
     if (currentIndex <= 0) return // Already at top
     
-    // Swap sortOrder with previous item
-    const updates = [
-      { id: group[currentIndex]._id, sortOrder: group[currentIndex - 1].sortOrder },
-      { id: group[currentIndex - 1]._id, sortOrder: group[currentIndex].sortOrder }
-    ]
-    
+    const updates = buildReorderedUpdates(group, currentIndex, currentIndex - 1)
     await updateCategorySortOrder(updates)
   }
 
@@ -298,12 +319,7 @@ const Category = ({ url }) => {
     
     if (currentIndex >= group.length - 1) return // Already at bottom
     
-    // Swap sortOrder with next item
-    const updates = [
-      { id: group[currentIndex]._id, sortOrder: group[currentIndex + 1].sortOrder },
-      { id: group[currentIndex + 1]._id, sortOrder: group[currentIndex].sortOrder }
-    ]
-    
+    const updates = buildReorderedUpdates(group, currentIndex, currentIndex + 1)
     await updateCategorySortOrder(updates)
   }
 
