@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 /* Performance Optimized - Focus on User Experience */
 /* - Reduced animation durations for better performance
@@ -23,11 +24,14 @@ html.lang-vi * {
 
 body {
   min-height: 100vh;
-  background: white;
+  background: #f1f5f9;
+  /* Matching new layout bg */
   overflow-x: hidden;
-  color: #1e293b;
-  line-height: 1.6;
-  padding-top: 60px; /* Space for fixed navbar */
+  color: #0f172a;
+  /* Darker primary text */
+  line-height: 1.5;
+  /* Slightly tighter line height */
+  /* padding-top: 60px; Removed as MainLayout handles this with sticky header */
 }
 
 /* Remove padding for login page */
@@ -55,52 +59,73 @@ hr {
 .flex-col {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  /* Reduced from 12px */
 }
 
 .flex-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  /* Reduced from 12px */
 }
 
 .grid {
   display: grid;
-  gap: 20px;
+  gap: 16px;
+  /* Reduced from 20px */
 }
 
-.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
-.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
 
 /* Card Styles */
 .card {
   background: white;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.15s ease;
+  border-radius: 12px;
+  /* Reduced from 16px */
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Very subtle shadow */
+  transition: all 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-color: rgba(203, 213, 225, 0.8);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 /* Button Styles */
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 6px;
+  padding: 8px 16px;
+  /* Compact padding */
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 8px;
+  /* Slightly squarer */
+  font-size: 13.5px;
+  /* Precise sizing */
+  font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.2s ease;
   text-decoration: none;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .btn-primary {
@@ -261,8 +286,13 @@ hr {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty States */
@@ -286,22 +316,28 @@ hr {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .grid-cols-4 { grid-template-columns: repeat(3, 1fr); }
-  .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
+
   .grid-cols-4,
   .grid-cols-3,
-  .grid-cols-2 { 
-    grid-template-columns: 1fr; 
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
   }
-  
+
   .btn {
     padding: 8px 16px;
     font-size: 13px;
   }
-  
+
   .form-input,
   .form-select {
     padding: 10px 14px;
@@ -313,12 +349,12 @@ hr {
   .card {
     border-radius: 12px;
   }
-  
+
   .btn {
     padding: 8px 12px;
     font-size: 12px;
   }
-  
+
   .form-input,
   .form-select {
     padding: 8px 12px;
@@ -328,6 +364,7 @@ hr {
 
 /* Respect user's motion preferences for accessibility */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -339,14 +376,23 @@ hr {
 }
 
 /* Ensure clickable elements remain interactive */
-button, a, [role="button"], input, select, textarea {
+button,
+a,
+[role="button"],
+input,
+select,
+textarea {
   pointer-events: auto !important;
 }
 
-button, a, [role="button"] {
+button,
+a,
+[role="button"] {
   cursor: pointer !important;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   cursor: text !important;
 }

@@ -99,7 +99,7 @@ const DeliveryZones = ({ url }) => {
 
   const handleCreateZone = async (e) => {
     e.preventDefault();
-    
+
     // Check if token exists
     const token = localStorage.getItem('adminToken');
     if (!token) {
@@ -107,14 +107,14 @@ const DeliveryZones = ({ url }) => {
       console.error('No adminToken found in localStorage');
       return;
     }
-    
+
     try {
       const response = await axios.post(
         `${url}/api/delivery/zones/create`,
         zoneForm,
         { headers: { token } }
       );
-      
+
       if (response.data.success) {
         toast.success('Delivery zone created successfully!');
         fetchZones();
@@ -135,7 +135,7 @@ const DeliveryZones = ({ url }) => {
 
   const handleUpdateZone = async (e) => {
     e.preventDefault();
-    
+
     // Check if token exists
     const token = localStorage.getItem('adminToken');
     if (!token) {
@@ -143,14 +143,14 @@ const DeliveryZones = ({ url }) => {
       console.error('No adminToken found in localStorage');
       return;
     }
-    
+
     try {
       const response = await axios.put(
         `${url}/api/delivery/zones/${editingZone._id}`,
         zoneForm,
         { headers: { token } }
       );
-      
+
       if (response.data.success) {
         toast.success('Delivery zone updated successfully!');
         fetchZones();
@@ -188,7 +188,7 @@ const DeliveryZones = ({ url }) => {
         `${url}/api/delivery/zones/${zoneId}`,
         { headers: { token } }
       );
-      
+
       if (response.data.success) {
         toast.success('Delivery zone deleted successfully!');
         fetchZones();
@@ -216,7 +216,7 @@ const DeliveryZones = ({ url }) => {
       order: zone.order
     });
     setShowZoneForm(true);
-    
+
     // Scroll to form after a short delay to ensure it's rendered
     setTimeout(() => {
       const form = document.querySelector('.zone-form');
@@ -242,7 +242,7 @@ const DeliveryZones = ({ url }) => {
 
   const handleUpdateLocation = async (e) => {
     e.preventDefault();
-    
+
     // Check if token exists
     const token = localStorage.getItem('adminToken');
     if (!token) {
@@ -250,14 +250,14 @@ const DeliveryZones = ({ url }) => {
       console.error('No adminToken found in localStorage');
       return;
     }
-    
+
     try {
       const response = await axios.put(
         `${url}/api/delivery/restaurant-location`,
         locationForm,
         { headers: { token } }
       );
-      
+
       if (response.data.success) {
         toast.success('Restaurant location updated successfully!');
         fetchRestaurantLocation();
@@ -280,25 +280,31 @@ const DeliveryZones = ({ url }) => {
   return (
     <div className="delivery-zones-page">
       <div className="page-header">
-        <h1>🚚 Delivery Zones Management</h1>
+        <h1>Delivery Zones Management</h1>
         <p>Manage delivery zones, fees, and restaurant location</p>
       </div>
 
       {/* Debug Token Info */}
       {tokenDebug && !tokenDebug.exists && (
         <div className="token-warning-banner">
-          <span className="warning-icon">⚠️</span>
+          <div className="warning-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
           <div className="warning-content">
             <strong>Authentication Issue Detected!</strong>
             <p>No token found in localStorage. Please logout and login again.</p>
-            <button 
+            <button
               className="btn btn-primary"
               onClick={() => {
                 localStorage.clear();
                 window.location.href = '/login';
               }}
             >
-              🔄 Go to Login
+              Go to Login
             </button>
           </div>
         </div>
@@ -307,7 +313,7 @@ const DeliveryZones = ({ url }) => {
       {/* Restaurant Location Section */}
       <div className="section-card location-section">
         <div className="section-header">
-          <h2>📍 Restaurant Location</h2>
+          <h2>Restaurant Location</h2>
           <button
             className="btn btn-primary"
             onClick={() => setShowLocationForm(!showLocationForm)}
@@ -334,7 +340,7 @@ const DeliveryZones = ({ url }) => {
                 </span>
               </div>
               <div className="info-item">
-                <span className="label">📦 Box Fee:</span>
+                <span className="label">Box Fee:</span>
                 <span className="value" style={{ fontWeight: 'bold', color: '#ff6b35' }}>
                   €{(restaurantLocation.boxFee !== undefined ? restaurantLocation.boxFee : 0.3).toFixed(2)}
                 </span>
@@ -392,7 +398,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>📦 Box Fee (€)</label>
+                <label>Box Fee (€)</label>
                 <input
                   type="number"
                   name="boxFee"
@@ -427,7 +433,7 @@ const DeliveryZones = ({ url }) => {
       {/* Delivery Zones Section */}
       <div className="section-card zones-section">
         <div className="section-header">
-          <h2>📦 Delivery Zones</h2>
+          <h2>Delivery Zones</h2>
           <button
             className="btn btn-primary"
             onClick={() => {
@@ -445,10 +451,10 @@ const DeliveryZones = ({ url }) => {
             onSubmit={editingZone ? handleUpdateZone : handleCreateZone}
           >
             <div className="form-header-title">
-              <h3>{editingZone ? '✏️ Edit Delivery Zone' : '➕ Create New Delivery Zone'}</h3>
+              <h3>{editingZone ? 'Edit Delivery Zone' : 'Create New Delivery Zone'}</h3>
               <p className="form-subtitle">
-                {editingZone 
-                  ? 'Update the delivery zone details below. Changes will affect customer orders immediately.' 
+                {editingZone
+                  ? 'Update the delivery zone details below. Changes will affect customer orders immediately.'
                   : 'Set up a new delivery zone with distance range, fees, and minimum order.'}
               </p>
             </div>
@@ -489,7 +495,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>💰 Delivery Fee (€) *</label>
+                <label>Delivery Fee (€) *</label>
                 <input
                   type="number"
                   name="deliveryFee"
@@ -503,7 +509,7 @@ const DeliveryZones = ({ url }) => {
                 <small className="field-hint">This is the shipping cost customers will pay</small>
               </div>
               <div className="form-group">
-                <label>🛒 Min Order (€) *</label>
+                <label>Min Order (€) *</label>
                 <input
                   type="number"
                   name="minOrder"
@@ -517,7 +523,7 @@ const DeliveryZones = ({ url }) => {
                 <small className="field-hint">Minimum order value required for this zone</small>
               </div>
               <div className="form-group">
-                <label>⏱️ Estimated Time (min) *</label>
+                <label>Estimated Time (min) *</label>
                 <input
                   type="number"
                   name="estimatedTime"
@@ -529,7 +535,7 @@ const DeliveryZones = ({ url }) => {
                 <small className="field-hint">Expected delivery time</small>
               </div>
               <div className="form-group">
-                <label>🎨 Color</label>
+                <label>Color</label>
                 <input
                   type="color"
                   name="color"
@@ -550,7 +556,7 @@ const DeliveryZones = ({ url }) => {
             </div>
             <div className="form-actions">
               <button type="submit" className="btn btn-success">
-                {editingZone ? '✅ Update Zone' : '➕ Create Zone'}
+                {editingZone ? 'Update Zone' : 'Create Zone'}
               </button>
               <button
                 type="button"
@@ -560,7 +566,7 @@ const DeliveryZones = ({ url }) => {
                   setShowZoneForm(false);
                 }}
               >
-                ❌ Cancel
+                Cancel
               </button>
             </div>
           </form>
@@ -588,14 +594,20 @@ const DeliveryZones = ({ url }) => {
                         onClick={() => handleEditZone(zone)}
                         title="Edit zone"
                       >
-                        ✏️
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
                       </button>
                       <button
                         className="btn-icon btn-delete"
                         onClick={() => handleDeleteZone(zone._id)}
                         title="Delete zone"
                       >
-                        🗑️
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -634,7 +646,7 @@ const DeliveryZones = ({ url }) => {
 
       {/* Help Section */}
       <div className="help-section">
-        <h3>💡 How to use Mapbox</h3>
+        <h3>How to use Mapbox</h3>
         <ol>
           <li>Sign up for free at <a href="https://account.mapbox.com/auth/signup" target="_blank" rel="noopener noreferrer">mapbox.com</a></li>
           <li>Get your access token from <a href="https://account.mapbox.com/access-tokens" target="_blank" rel="noopener noreferrer">Access Tokens page</a></li>

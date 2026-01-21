@@ -253,7 +253,7 @@ const Orders = () => {
           });
           if (audioRef.current) {
             audioRef.current.currentTime = 0;
-            audioRef.current.play().catch(() => {});
+            audioRef.current.play().catch(() => { });
           }
           toast.success(`🆕 New order from ${newOrder?.customerInfo?.name || 'Customer'}`);
         }
@@ -288,7 +288,11 @@ const Orders = () => {
           </div>
           <div className="header-actions">
             <button className="icon-button ghost" onClick={() => fetchAllOrders(true)} title="Refresh">
-              🔄
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 4v6h-6"></path>
+                <path d="M1 20v-6h6"></path>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
             </button>
           </div>
         </div>
@@ -305,9 +309,16 @@ const Orders = () => {
           ))}
         </div>
 
-        {/* Time Filter */}
         <div className="time-filter-section">
-          <label className="filter-label">📅 {t('orders.timeFilter', 'Time Range')}:</label>
+          <label className="filter-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            {t('orders.timeFilter', 'Time Range')}:
+          </label>
           <div className="time-filter-pills">
             <button
               className={`time-pill ${timeFilter === 'all' ? 'active' : ''}`}
@@ -340,7 +351,12 @@ const Orders = () => {
       <section className="orders-toolbar">
         <div className="search-group">
           <div className="input-wrapper">
-            <span className="input-icon">🔍</span>
+            <span className="input-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
             <input
               type="text"
               placeholder={t('orders.searchPlaceholder', 'Search orders by customer name, phone, or order ID...')}
@@ -356,9 +372,7 @@ const Orders = () => {
         </div>
 
         <div className="toolbar-actions">
-          <button className="icon-button" title="Refresh" onClick={() => fetchAllOrders(true)}>
-            🔄
-          </button>
+          {/* Removed redundant refresh button */}
           <button className="ghost-btn" onClick={handleExportCSV}>
             {t('orders.exportCsv', 'Export CSV')}
           </button>
@@ -449,10 +463,10 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
     items.length === 0
       ? t('orders.noItems', 'No items')
       : items.length <= 2
-      ? items.map((i) => `${i.name || 'Item'} ×${i.quantity || 1}`).join(', ')
-      : `${items[0].name || 'Item'} ×${items[0].quantity || 1}, ${items[1].name || 'Item'} ×${items[1].quantity || 1}, +${items.length - 2} more`;
+        ? items.map((i) => `${i.name || 'Item'} ×${i.quantity || 1}`).join(', ')
+        : `${items[0].name || 'Item'} ×${items[0].quantity || 1}, ${items[1].name || 'Item'} ×${items[1].quantity || 1}, +${items.length - 2} more`;
   const orderCode = `#${order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}`;
-  
+
   // Check if order is new (within last 10 minutes)
   const isNew = createdAt && (Date.now() - createdAt.getTime()) < 10 * 60 * 1000;
 
@@ -462,7 +476,7 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
         <td className="mobile-order-header">
           <div className="order-headline">
             <span className="order-code">{orderCode}</span>
-            {isNew && <span className="new-badge">🆕 NEW</span>}
+            {isNew && <span className="new-badge">NEW</span>}
             <span className="order-date">
               {prettyDate} · {prettyTime}
             </span>
@@ -510,7 +524,8 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
         <div className="order-id-block">
           <p className="order-code">
             #{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}
-            {isNew && <span className="new-badge">🆕 NEW</span>}
+            #{order.shortOrderId || (order._id ? order._id.slice(-6) : 'N/A')}
+            {isNew && <span className="new-badge">NEW</span>}
           </p>
           <span className="order-date">
             {prettyDate} · {prettyTime}
@@ -662,12 +677,12 @@ const OrderDetailsModal = React.memo(({ order, onClose }) => {
                 <p className="meta-value">
                   {order.createdAt
                     ? new Date(order.createdAt).toLocaleString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
+                      year: 'numeric',
+                      month: 'short',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
                     : 'N/A'}
                 </p>
               </div>

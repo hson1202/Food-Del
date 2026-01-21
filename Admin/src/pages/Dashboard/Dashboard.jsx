@@ -55,11 +55,12 @@ const Dashboard = ({ url }) => {
   const [isTimeBasedLoading, setIsTimeBasedLoading] = useState(false)
   const [timeBasedError, setTimeBasedError] = useState('')
   const [chartFilters, setChartFilters] = useState({
-    days: 30,
+    days: 7,
     granularity: 'day', // 'day' | 'week' | 'month'
     metric: 'revenue',  // 'revenue' | 'totalOrders'
     chartType: 'line'   // 'line' | 'bar'
-  })
+  });
+  const [showComparisonTable, setShowComparisonTable] = useState(false);
 
 
   useEffect(() => {
@@ -91,35 +92,35 @@ const Dashboard = ({ url }) => {
     } else if (currentStats.currentMonth && currentStats.currentMonth.orders > 0) {
       trends.orders = 100 // New data
     }
-    
+
     // Revenue trend (month over month)
     if (previousStats.lastMonth && previousStats.lastMonth.revenue > 0) {
       trends.revenue = Math.round(((currentStats.currentMonth.revenue - previousStats.lastMonth.revenue) / previousStats.lastMonth.revenue) * 100)
     } else if (currentStats.currentMonth && currentStats.currentMonth.revenue > 0) {
       trends.revenue = 100 // New data
     }
-    
+
     // Users trend (compare with previous month)
     if (previousStats.lastMonth && previousStats.lastMonth.users > 0) {
       trends.users = Math.round(((currentStats.totalUsers - previousStats.lastMonth.users) / previousStats.lastMonth.users) * 100)
     } else if (currentStats.totalUsers > 0) {
       trends.users = 100 // New data
     }
-    
+
     // Products trend (compare with previous month)
     if (previousStats.lastMonth && previousStats.lastMonth.products > 0) {
       trends.products = Math.round(((currentStats.totalProducts - previousStats.lastMonth.products) / previousStats.lastMonth.products) * 100)
     } else if (currentStats.totalProducts > 0) {
       trends.products = 100 // New data
     }
-    
+
     // Completed orders trend (month over month)
     if (previousStats.lastMonth && previousStats.lastMonth.completed > 0) {
       trends.completed = Math.round(((currentStats.completedOrders - previousStats.lastMonth.completed) / previousStats.lastMonth.completed) * 100)
     } else if (currentStats.completedOrders > 0) {
       trends.completed = 100 // New data
     }
-    
+
     // Pending orders trend (month over month)
     if (previousStats.lastMonth && previousStats.lastMonth.pending > 0) {
       trends.pending = Math.round(((currentStats.pendingOrders - previousStats.lastMonth.pending) / previousStats.lastMonth.pending) * 100)
@@ -135,7 +136,7 @@ const Dashboard = ({ url }) => {
       setIsLoading(true)
       console.log('🔍 Fetching dashboard data from:', url)
       console.log('Full URL for stats:', `${config.BACKEND_URL}/api/admin/stats`)
-      
+
       // Test basic connectivity first
       try {
         const testResponse = await axios.get(`${url}/`)
@@ -144,7 +145,7 @@ const Dashboard = ({ url }) => {
         console.error('❌ Basic connectivity test failed:', testError)
         throw new Error('Cannot connect to backend server')
       }
-      
+
       // Get admin token
       const adminToken = localStorage.getItem('adminToken');
       if (!adminToken) {
@@ -153,7 +154,7 @@ const Dashboard = ({ url }) => {
         setIsLoading(false);
         return;
       }
-      
+
       // Fetch all data in parallel for better performance
       console.log('🚀 Starting API calls...')
       const [statsResponse, timeResponse, topProductsResponse] = await Promise.allSettled([
@@ -173,7 +174,7 @@ const Dashboard = ({ url }) => {
         console.log('✅ Stats response:', statsResponse.value.data)
         const currentStats = statsResponse.value.data
         setStats(currentStats)
-        
+
         // Calculate trends using current month vs last month data
         const calculatedTrends = calculateTrends(currentStats, currentStats)
         setTrends(calculatedTrends)
@@ -241,7 +242,7 @@ const Dashboard = ({ url }) => {
         request: error.request,
         config: error.config
       })
-      
+
       if (error.response) {
         console.error('💥 Server responded with error:', {
           status: error.response.status,
@@ -253,7 +254,7 @@ const Dashboard = ({ url }) => {
       } else {
         console.error('💥 Error setting up request:', error.message)
       }
-      
+
       // Set default data for demo if API fails completely
       setStats({
         totalOrders: 0,
@@ -338,7 +339,7 @@ const Dashboard = ({ url }) => {
 
   const getStatusColor = (status) => {
     if (!status) return '#6B7280';
-    
+
     const statusLower = status.toLowerCase();
     switch (statusLower) {
       case 'completed':
@@ -464,10 +465,13 @@ const Dashboard = ({ url }) => {
 
           </div>
           <div className="header-actions">
-            <button className="refresh-btn" onClick={() => {
-              fetchDashboardData();
-            }}>
-              <span>🔄</span> {t('common.refresh')}
+            <button className="refresh-btn" onClick={() => fetchDashboardData()}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 4v6h-6"></path>
+                <path d="M1 20v-6h6"></path>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              {t('common.refresh')}
             </button>
           </div>
         </div>
@@ -478,23 +482,38 @@ const Dashboard = ({ url }) => {
         <h2>📊 {t('dashboard.todayOverview') || 'Tổng quan hôm nay'}</h2>
         <div className="quick-stats-grid">
           <div className="quick-stat-card today-orders">
-            <div className="quick-stat-icon">📦</div>
+            <div className="quick-stat-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+            </div>
             <div className="quick-stat-content">
               <div className="quick-stat-value">{timeStats.today?.orders || 0}</div>
               <div className="quick-stat-label">{t('dashboard.ordersToday') || 'Đơn hôm nay'}</div>
             </div>
           </div>
-          
+
           <div className="quick-stat-card today-revenue">
-            <div className="quick-stat-icon">💰</div>
+            <div className="quick-stat-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
             <div className="quick-stat-content">
               <div className="quick-stat-value">{formatCurrency(timeStats.today?.revenue || 0)}</div>
               <div className="quick-stat-label">{t('dashboard.revenueToday') || 'Doanh thu hôm nay'}</div>
             </div>
           </div>
-          
+
           <div className="quick-stat-card top-product">
-            <div className="quick-stat-icon">🔥</div>
+            <div className="quick-stat-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3.3.3.6.8.9 1.3z"></path>
+              </svg>
+            </div>
             <div className="quick-stat-content">
               {topProducts.length > 0 ? (
                 <>
@@ -650,141 +669,192 @@ const Dashboard = ({ url }) => {
 
             {/* Comparison table: so sánh các giai đoạn liên tiếp */}
             {comparisonRows.length > 0 && (
-              <div className="time-comparison-table-wrapper">
-                <table className="time-comparison-table">
-                  <thead>
-                    <tr>
-                      <th>{t('dashboard.timeRange')}</th>
-                      <th>
-                        {chartFilters.metric === 'revenue'
-                          ? t('dashboard.revenue')
-                          : t('dashboard.totalOrders')}
-                      </th>
-                      <th>{t('dashboard.trendFromLastMonth')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {comparisonRows.map((row, index) => (
-                      <tr key={row.label || index}>
-                        <td>{row.label}</td>
-                        <td>
-                          {chartFilters.metric === 'revenue'
-                            ? formatCurrency(row.value)
-                            : (row.value || 0).toLocaleString()}
-                        </td>
-                        <td className={
-                          row.diff > 0 ? 'trend-positive' :
-                          row.diff < 0 ? 'trend-negative' : 'trend-neutral'
-                        }>
-                          {index === 0
-                            ? t('dashboard.trendNoChange') || '—'
-                            : `${row.diff > 0 ? '+' : ''}${chartFilters.metric === 'revenue'
-                              ? formatCurrency(row.diff)
-                              : row.diff.toLocaleString()
-                            } (${row.diffPercent > 0 ? '+' : ''}${row.diffPercent}%)`}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="time-comparison-section">
+                <button
+                  className="toggle-comparison-btn"
+                  onClick={() => setShowComparisonTable(!showComparisonTable)}
+                >
+                  {showComparisonTable ? 'Hide Detailed Comparison' : 'Show Detailed Comparison'}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ transform: showComparisonTable ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+
+                {showComparisonTable && (
+                  <div className="time-comparison-table-wrapper">
+                    <table className="time-comparison-table">
+                      <thead>
+                        <tr>
+                          <th>{t('dashboard.timeRange')}</th>
+                          <th>
+                            {chartFilters.metric === 'revenue'
+                              ? t('dashboard.revenue')
+                              : t('dashboard.totalOrders')}
+                          </th>
+                          <th>{t('dashboard.trendFromLastMonth')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {comparisonRows.map((row, index) => (
+                          <tr key={row.label || index}>
+                            <td>{row.label}</td>
+                            <td>
+                              {chartFilters.metric === 'revenue'
+                                ? formatCurrency(row.value)
+                                : (row.value || 0).toLocaleString()}
+                            </td>
+                            <td className={
+                              row.diff > 0 ? 'trend-positive' :
+                                row.diff < 0 ? 'trend-negative' : 'trend-neutral'
+                            }>
+                              {index === 0
+                                ? t('dashboard.trendNoChange') || '—'
+                                : `${row.diff > 0 ? '+' : ''}${chartFilters.metric === 'revenue'
+                                  ? formatCurrency(row.diff)
+                                  : row.diff.toLocaleString()
+                                } (${row.diffPercent > 0 ? '+' : ''}${row.diffPercent}%)`}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-          <div className="time-stats-side-cards">
-            <div className="time-stat-card">
-              <h3>{t('dashboard.today')}</h3>
-              <div className="time-stat-content">
-                <div className="stat-item">
-                  <span className="stat-label">{t('dashboard.orders')}:</span>
-                  <span className="stat-value">{timeStats.today?.orders || 0}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">{t('dashboard.revenue')}:</span>
-                  <span className="stat-value">{formatCurrency(timeStats.today?.revenue || 0)}</span>
-                </div>
-              </div>
-            </div>
-            <div className="time-stat-card">
-              <h3>{t('dashboard.thisMonth')}</h3>
-              <div className="time-stat-content">
-                <div className="stat-item">
-                  <span className="stat-label">{t('dashboard.orders')}:</span>
-                  <span className="stat-value">{timeStats.month?.orders || 0}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">{t('dashboard.revenue')}:</span>
-                  <span className="stat-value">{formatCurrency(timeStats.month?.revenue || 0)}</span>
+            <div className="time-stats-side-cards">
+              <div className="time-stat-card">
+                <h3>{t('dashboard.today')}</h3>
+                <div className="time-stat-content">
+                  <div className="stat-item">
+                    <span className="stat-label">{t('dashboard.orders')}:</span>
+                    <span className="stat-value">{timeStats.today?.orders || 0}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">{t('dashboard.revenue')}:</span>
+                    <span className="stat-value">{formatCurrency(timeStats.today?.revenue || 0)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="time-stat-card">
-              <h3>{t('dashboard.thisYear')}</h3>
-              <div className="time-stat-content">
-                <div className="stat-item">
-                  <span className="stat-label">{t('dashboard.orders')}:</span>
-                  <span className="stat-value">{timeStats.year?.orders || 0}</span>
+              <div className="time-stat-card">
+                <h3>{t('dashboard.thisMonth')}</h3>
+                <div className="time-stat-content">
+                  <div className="stat-item">
+                    <span className="stat-label">{t('dashboard.orders')}:</span>
+                    <span className="stat-value">{timeStats.month?.orders || 0}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">{t('dashboard.revenue')}:</span>
+                    <span className="stat-value">{formatCurrency(timeStats.month?.revenue || 0)}</span>
+                  </div>
                 </div>
-                <div className="stat-item">
-                  <span className="stat-label">{t('dashboard.revenue')}:</span>
-                  <span className="stat-value">{formatCurrency(timeStats.year?.revenue || 0)}</span>
+              </div>
+              <div className="time-stat-card">
+                <h3>{t('dashboard.thisYear')}</h3>
+                <div className="time-stat-content">
+                  <div className="stat-item">
+                    <span className="stat-label">{t('dashboard.orders')}:</span>
+                    <span className="stat-value">{timeStats.year?.orders || 0}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">{t('dashboard.revenue')}:</span>
+                    <span className="stat-value">{formatCurrency(timeStats.year?.revenue || 0)}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
 
 
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <h2>🚀 Quick Actions</h2>
-        <div className="actions-grid">
-          <button className="action-btn" onClick={() => window.location.href = '/admin/orders'}>
-            <span>📦</span>
-            <div>
-              <strong>View All Orders</strong>
-              <small>Manage and track all customer orders</small>
-            </div>
-          </button>
-          
-          <button className="action-btn" onClick={() => window.location.href = '/admin/products'}>
-            <span>🍽️</span>
-            <div>
-              <strong>Manage Products</strong>
-              <small>Add, edit, or remove menu items</small>
-            </div>
-          </button>
-          
-          <button className="action-btn" onClick={() => window.location.href = '/admin/users'}>
-            <span>👥</span>
-            <div>
-              <strong>User Management</strong>
-              <small>View and manage customer accounts</small>
-            </div>
-          </button>
-          
-          <button className="action-btn" onClick={() => window.location.href = '/admin/categories'}>
-            <span>📂</span>
-            <div>
-              <strong>Categories</strong>
-              <small>Organize your menu structure</small>
-            </div>
-          </button>
-          
-          <button className="action-btn" onClick={() => window.location.href = '/admin/blog'}>
-            <span>📝</span>
-            <div>
-              <strong>Blog Management</strong>
-              <small>Create and manage blog posts</small>
-            </div>
-          </button>
-          
-          
+        {/* Quick Actions */}
+        <div className="quick-actions">
+          <h2>Quick Actions</h2>
+          <div className="actions-grid">
+            <button className="action-btn" onClick={() => window.location.href = '/admin/orders'}>
+              <div className="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                </svg>
+              </div>
+              <div>
+                <strong>View All Orders</strong>
+                <small>Manage and track all customer orders</small>
+              </div>
+            </button>
+
+            <button className="action-btn" onClick={() => window.location.href = '/admin/products'}>
+              <div className="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                  <line x1="6" y1="1" x2="6" y2="4"></line>
+                  <line x1="10" y1="1" x2="10" y2="4"></line>
+                  <line x1="14" y1="1" x2="14" y2="4"></line>
+                </svg>
+              </div>
+              <div>
+                <strong>Manage Products</strong>
+                <small>Add, edit, or remove menu items</small>
+              </div>
+            </button>
+
+            <button className="action-btn" onClick={() => window.location.href = '/admin/users'}>
+              <div className="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <div>
+                <strong>User Management</strong>
+                <small>View and manage customer accounts</small>
+              </div>
+            </button>
+
+            <button className="action-btn" onClick={() => window.location.href = '/admin/categories'}>
+              <div className="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <strong>Categories</strong>
+                <small>Organize your menu structure</small>
+              </div>
+            </button>
+
+            <button className="action-btn" onClick={() => window.location.href = '/admin/blog'}>
+              <div className="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </div>
+              <div>
+                <strong>Blog Management</strong>
+                <small>Create and manage blog posts</small>
+              </div>
+            </button>
+
+
+          </div>
         </div>
       </div>
-    </div>
-  )
+      )
 }
 
-export default Dashboard 
+      export default Dashboard 
