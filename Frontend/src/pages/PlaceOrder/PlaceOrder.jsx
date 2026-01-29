@@ -23,6 +23,7 @@ const PlaceOrder = () => {
     preferredDeliveryTime: ""
   })
   const [orderType, setOrderType] = useState(isAuthenticated ? 'registered' : 'guest');
+  const [fulfillmentType, setFulfillmentType] = useState('delivery');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [orderSuccessData, setOrderSuccessData] = useState({});
@@ -39,6 +40,8 @@ const PlaceOrder = () => {
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [useManualAddress, setUseManualAddress] = useState(false); // Track if user wants to enter address manually
+
+  const isDelivery = fulfillmentType === 'delivery';
 
   const formatPrice = (price) => {
     const n = Number(price);
@@ -293,41 +296,45 @@ const PlaceOrder = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     
-    // Validate delivery address first (most important)
-    if (!deliveryAddress || !deliveryAddress.address) {
-      alert(t('placeOrder.errors.invalidAddress'));
-      setIsSubmitting(false);
-      return;
-    }
+    if (isDelivery) {
+      // Validate delivery address first (most important)
+      if (!deliveryAddress || !deliveryAddress.address) {
+        alert(t('placeOrder.errors.invalidAddress'));
+        setIsSubmitting(false);
+        return;
+      }
 
-    // Validate delivery zone - không cho phép đặt hàng nếu địa chỉ ngoài vùng giao hàng
-    if (!deliveryInfo || !deliveryInfo.zone) {
-      alert(t('placeOrder.errors.deliveryZoneNotAvailable'));
-      setIsSubmitting(false);
-      return;
+      // Validate delivery zone - không cho phép đặt hàng nếu địa chỉ ngoài vùng giao hàng
+      if (!deliveryInfo || !deliveryInfo.zone) {
+        alert(t('placeOrder.errors.deliveryZoneNotAvailable'));
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     // ============================================
     // ✨ THÊM MỚI: Kiểm tra số nhà
     // ============================================
-    const addressHasNumber = hasHouseNumber(deliveryAddress.address);
-    const hasManualHouseNumber = deliveryAddress.houseNumber && deliveryAddress.houseNumber.trim().length > 0;
-    
-    if (!addressHasNumber && !hasManualHouseNumber) {
-      // Scroll đến ô số nhà và highlight
-      const houseNumberInput = document.querySelector('.house-number-field input');
-      if (houseNumberInput) {
-        houseNumberInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        houseNumberInput.focus();
-        houseNumberInput.classList.add('input-error-flash');
-        setTimeout(() => {
-          houseNumberInput.classList.remove('input-error-flash');
-        }, 2000);
-      }
+    if (isDelivery) {
+      const addressHasNumber = hasHouseNumber(deliveryAddress.address);
+      const hasManualHouseNumber = deliveryAddress.houseNumber && deliveryAddress.houseNumber.trim().length > 0;
       
-      alert(t('placeOrder.errors.missingHouseNumber'));
-      setIsSubmitting(false);
-      return;
+      if (!addressHasNumber && !hasManualHouseNumber) {
+        // Scroll đến ô số nhà và highlight
+        const houseNumberInput = document.querySelector('.house-number-field input');
+        if (houseNumberInput) {
+          houseNumberInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          houseNumberInput.focus();
+          houseNumberInput.classList.add('input-error-flash');
+          setTimeout(() => {
+            houseNumberInput.classList.remove('input-error-flash');
+          }, 2000);
+        }
+        
+        alert(t('placeOrder.errors.missingHouseNumber'));
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     // Validate required fields
@@ -338,7 +345,7 @@ const PlaceOrder = () => {
     }
 
     // Validate minimum order if delivery info is available
-    if (deliveryInfo && deliveryInfo.zone) {
+    if (isDelivery && deliveryInfo && deliveryInfo.zone) {
       const subtotal = getTotalCartAmount();
       const minOrder = deliveryInfo.zone.minOrder;
       
@@ -390,7 +397,7 @@ const PlaceOrder = () => {
     const deliveryFee = getDeliveryFee();
     
     let orderData = {
-      address: {
+      address: isDelivery ? {
         // Store short street line (for admin/driver), keep full geocoded string separately for reference
         street: getStreetLineForOrder(),
         fullAddress: deliveryAddress.address,
@@ -400,15 +407,16 @@ const PlaceOrder = () => {
         zipcode: deliveryAddress.zipcode || '',
         country: deliveryAddress.country || '',
         coordinates: deliveryAddress.coordinates
-      },
+      } : null,
       items: orderItems,
       amount: getTotalCartAmount() + deliveryFee,
       customerInfo: customerInfo,
       orderType: isAuthenticated ? 'registered' : 'guest',
+      fulfillmentType: fulfillmentType,
       language: i18n.language || 'vi', // Lưu ngôn ngữ khách hàng đang dùng
       note: data.note || '',
       preferredDeliveryTime: data.preferredDeliveryTime || '',
-      deliveryInfo: deliveryInfo ? {
+      deliveryInfo: isDelivery && deliveryInfo ? {
         zone: deliveryInfo.zone.name,
         distance: deliveryInfo.distance,
         deliveryFee: deliveryInfo.zone.deliveryFee,
@@ -564,6 +572,7 @@ const PlaceOrder = () => {
   // Calculate delivery fee
   const getDeliveryFee = () => {
     if (getTotalCartAmount() === 0) return 0;
+    if (!isDelivery) return 0;
     if (deliveryInfo && deliveryInfo.zone) {
       return deliveryInfo.zone.deliveryFee;
     }
@@ -663,7 +672,7 @@ const PlaceOrder = () => {
   };
 
   // Determine if we should show full form or address card
-  const shouldShowAddressCard = isAuthenticated && userAddresses.length > 0 && !useManualAddress;
+  const shouldShowAddressCard = isDelivery && isAuthenticated && userAddresses.length > 0 && !useManualAddress;
   
   // Get currently selected address for display
   const selectedAddress = shouldShowAddressCard 
@@ -671,7 +680,7 @@ const PlaceOrder = () => {
     : null;
   
   // Helper to check if any address has been selected (for warning condition)
-  const hasAnyAddressSelected = !!deliveryAddress?.address || !!selectedAddressId;
+  const hasAnyAddressSelected = isDelivery && (!!deliveryAddress?.address || !!selectedAddressId);
 
   useEffect(() => {
     if (getTotalCartAmount() === 0 && !showSuccessPopup) {
@@ -718,9 +727,51 @@ const PlaceOrder = () => {
             </div>
           )}
 
+          {/* Fulfillment Type Selection */}
+          <div className="fulfillment-type-section">
+            <h3>{t('placeOrder.fulfillment.title')}</h3>
+            <div className="fulfillment-type-options">
+              {[
+                { value: 'pickup', title: t('placeOrder.fulfillment.pickupTitle'), desc: t('placeOrder.fulfillment.pickupDesc') },
+                { value: 'dinein', title: t('placeOrder.fulfillment.dineInTitle'), desc: t('placeOrder.fulfillment.dineInDesc') },
+                { value: 'delivery', title: t('placeOrder.fulfillment.deliveryTitle'), desc: t('placeOrder.fulfillment.deliveryDesc') },
+              ].map((option) => (
+                <label key={option.value} className={`fulfillment-card ${fulfillmentType === option.value ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="fulfillmentType"
+                    value={option.value}
+                    checked={fulfillmentType === option.value}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setFulfillmentType(next);
+                      if (next !== 'delivery') {
+                        setDeliveryInfo(null);
+                        setDeliveryAddress(null);
+                        setSelectedAddressId(null);
+                        setUseManualAddress(false);
+                      } else if (isAuthenticated && userAddresses.length > 0) {
+                        const defaultAddr = userAddresses.find(addr =>
+                          addr._id === defaultAddressId || addr.isDefault
+                        ) || userAddresses[0];
+                        if (defaultAddr) {
+                          handleSelectAddress(defaultAddr);
+                        }
+                      }
+                    }}
+                  />
+                  <div className="fulfillment-text">
+                    <span className="fulfillment-title">{option.title}</span>
+                    <span className="fulfillment-desc">{option.desc}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
           {/* Delivery Address with Mapbox - Đặt lên đầu vì quan trọng nhất */}
           {/* Delivery Address Section */}
-          {shouldShowAddressCard && selectedAddress ? (
+          {isDelivery && shouldShowAddressCard && selectedAddress ? (
             /* Show address card for authenticated users with saved addresses */
             <div className="delivery-address-section">
               <label className="delivery-label">{t('placeOrder.form.addressLabel')}</label>
@@ -749,7 +800,7 @@ const PlaceOrder = () => {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : isDelivery ? (
             /* Show full address form for guests OR authenticated users with zero addresses OR manual entry */
             <div className="delivery-address-section">
               <label className="delivery-label">{t('placeOrder.form.addressLabel')}</label>
@@ -823,7 +874,7 @@ const PlaceOrder = () => {
                 )}
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Contact Information Section */}
           <div className="contact-info-section">
@@ -871,7 +922,9 @@ const PlaceOrder = () => {
 
           {/* Delivery Time Slot */}
           <div className="delivery-time-section">
-            <label className="delivery-label">{t('placeOrder.form.deliveryTimeLabel')}</label>
+            <label className="delivery-label">
+              {isDelivery ? t('placeOrder.form.deliveryTimeLabel') : t('placeOrder.form.pickupTimeLabel')}
+            </label>
             <select
               name='preferredDeliveryTime'
               onChange={onChangeHandler}
@@ -922,17 +975,17 @@ const PlaceOrder = () => {
               <div className='cart-total-details'>
                 <p>{t('placeOrder.cart.deliveryFee')}</p>
                 <p>
-                  {deliveryInfo && deliveryInfo.zone
-                    ? `€${formatPrice(getDeliveryFee())}`
-                    : '--'}
+              {isDelivery
+                ? (deliveryInfo && deliveryInfo.zone ? `€${formatPrice(getDeliveryFee())}` : '--')
+                : '€0'}
                 </p>
               </div>
-              {!deliveryInfo && !hasAnyAddressSelected && (
+          {isDelivery && !deliveryInfo && !hasAnyAddressSelected && (
                 <div className="min-order-warning">
                   {t('placeOrder.cart.deliveryFeePrompt')}
                 </div>
               )}
-              {deliveryInfo && deliveryInfo.zone && (
+          {isDelivery && deliveryInfo && deliveryInfo.zone && (
                 <>
                   <div className='cart-total-details delivery-zone-info'>
                     <span className="zone-badge">
@@ -974,9 +1027,11 @@ const PlaceOrder = () => {
       </form>
       
       {/* Delivery Zones Info - Đặt cuối cùng */}
-      <div className="delivery-zones-display-wrapper">
-        <DeliveryZoneDisplay url={url} />
-      </div>
+      {isDelivery && (
+        <div className="delivery-zones-display-wrapper">
+          <DeliveryZoneDisplay url={url} />
+        </div>
+      )}
       
       {/* Address Selection Modal */}
       {showAddressModal && (

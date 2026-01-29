@@ -6,9 +6,12 @@ import eventBus from "../services/eventBus.js"
 // placing user order from frontend (hỗ trợ cả đăng nhập và không đăng nhập)
 const placeOrder = async (req,res) => {
     try {
-        const { userId, items, amount, address, customerInfo, orderType = 'guest' } = req.body;
+        const { userId, items, amount, address, customerInfo, orderType = 'guest', fulfillmentType = 'delivery' } = req.body;
+        const allowedFulfillmentTypes = ['delivery', 'pickup', 'dinein'];
+        const normalizedFulfillmentType = allowedFulfillmentTypes.includes(fulfillmentType) ? fulfillmentType : 'delivery';
+        const isDelivery = normalizedFulfillmentType === 'delivery';
         
-        console.log('📦 Placing order with userId:', userId, 'orderType:', orderType);
+        console.log('📦 Placing order with userId:', userId, 'orderType:', orderType, 'fulfillmentType:', normalizedFulfillmentType);
         
         // Validate required fields
         if (!items || !Array.isArray(items) || items.length === 0) {
@@ -25,7 +28,7 @@ const placeOrder = async (req,res) => {
             });
         }
 
-        if (!address) {
+        if (isDelivery && !address) {
             return res.status(400).json({
                 success: false,
                 message: "Delivery address is required"
@@ -42,14 +45,16 @@ const placeOrder = async (req,res) => {
         // Extract deliveryInfo from request body if provided
         const { deliveryInfo } = req.body;
 
-        // Validate address fields
-        const requiredAddressFields = ['street', 'city', 'state', 'zipcode', 'country'];
-        for (const field of requiredAddressFields) {
-            if (!address[field]) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Address field '${field}' is required`
-                });
+        if (isDelivery) {
+            // Validate address fields
+            const requiredAddressFields = ['street', 'city', 'state', 'zipcode', 'country'];
+            for (const field of requiredAddressFields) {
+                if (!address[field]) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Address field '${field}' is required`
+                    });
+                }
             }
         }
         
@@ -74,13 +79,14 @@ const placeOrder = async (req,res) => {
             userId: validUserId, // Sẽ có giá trị nếu user đã đăng nhập và hợp lệ
             items: items,
             amount: amount,
-            address: address,
+            address: isDelivery ? address : null,
             customerInfo: customerInfo,
             orderType: validUserId ? 'registered' : 'guest', // Tự động set dựa trên userId
+            fulfillmentType: normalizedFulfillmentType,
             language: req.body.language || 'vi', // Lưu ngôn ngữ khách hàng dùng khi đặt đơn
             payment: true, // COD - thanh toán khi nhận hàng
             status: "Pending",
-            deliveryInfo: deliveryInfo || null, // Lưu thông tin delivery (zone, distance, deliveryFee, estimatedTime)
+            deliveryInfo: isDelivery ? (deliveryInfo || null) : null, // Lưu thông tin delivery (zone, distance, deliveryFee, estimatedTime)
             note: req.body.note || "",
             preferredDeliveryTime: req.body.preferredDeliveryTime || ""
         })

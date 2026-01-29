@@ -174,6 +174,7 @@ const getAllOrders = async (req, res) => {
                 status: o.status,
                 userId: o.userId,
                 orderType: o.orderType,
+                fulfillmentType: o.fulfillmentType,
                 customerName: o.customerInfo?.name,
                 amount: o.amount,
                 createdAt: o.createdAt,
@@ -218,7 +219,8 @@ const getAllOrders = async (req, res) => {
                     // Ensure status is always a string
                     status: orderObj.status || 'Pending',
                     // Ensure orderType is always valid
-                    orderType: orderObj.orderType || 'guest'
+                    orderType: orderObj.orderType || 'guest',
+                    fulfillmentType: orderObj.fulfillmentType || 'delivery'
                 };
             } catch (orderError) {
                 console.error('❌ Error processing order:', orderError, 'Order:', order);

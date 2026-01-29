@@ -20,6 +20,18 @@ const STATUS_COLORS = {
   Delivered: '#10b981',
 };
 
+const getFulfillmentLabel = (type, t) => {
+  switch (type) {
+    case 'pickup':
+      return t('orders.fulfillment.pickup', 'Pickup');
+    case 'dinein':
+      return t('orders.fulfillment.dineIn', 'Dine in');
+    case 'delivery':
+    default:
+      return t('orders.fulfillment.delivery', 'Delivery');
+  }
+};
+
 const formatMoney = (value = 0) => `€${Number(value || 0).toFixed(2)}`;
 const formatDateTime = (value) => {
   if (!value) return '';
@@ -459,6 +471,8 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
   const remainingItems = Math.max(items.length - 2, 0);
   const deliveryFee = Number(order.deliveryInfo?.deliveryFee ?? 0);
   const showDeliveryFee = deliveryFee > 0;
+  const fulfillmentType = order.fulfillmentType || 'delivery';
+  const fulfillmentLabel = getFulfillmentLabel(fulfillmentType, t);
   const itemsText =
     items.length === 0
       ? t('orders.noItems', 'No items')
@@ -479,6 +493,9 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
             {isNew && <span className="new-badge">NEW</span>}
             <span className="order-date">
               {prettyDate} · {prettyTime}
+            </span>
+            <span className={`fulfillment-badge fulfillment-${fulfillmentType}`}>
+              {fulfillmentLabel}
             </span>
           </div>
           {order.trackingCode && <span className="order-meta">#{order.trackingCode}</span>}
@@ -531,6 +548,9 @@ const OrderRow = React.memo(({ order, onStatusChange, onDetails, isMobile }) => 
             {prettyDate} · {prettyTime}
           </span>
           {order.trackingCode && <span className="order-meta">#{order.trackingCode}</span>}
+          <span className={`fulfillment-badge fulfillment-${fulfillmentType}`}>
+            {fulfillmentLabel}
+          </span>
         </div>
       </td>
       <td data-label={t('orders.customer', 'Customer')}>
@@ -629,6 +649,8 @@ OrderSummary.propTypes = {
 const OrderDetailsModal = React.memo(({ order, onClose }) => {
   const { t } = useTranslation();
   const deliveryFee = Number(order.deliveryInfo?.deliveryFee ?? 0);
+  const fulfillmentType = order.fulfillmentType || 'delivery';
+  const fulfillmentLabel = getFulfillmentLabel(fulfillmentType, t);
 
   const formatFullAddress = (addr) => {
     if (!addr) return 'N/A';
@@ -695,6 +717,10 @@ const OrderDetailsModal = React.memo(({ order, onClose }) => {
               <div>
                 <p className="meta-label">{t('orders.trackingCode', 'Tracking')}</p>
                 <p className="meta-value">{order.trackingCode || '—'}</p>
+              </div>
+              <div>
+                <p className="meta-label">{t('orders.fulfillment.label', 'Fulfillment')}</p>
+                <p className="meta-value">{fulfillmentLabel}</p>
               </div>
             </div>
           </div>

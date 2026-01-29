@@ -272,6 +272,10 @@ const resources = {
       'orders.customerName': 'Tên khách hàng',
       'orders.phone': 'Số điện thoại',
       'orders.address': 'Địa chỉ',
+      'orders.fulfillment.label': 'Hình thức',
+      'orders.fulfillment.delivery': 'Giao hàng',
+      'orders.fulfillment.pickup': 'Lấy tại quán',
+      'orders.fulfillment.dineIn': 'Dùng tại quán',
 
       // Reservations
       'reservations.pageTitle': 'Reservation Management',
@@ -866,6 +870,10 @@ const resources = {
       'orders.customerName': 'Name',
       'orders.phone': 'Phone',
       'orders.address': 'Address',
+      'orders.fulfillment.label': 'Fulfillment',
+      'orders.fulfillment.delivery': 'Delivery',
+      'orders.fulfillment.pickup': 'Pickup',
+      'orders.fulfillment.dineIn': 'Dine in',
 
       // Reservations
       'reservations.pageTitle': 'Reservation Management',
@@ -1477,6 +1485,10 @@ const resources = {
       'orders.orderDate': 'Dátum objednávky',
       'orders.customerName': 'Meno',
       'orders.address': 'Adresa',
+      'orders.fulfillment.label': 'Spôsob prevzatia',
+      'orders.fulfillment.delivery': 'Doručenie',
+      'orders.fulfillment.pickup': 'Vyzdvihnutie',
+      'orders.fulfillment.dineIn': 'Na mieste',
 
       // Reservations
       'reservations.pageTitle': 'Správa rezervácií',

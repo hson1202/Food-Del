@@ -1192,6 +1192,10 @@ const getEmailTranslations = (lang) => {
       orderType: 'Loại đơn',
       orderTypeRegistered: 'Thành viên',
       orderTypeGuest: 'Khách vãng lai',
+      fulfillmentType: 'Hình thức nhận',
+      fulfillmentDelivery: 'Giao hàng',
+      fulfillmentPickup: 'Lấy tại quán',
+      fulfillmentDineIn: 'Dùng tại quán',
       paymentMethod: 'Thanh toán',
       paymentCOD: 'Tiền mặt khi nhận hàng',
       orderItems: 'Món đã đặt',
@@ -1222,6 +1226,10 @@ const getEmailTranslations = (lang) => {
       orderType: 'Order Type',
       orderTypeRegistered: 'Member',
       orderTypeGuest: 'Guest',
+      fulfillmentType: 'Fulfillment',
+      fulfillmentDelivery: 'Delivery',
+      fulfillmentPickup: 'Pickup',
+      fulfillmentDineIn: 'Dine in',
       paymentMethod: 'Payment',
       paymentCOD: 'Cash on Delivery',
       orderItems: 'Your Order',
@@ -1252,6 +1260,10 @@ const getEmailTranslations = (lang) => {
       orderType: 'Typ objednávky',
       orderTypeRegistered: 'Člen',
       orderTypeGuest: 'Hosť',
+      fulfillmentType: 'Spôsob prevzatia',
+      fulfillmentDelivery: 'Doručenie',
+      fulfillmentPickup: 'Vyzdvihnutie',
+      fulfillmentDineIn: 'Na mieste',
       paymentMethod: 'Platba',
       paymentCOD: 'Platba na dobierku',
       orderItems: 'Vaša objednávka',
@@ -1369,6 +1381,17 @@ const generateOrderConfirmationEmailHTML = (order) => {
   // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
   const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
   const subtotal = order.amount - deliveryFee;
+  const fulfillmentLabel = order.fulfillmentType === 'pickup'
+    ? t.fulfillmentPickup
+    : order.fulfillmentType === 'dinein'
+      ? t.fulfillmentDineIn
+      : t.fulfillmentDelivery;
+  const hasAddress = !!(order.address && (order.address.street || order.address.address || order.address.fullAddress));
+  const addressLine = order.address ? formatOrderStreetLine(order.address) || order.address.street || order.address.address || '' : '';
+  const addressCity = order.address?.city || '';
+  const addressState = order.address?.state || '';
+  const addressZip = order.address?.zipcode || '';
+  const addressCountry = order.address?.country || '';
   
   return `
     <!DOCTYPE html>
@@ -1426,6 +1449,10 @@ const generateOrderConfirmationEmailHTML = (order) => {
               <span class="value">${order.orderType === 'registered' ? t.orderTypeRegistered : t.orderTypeGuest}</span>
             </div>
             <div class="detail-row">
+              <span class="label">${t.fulfillmentType}:</span>
+              <span class="value">${fulfillmentLabel}</span>
+            </div>
+            <div class="detail-row">
               <span class="label">${t.paymentMethod}:</span>
               <span class="value">${t.paymentCOD}</span>
             </div>
@@ -1457,15 +1484,23 @@ const generateOrderConfirmationEmailHTML = (order) => {
             </div>
           </div>
           
+          ${hasAddress ? `
           <div class="address-section">
             <h3>📍 ${t.deliveryAddress}</h3>
             <p>
-              <strong>${formatOrderStreetLine(order.address) || order.address.street}</strong><br>
-              ${order.address.city}, ${order.address.state}<br>
-              ${order.address.zipcode}, ${order.address.country}
+              <strong>${addressLine}</strong><br>
+              ${[addressCity, addressState].filter(Boolean).join(', ')}<br>
+              ${[addressZip, addressCountry].filter(Boolean).join(', ')}
             </p>
             <p><strong>${t.phone}:</strong> ${order.customerInfo.phone}</p>
           </div>
+          ` : `
+          <div class="address-section">
+            <h3>📍 ${t.deliveryAddress}</h3>
+            <p>${fulfillmentLabel}</p>
+            <p><strong>${t.phone}:</strong> ${order.customerInfo.phone}</p>
+          </div>
+          `}
           
           <div class="contact-info">
             <h4>📞 ${t.contactInfo}</h4>
@@ -1545,6 +1580,7 @@ ${t.trackingCode.toUpperCase()}: ${order.trackingCode}
 ${t.orderDetails.toUpperCase()}:
 ${t.orderDate}: ${formatDate(order.createdAt || order.date)}
 ${t.orderType}: ${order.orderType === 'registered' ? t.orderTypeRegistered : t.orderTypeGuest}
+${t.fulfillmentType}: ${fulfillmentLabel}
 ${t.paymentMethod}: ${t.paymentCOD}
 
 ${t.orderItems.toUpperCase()}:
@@ -1556,9 +1592,9 @@ ${t.deliveryFee}: ${formatCurrency(deliveryFee)}
 ${t.total}: ${formatCurrency(order.amount)}
 
 ${t.deliveryAddress.toUpperCase()}:
-${formatOrderStreetLine(order.address) || order.address.street}
-${order.address.city}, ${order.address.state}
-${order.address.zipcode}, ${order.address.country}
+${hasAddress ? `${addressLine}
+${[addressCity, addressState].filter(Boolean).join(', ')}
+${[addressZip, addressCountry].filter(Boolean).join(', ')}` : fulfillmentLabel}
 ${t.phone}: ${order.customerInfo.phone}
 
 ${t.contactInfo.toUpperCase()}:
@@ -1799,8 +1835,14 @@ const generateAdminOrderNotificationEmailHTML = async (order) => {
             <div class="info-row">
               <div class="info-label">Địa chỉ:</div>
               <div class="info-value">
-                ${formatOrderStreetLine(order.address) || order.address.street}${order.address.city ? `, ${order.address.city}` : ''}${order.address.state ? `, ${order.address.state}` : ''}${order.address.zipcode ? ` ${order.address.zipcode}` : ''}
+                ${hasAddress
+                  ? `${addressLine}${addressCity ? `, ${addressCity}` : ''}${addressState ? `, ${addressState}` : ''}${addressZip ? ` ${addressZip}` : ''}`
+                  : fulfillmentLabel}
               </div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">Hình thức:</div>
+              <div class="info-value">${fulfillmentLabel}</div>
             </div>
           </div>
           
@@ -1899,7 +1941,8 @@ const generateAdminOrderNotificationEmailText = async (order) => {
 THÔNG TIN KHÁCH HÀNG:
 Tên: ${order.customerInfo.name}
 SĐT: ${order.customerInfo.phone}
- ${order.customerInfo.email ? `Email: ${order.customerInfo.email}\n` : ''}Địa chỉ: ${formatOrderStreetLine(order.address) || order.address.street}${order.address.city ? `, ${order.address.city}` : ''}${order.address.state ? `, ${order.address.state}` : ''}${order.address.zipcode ? ` ${order.address.zipcode}` : ''}
+ ${order.customerInfo.email ? `Email: ${order.customerInfo.email}\n` : ''}Địa chỉ: ${hasAddress ? `${addressLine}${addressCity ? `, ${addressCity}` : ''}${addressState ? `, ${addressState}` : ''}${addressZip ? ` ${addressZip}` : ''}` : fulfillmentLabel}
+Hình thức: ${fulfillmentLabel}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

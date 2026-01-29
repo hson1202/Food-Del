@@ -196,6 +196,7 @@ eventBus.on('order:created', (order) => {
     trackingCode: order.trackingCode,
     customerInfo: order.customerInfo,
     orderType: order.orderType,
+    fulfillmentType: order.fulfillmentType,
     items: order.items || [],
     address: order.address || null,
     userId: order.userId || null

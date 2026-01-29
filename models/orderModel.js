@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
     // Thông tin đơn hàng
     items: { type: Array, required: true },
     amount: { type: Number, required: true },
-    address: { type: Object, required: true },
+    address: { type: Object, required: false },
     
     // Trạng thái và thanh toán
     status: { type: String, default: "Pending" },
@@ -23,6 +23,7 @@ const orderSchema = new mongoose.Schema({
     
     // Thông tin bổ sung
     orderType: { type: String, enum: ['guest', 'registered'], default: 'guest' },
+    fulfillmentType: { type: String, enum: ['delivery', 'pickup', 'dinein'], default: 'delivery' },
     trackingCode: { type: String, unique: true, sparse: true }, // Mã dò đơn hàng
     language: { type: String, default: 'vi' }, // Ngôn ngữ khách hàng dùng khi đặt đơn (vi, en, sk)
     notes: { type: String, default: "" },

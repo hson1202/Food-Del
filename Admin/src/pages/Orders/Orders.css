@@ -353,6 +353,39 @@
   color: #718096;
 }
 
+.fulfillment-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: 1px solid transparent;
+  margin-top: 4px;
+}
+
+.fulfillment-delivery {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.fulfillment-pickup {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.fulfillment-dinein {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
 .customer-cell {
   display: flex;
   flex-direction: column;

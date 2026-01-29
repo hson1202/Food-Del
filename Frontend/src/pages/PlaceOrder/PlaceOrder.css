@@ -413,6 +413,65 @@
     font-size: 0.9rem;
 }
 
+/* Fulfillment Type Section */
+.fulfillment-type-section {
+    margin: 18px 0 22px;
+}
+
+.fulfillment-type-section h3 {
+    margin: 0 0 10px 0;
+    color: #1a1a1a;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.fulfillment-type-options {
+    display: grid;
+    gap: 10px;
+}
+
+.fulfillment-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fulfillment-card input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #1a1a1a;
+    margin: 2px 0 0;
+}
+
+.fulfillment-card.active {
+    border-color: #1a1a1a;
+    background: #f9f9f9;
+}
+
+.fulfillment-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.fulfillment-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.fulfillment-desc {
+    font-size: 0.8rem;
+    color: #777;
+}
+
 /* Tracking Notice */
 .tracking-notice {
     margin-top: 24px;
@@ -487,6 +546,26 @@
     .order-type-section {
         margin-bottom: 20px;
         padding: 0;
+    }
+
+    .fulfillment-type-section {
+        margin: 16px 0 20px;
+    }
+
+    .fulfillment-type-section h3 {
+        font-size: 0.9rem;
+    }
+
+    .fulfillment-card {
+        padding: 12px;
+    }
+
+    .fulfillment-title {
+        font-size: 0.9rem;
+    }
+
+    .fulfillment-desc {
+        font-size: 0.8rem;
     }
     
     .order-type-section h3 {
@@ -640,6 +719,10 @@
     
     .order-type-section {
         padding: 0;
+    }
+
+    .fulfillment-card {
+        padding: 12px;
     }
     
     .place-order .cart-total {
