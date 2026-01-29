@@ -1392,10 +1392,10 @@ const generateOrderConfirmationEmailHTML = (order) => {
   const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
   const subtotal = order.amount - deliveryFee;
   const fulfillmentLabel = order.fulfillmentType === 'pickup'
-    ? 'Lấy tại quán'
+    ? t.fulfillmentPickup
     : order.fulfillmentType === 'dinein'
-      ? 'Dùng tại quán'
-      : 'Giao hàng';
+      ? t.fulfillmentDineIn
+      : t.fulfillmentDelivery;
   const hasAddress = !!(order.address && (order.address.street || order.address.address || order.address.fullAddress));
   const addressLine = order.address ? formatOrderStreetLine(order.address) || order.address.street || order.address.address || '' : '';
   const addressCity = order.address?.city || '';
@@ -1407,11 +1407,6 @@ const generateOrderConfirmationEmailHTML = (order) => {
   const deliveryZone = order.deliveryInfo?.zone;
   const deliveryDistance = order.deliveryInfo?.distance;
   const deliveryEta = order.deliveryInfo?.estimatedTime;
-  const fulfillmentLabel = order.fulfillmentType === 'pickup'
-    ? t.fulfillmentPickup
-    : order.fulfillmentType === 'dinein'
-      ? t.fulfillmentDineIn
-      : t.fulfillmentDelivery;
   const hasAddress = !!(order.address && (order.address.street || order.address.address || order.address.fullAddress));
   const addressLine = order.address ? formatOrderStreetLine(order.address) || order.address.street || order.address.address || '' : '';
   const addressCity = order.address?.city || '';
