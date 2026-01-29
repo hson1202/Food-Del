@@ -150,7 +150,7 @@ const Dashboard = ({ url }) => {
       const adminToken = localStorage.getItem('adminToken');
       if (!adminToken) {
         console.error('❌ Admin not logged in. Please login again.');
-        alert('Admin not logged in. Please login again.');
+        alert(t('dashboard.adminNotLoggedIn'));
         setIsLoading(false);
         return;
       }
@@ -292,7 +292,7 @@ const Dashboard = ({ url }) => {
       const adminToken = localStorage.getItem('adminToken');
       if (!adminToken) {
         console.error('❌ Admin not logged in. Please login again.')
-        setTimeBasedError('Admin not logged in')
+        setTimeBasedError(t('dashboard.adminNotLoggedInShort'))
         setIsTimeBasedLoading(false)
         return
       }
@@ -479,7 +479,7 @@ const Dashboard = ({ url }) => {
 
       {/* Quick Stats - Today Overview */}
       <div className="quick-stats-section">
-        <h2>📊 {t('dashboard.todayOverview') || 'Tổng quan hôm nay'}</h2>
+        <h2>📊 {t('dashboard.todayOverview')}</h2>
         <div className="quick-stats-grid">
           <div className="quick-stat-card today-orders">
             <div className="quick-stat-icon">
@@ -491,7 +491,7 @@ const Dashboard = ({ url }) => {
             </div>
             <div className="quick-stat-content">
               <div className="quick-stat-value">{timeStats.today?.orders || 0}</div>
-              <div className="quick-stat-label">{t('dashboard.ordersToday') || 'Đơn hôm nay'}</div>
+              <div className="quick-stat-label">{t('dashboard.ordersToday')}</div>
             </div>
           </div>
 
@@ -504,7 +504,7 @@ const Dashboard = ({ url }) => {
             </div>
             <div className="quick-stat-content">
               <div className="quick-stat-value">{formatCurrency(timeStats.today?.revenue || 0)}</div>
-              <div className="quick-stat-label">{t('dashboard.revenueToday') || 'Doanh thu hôm nay'}</div>
+              <div className="quick-stat-label">{t('dashboard.revenueToday')}</div>
             </div>
           </div>
 
@@ -518,7 +518,7 @@ const Dashboard = ({ url }) => {
               {topProducts.length > 0 ? (
                 <>
                   <div className="quick-stat-value top-product-name">{topProducts[0].name}</div>
-                  <div className="quick-stat-label">{topProducts[0].totalSold} {t('dashboard.sold') || 'đã bán'}</div>
+                  <div className="quick-stat-label">{topProducts[0].totalSold} {t('dashboard.sold')}</div>
                   {topProducts.length > 1 && (
                     <div className="top-products-extra">
                       {topProducts.slice(1).map((p, i) => (
@@ -533,7 +533,7 @@ const Dashboard = ({ url }) => {
               ) : (
                 <>
                   <div className="quick-stat-value">—</div>
-                  <div className="quick-stat-label">{t('dashboard.topProduct') || 'Món bán chạy'}</div>
+                  <div className="quick-stat-label">{t('dashboard.topProduct')}</div>
                 </>
               )}
             </div>
@@ -546,7 +546,7 @@ const Dashboard = ({ url }) => {
         <div className="time-stats-header">
           <div>
             <h2>{t('dashboard.timeStats')}</h2>
-            <p>{t('dashboard.timeStatsDescription') || 'Xem nhanh xu hướng đơn hàng và doanh thu theo mốc thời gian.'}</p>
+            <p>{t('dashboard.timeStatsDescription')}</p>
           </div>
           <div className="time-filters-row">
             <div className="time-filter-group">
@@ -674,7 +674,7 @@ const Dashboard = ({ url }) => {
                   className="toggle-comparison-btn"
                   onClick={() => setShowComparisonTable(!showComparisonTable)}
                 >
-                  {showComparisonTable ? 'Hide Detailed Comparison' : 'Show Detailed Comparison'}
+                  {showComparisonTable ? t('dashboard.hideDetailedComparison') : t('dashboard.showDetailedComparison')}
                   <svg
                     width="16"
                     height="16"
@@ -781,7 +781,7 @@ const Dashboard = ({ url }) => {
 
       {/* Quick Actions */}
       <div className="quick-actions">
-        <h2>Quick Actions</h2>
+        <h2>{t('dashboard.quickActions')}</h2>
         <div className="actions-grid">
           <button className="action-btn" onClick={() => window.location.href = '/admin/orders'}>
             <div className="action-icon">
@@ -790,8 +790,8 @@ const Dashboard = ({ url }) => {
               </svg>
             </div>
             <div>
-              <strong>View All Orders</strong>
-              <small>Manage and track all customer orders</small>
+              <strong>{t('dashboard.viewAllOrders')}</strong>
+              <small>{t('dashboard.viewAllOrdersDesc')}</small>
             </div>
           </button>
 
@@ -806,8 +806,8 @@ const Dashboard = ({ url }) => {
               </svg>
             </div>
             <div>
-              <strong>Manage Products</strong>
-              <small>Add, edit, or remove menu items</small>
+              <strong>{t('dashboard.manageProducts')}</strong>
+              <small>{t('dashboard.manageProductsDesc')}</small>
             </div>
           </button>
 
@@ -821,8 +821,8 @@ const Dashboard = ({ url }) => {
               </svg>
             </div>
             <div>
-              <strong>User Management</strong>
-              <small>View and manage customer accounts</small>
+              <strong>{t('dashboard.userManagement')}</strong>
+              <small>{t('dashboard.userManagementDesc')}</small>
             </div>
           </button>
 
@@ -833,8 +833,8 @@ const Dashboard = ({ url }) => {
               </svg>
             </div>
             <div>
-              <strong>Categories</strong>
-              <small>Organize your menu structure</small>
+              <strong>{t('dashboard.categories')}</strong>
+              <small>{t('dashboard.categoriesDesc')}</small>
             </div>
           </button>
 
@@ -846,8 +846,8 @@ const Dashboard = ({ url }) => {
               </svg>
             </div>
             <div>
-              <strong>Blog Management</strong>
-              <small>Create and manage blog posts</small>
+              <strong>{t('dashboard.blogManagement')}</strong>
+              <small>{t('dashboard.blogManagementDesc')}</small>
             </div>
           </button>
 

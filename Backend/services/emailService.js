@@ -1205,6 +1205,9 @@ const getEmailTranslations = (lang) => {
       deliveryAddress: 'Địa chỉ nhận hàng',
       phone: 'Số điện thoại',
       contactInfo: 'Liên hệ với chúng tôi',
+      emailLabel: 'Email',
+      storeAddressLabel: 'Địa chỉ cửa hàng',
+      storeAddress: 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
       importantNotes: 'Một vài lưu ý nhỏ',
       note1: 'Bạn có thể theo dõi đơn hàng bằng mã',
       note2: 'Thanh toán bằng tiền mặt khi nhận hàng nhé',
@@ -1239,6 +1242,9 @@ const getEmailTranslations = (lang) => {
       deliveryAddress: 'Delivery Address',
       phone: 'Phone',
       contactInfo: 'Get in Touch',
+      emailLabel: 'Email',
+      storeAddressLabel: 'Store Address',
+      storeAddress: 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
       importantNotes: 'A Few Quick Notes',
       note1: 'You can track your order using code',
       note2: 'Please have cash ready for payment upon delivery',
@@ -1273,6 +1279,9 @@ const getEmailTranslations = (lang) => {
       deliveryAddress: 'Dodacia adresa',
       phone: 'Telefón',
       contactInfo: 'Kontakt',
+      emailLabel: 'Email',
+      storeAddressLabel: 'Adresa prevádzky',
+      storeAddress: 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
       importantNotes: 'Niekoľko rýchlych poznámok',
       note1: 'Svoju objednávku môžete sledovať pomocou kódu',
       note2: 'Prosím, pripravte hotovosť na platbu pri doručení',
@@ -1349,6 +1358,7 @@ const calculateItemPrice = async (item, globalBoxFee = 0.3) => {
 // Generate HTML email content for order confirmation
 const generateOrderConfirmationEmailHTML = (order) => {
   const lang = order.language || 'vi';
+  const langCode = lang?.split('-')[0] || 'vi';
   const t = getEmailTranslations(lang);
   
   const formatDate = (date) => {
@@ -1381,6 +1391,22 @@ const generateOrderConfirmationEmailHTML = (order) => {
   // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
   const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
   const subtotal = order.amount - deliveryFee;
+  const fulfillmentLabel = order.fulfillmentType === 'pickup'
+    ? 'Lấy tại quán'
+    : order.fulfillmentType === 'dinein'
+      ? 'Dùng tại quán'
+      : 'Giao hàng';
+  const hasAddress = !!(order.address && (order.address.street || order.address.address || order.address.fullAddress));
+  const addressLine = order.address ? formatOrderStreetLine(order.address) || order.address.street || order.address.address || '' : '';
+  const addressCity = order.address?.city || '';
+  const addressState = order.address?.state || '';
+  const addressZip = order.address?.zipcode || '';
+  const addressCountry = order.address?.country || '';
+  const customerNote = (order.note || order.notes || '').toString().trim();
+  const preferredTime = (order.preferredDeliveryTime || '').toString().trim();
+  const deliveryZone = order.deliveryInfo?.zone;
+  const deliveryDistance = order.deliveryInfo?.distance;
+  const deliveryEta = order.deliveryInfo?.estimatedTime;
   const fulfillmentLabel = order.fulfillmentType === 'pickup'
     ? t.fulfillmentPickup
     : order.fulfillmentType === 'dinein'
@@ -1462,9 +1488,10 @@ const generateOrderConfirmationEmailHTML = (order) => {
             ${order.items.map(item => `
               <div class="item-row">
                 <div>
-                  <span class="item-name">${item.name}</span>
+                  <span class="item-name">${getLocalizedItemName(item, langCode)}</span>
                   <span class="item-quantity"> x ${item.quantity || 1}</span>
                 </div>
+                ${formatSelectedOptions(item, langCode) ? `<div class="item-quantity">${formatSelectedOptions(item, langCode)}</div>` : ''}
               </div>
             `).join('')}
           </div>
@@ -1504,8 +1531,8 @@ const generateOrderConfirmationEmailHTML = (order) => {
           
           <div class="contact-info">
             <h4>📞 ${t.contactInfo}</h4>
-            <p><strong>Email:</strong> vietbowlssala666@gmail.com</p>
-            <p><strong>${t.deliveryAddress}:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
+            <p><strong>${t.emailLabel}:</strong> vietbowlssala666@gmail.com</p>
+            <p><strong>${t.storeAddressLabel}:</strong> ${t.storeAddress}</p>
           </div>
           
           <p><strong>${t.importantNotes}:</strong></p>
@@ -1535,6 +1562,7 @@ const generateOrderConfirmationEmailHTML = (order) => {
 // Generate plain text email content for order confirmation
 const generateOrderConfirmationEmailText = (order) => {
   const lang = order.language || 'vi';
+  const langCode = lang?.split('-')[0] || 'vi';
   const t = getEmailTranslations(lang);
   
   const formatDate = (date) => {
@@ -1584,7 +1612,7 @@ ${t.fulfillmentType}: ${fulfillmentLabel}
 ${t.paymentMethod}: ${t.paymentCOD}
 
 ${t.orderItems.toUpperCase()}:
-${order.items.map(item => `- ${item.name} x ${item.quantity || 1}`).join('\n')}
+${order.items.map(item => `- ${getLocalizedItemName(item, langCode)}${formatSelectedOptions(item, langCode)} x ${item.quantity || 1}`).join('\n')}
 
 ${t.orderDetails.toUpperCase()}:
 ${t.subtotal}: ${formatCurrency(subtotal)}
@@ -1598,8 +1626,8 @@ ${[addressZip, addressCountry].filter(Boolean).join(', ')}` : fulfillmentLabel}
 ${t.phone}: ${order.customerInfo.phone}
 
 ${t.contactInfo.toUpperCase()}:
-Email: vietbowlssala666@gmail.com
-${t.deliveryAddress}: Hlavná 33/36, 927 01 Šaľa, Slovakia
+${t.emailLabel}: vietbowlssala666@gmail.com
+${t.storeAddressLabel}: ${t.storeAddress}
 
 ${t.importantNotes.toUpperCase()}:
 - ${t.note1}: ${order.trackingCode}
@@ -1719,8 +1747,15 @@ const formatSelectedOptionsForAdmin = async (item) => {
   return optionTexts.length > 0 ? ` (${optionTexts.join(', ')})` : '';
 };
 
+// Helper function to get localized product name for customer emails
+function getLocalizedItemName(item, langCode = 'vi') {
+  const keyMap = { vi: 'nameVI', en: 'nameEN', sk: 'nameSK' };
+  const preferredKey = keyMap[langCode] || 'nameVI';
+  return item[preferredKey] || item.name || item.nameVI || item.nameEN || item.nameSK || 'Sản phẩm';
+}
+
 // Helper function to format selected options for display (for customer emails - uses customer language)
-const formatSelectedOptions = (item) => {
+function formatSelectedOptions(item, langCode = 'vi') {
   if (!item.selectedOptions || Object.keys(item.selectedOptions).length === 0) {
     return '';
   }
@@ -1731,17 +1766,34 @@ const formatSelectedOptions = (item) => {
   
   const optionTexts = [];
   Object.entries(item.selectedOptions).forEach(([optionName, choiceCode]) => {
-    const option = item.options.find(opt => opt.name === optionName);
+    const option = item.options.find(opt => 
+      opt.name === optionName || 
+      opt.nameVI === optionName || 
+      opt.nameEN === optionName || 
+      opt.nameSK === optionName
+    );
     if (option) {
       const choice = option.choices.find(c => c.code === choiceCode);
       if (choice) {
-        optionTexts.push(`${optionName}: ${choice.label || choice.code}`);
+        const optionNameMap = {
+          vi: option.nameVI || option.name,
+          en: option.nameEN || option.name,
+          sk: option.nameSK || option.name
+        };
+        const choiceLabelMap = {
+          vi: choice.labelVI || choice.label,
+          en: choice.labelEN || choice.label,
+          sk: choice.labelSK || choice.label
+        };
+        const displayOptionName = optionNameMap[langCode] || option.name || optionName;
+        const displayChoiceLabel = choiceLabelMap[langCode] || choice.label || choice.code;
+        optionTexts.push(`${displayOptionName}: ${displayChoiceLabel}`);
       }
     }
   });
   
   return optionTexts.length > 0 ? ` (${optionTexts.join(', ')})` : '';
-};
+}
 
 // Generate HTML email content for admin order notification
 // LUÔN LUÔN BẰNG TIẾNG VIỆT, không phụ thuộc vào ngôn ngữ của khách hàng
@@ -1891,6 +1943,40 @@ const generateAdminOrderNotificationEmailHTML = async (order) => {
               <div class="info-label">Thanh toán:</div>
               <div class="info-value">COD (Tiền mặt khi nhận)</div>
             </div>
+            <div class="info-row">
+              <div class="info-label">Loại đơn:</div>
+              <div class="info-value">${order.orderType === 'registered' ? 'Thành viên' : 'Khách vãng lai'}</div>
+            </div>
+            ${customerNote ? `
+            <div class="info-row">
+              <div class="info-label">Ghi chú:</div>
+              <div class="info-value">${customerNote}</div>
+            </div>
+            ` : ''}
+            ${preferredTime ? `
+            <div class="info-row">
+              <div class="info-label">Giờ nhận:</div>
+              <div class="info-value">${preferredTime}</div>
+            </div>
+            ` : ''}
+            ${deliveryZone ? `
+            <div class="info-row">
+              <div class="info-label">Khu vực:</div>
+              <div class="info-value">${deliveryZone}</div>
+            </div>
+            ` : ''}
+            ${typeof deliveryDistance === 'number' ? `
+            <div class="info-row">
+              <div class="info-label">Khoảng cách:</div>
+              <div class="info-value">${deliveryDistance} km</div>
+            </div>
+            ` : ''}
+            ${typeof deliveryEta === 'number' ? `
+            <div class="info-row">
+              <div class="info-label">Thời gian:</div>
+              <div class="info-value">${deliveryEta} phút</div>
+            </div>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -1930,6 +2016,22 @@ const generateAdminOrderNotificationEmailText = async (order) => {
   // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
   const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
   const subtotal = order.amount - deliveryFee;
+  const fulfillmentLabel = order.fulfillmentType === 'pickup'
+    ? 'Lấy tại quán'
+    : order.fulfillmentType === 'dinein'
+      ? 'Dùng tại quán'
+      : 'Giao hàng';
+  const hasAddress = !!(order.address && (order.address.street || order.address.address || order.address.fullAddress));
+  const addressLine = order.address ? formatOrderStreetLine(order.address) || order.address.street || order.address.address || '' : '';
+  const addressCity = order.address?.city || '';
+  const addressState = order.address?.state || '';
+  const addressZip = order.address?.zipcode || '';
+  const addressCountry = order.address?.country || '';
+  const customerNote = (order.note || order.notes || '').toString().trim();
+  const preferredTime = (order.preferredDeliveryTime || '').toString().trim();
+  const deliveryZone = order.deliveryInfo?.zone;
+  const deliveryDistance = order.deliveryInfo?.distance;
+  const deliveryEta = order.deliveryInfo?.estimatedTime;
   
   return `
 🍜 ĐƠN HÀNG MỚI - VIET BOWLS
@@ -1962,6 +2064,8 @@ TỔNG CỘNG: ${formatCurrency(order.amount)}
 
 Thời gian: ${formatDate(order.createdAt || order.date)}
 Thanh toán: COD (Tiền mặt khi nhận)
+Loại đơn: ${order.orderType === 'registered' ? 'Thành viên' : 'Khách vãng lai'}
+${customerNote ? `Ghi chú: ${customerNote}\n` : ''}${preferredTime ? `Giờ nhận: ${preferredTime}\n` : ''}${deliveryZone ? `Khu vực: ${deliveryZone}\n` : ''}${typeof deliveryDistance === 'number' ? `Khoảng cách: ${deliveryDistance} km\n` : ''}${typeof deliveryEta === 'number' ? `Thời gian dự kiến: ${deliveryEta} phút\n` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Email tự động từ hệ thống VIET BOWLS
