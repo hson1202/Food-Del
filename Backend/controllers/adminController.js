@@ -742,6 +742,48 @@ const adminSignup = async (req, res) => {
     }
 };
 
+// Validate admin session
+const adminSessionCheck = async (req, res) => {
+    try {
+        const userId = req.body.userId;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Not Authorized! Login Again"
+            });
+        }
+
+        const adminUser = await userModel.findOne({
+            _id: userId,
+            role: "admin",
+            status: "active"
+        }).select("email role name");
+
+        if (!adminUser) {
+            return res.status(401).json({
+                success: false,
+                message: "Admin session invalid"
+            });
+        }
+
+        res.json({
+            success: true,
+            user: {
+                email: adminUser.email,
+                role: adminUser.role,
+                name: adminUser.name
+            }
+        });
+    } catch (error) {
+        console.error("Admin session check error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 // Get time-based statistics for charts
 const getTimeBasedStats = async (req, res) => {
     try {
@@ -962,5 +1004,6 @@ export {
     adminSignup,
     getTimeBasedStats,
     getAllOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    adminSessionCheck
 }; 

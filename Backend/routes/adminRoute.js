@@ -14,15 +14,17 @@ import {
     adminSignup,
     getTimeBasedStats,
     getAllOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    adminSessionCheck
 } from "../controllers/adminController.js";
-import authMiddleware from "../middleware/auth.js";
+import authMiddleware, { verifyAdmin } from "../middleware/auth.js";
 
 const adminRouter = express.Router();
 
 // Admin authentication routes
 adminRouter.post("/login", adminLogin);
 adminRouter.post("/signup", adminSignup);
+adminRouter.get("/session", authMiddleware, verifyAdmin, adminSessionCheck);
 
 // Dashboard routes (protected with auth)
 adminRouter.get("/stats", authMiddleware, getDashboardStats);

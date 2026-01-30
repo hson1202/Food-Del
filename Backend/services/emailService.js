@@ -1407,13 +1407,7 @@ const generateOrderConfirmationEmailHTML = (order) => {
   const deliveryZone = order.deliveryInfo?.zone;
   const deliveryDistance = order.deliveryInfo?.distance;
   const deliveryEta = order.deliveryInfo?.estimatedTime;
-  const hasAddress = !!(order.address && (order.address.street || order.address.address || order.address.fullAddress));
-  const addressLine = order.address ? formatOrderStreetLine(order.address) || order.address.street || order.address.address || '' : '';
-  const addressCity = order.address?.city || '';
-  const addressState = order.address?.state || '';
-  const addressZip = order.address?.zipcode || '';
-  const addressCountry = order.address?.country || '';
-  
+
   return `
     <!DOCTYPE html>
     <html>

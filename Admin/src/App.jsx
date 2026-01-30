@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Route, Routes, Navigate } from 'react-router-dom'
+import axios from 'axios'
 import Dashboard from './pages/Dashboard/Dashboard'
 import Orders from './pages/Orders/Orders'
 import Category from './pages/Category/Category'
@@ -27,12 +28,45 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      setIsAuthenticated(true);
-    }
-    setLoading(false);
-  }, []);
+    let isMounted = true;
+
+    const validateSession = async () => {
+      const token = localStorage.getItem('adminToken');
+
+      if (!token) {
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        await axios.get(`${url}/api/admin/session`, {
+          headers: { token }
+        });
+        if (isMounted) {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        if (isMounted) {
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    validateSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [url]);
 
   if (loading) {
     return (
