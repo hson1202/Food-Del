@@ -1815,6 +1815,22 @@ const generateAdminOrderNotificationEmailHTML = async (order) => {
   // Get delivery fee from order.deliveryInfo, fallback to 0 if not available
   const deliveryFee = order.deliveryInfo?.deliveryFee ?? 0;
   const subtotal = order.amount - deliveryFee;
+  const fulfillmentLabel = order.fulfillmentType === 'pickup'
+    ? 'Lấy tại quán'
+    : order.fulfillmentType === 'dinein'
+      ? 'Dùng tại quán'
+      : 'Giao hàng';
+  const hasAddress = !!(order.address && (order.address.street || order.address.address || order.address.fullAddress));
+  const addressLine = order.address ? formatOrderStreetLine(order.address) || order.address.street || order.address.address || '' : '';
+  const addressCity = order.address?.city || '';
+  const addressState = order.address?.state || '';
+  const addressZip = order.address?.zipcode || '';
+  const addressCountry = order.address?.country || '';
+  const customerNote = (order.note || order.notes || '').toString().trim();
+  const preferredTime = (order.preferredDeliveryTime || '').toString().trim();
+  const deliveryZone = order.deliveryInfo?.zone;
+  const deliveryDistance = order.deliveryInfo?.distance;
+  const deliveryEta = order.deliveryInfo?.estimatedTime;
   
   return `
     <!DOCTYPE html>
