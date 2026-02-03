@@ -20,11 +20,11 @@ const getDashboardStats = async (req, res) => {
 
         // Debug: Check actual status values in database
         const allOrders = await orderModel.find({}, 'status amount createdAt date');
-        console.log('All orders statuses:', allOrders.map(o => ({ 
-            status: o.status || 'Unknown', 
-            amount: o.amount || 0, 
-            createdAt: o.createdAt || 'No date', 
-            date: o.date || 'No date' 
+        console.log('All orders statuses:', allOrders.map(o => ({
+            status: o.status || 'Unknown',
+            amount: o.amount || 0,
+            createdAt: o.createdAt || 'No date',
+            date: o.date || 'No date'
         })));
 
         // Normalize status groups (include common variants)
@@ -32,16 +32,16 @@ const getDashboardStats = async (req, res) => {
         const COMPLETED_STATUSES = ['completed', 'Completed', 'delivered', 'Delivered'];
 
         // Get orders by status - include common variants and cases
-        const pendingOrders = await orderModel.countDocuments({ 
-            status: { $in: PENDING_STATUSES } 
+        const pendingOrders = await orderModel.countDocuments({
+            status: { $in: PENDING_STATUSES }
         });
-        const completedOrders = await orderModel.countDocuments({ 
-            status: { $in: COMPLETED_STATUSES } 
+        const completedOrders = await orderModel.countDocuments({
+            status: { $in: COMPLETED_STATUSES }
         });
-        
+
         // Calculate total revenue from completed orders
-        const completedOrdersData = await orderModel.find({ 
-            status: { $in: COMPLETED_STATUSES } 
+        const completedOrdersData = await orderModel.find({
+            status: { $in: COMPLETED_STATUSES }
         });
         const totalRevenue = completedOrdersData.reduce((sum, order) => {
             const amount = typeof order.amount === 'string' ? parseFloat(order.amount) || 0 : (order.amount || 0);
@@ -116,8 +116,8 @@ const getDashboardStats = async (req, res) => {
             totalUsers,
             totalProducts,
             currentMonth: { orders: currentMonthOrders, revenue: currentMonthRevenue },
-            lastMonth: { 
-                orders: lastMonthOrders, 
+            lastMonth: {
+                orders: lastMonthOrders,
                 revenue: lastMonthRevenue,
                 pending: lastMonthPendingOrders,
                 completed: lastMonthCompletedCount,
@@ -156,17 +156,17 @@ const getDashboardStats = async (req, res) => {
 const getAllOrders = async (req, res) => {
     try {
         console.log('📦 Getting all orders for admin...')
-        
+
         // Get all orders with complete information
         const orders = await orderModel.find({})
-            .sort({ 
+            .sort({
                 // Custom sort: Pending first, then by creation date
-                createdAt: -1 
+                createdAt: -1
             })
             .limit(100); // Limit to 100 orders for performance
-        
+
         console.log(`✅ Found ${orders.length} orders`)
-        
+
         // Log first few orders for debugging
         if (orders.length > 0) {
             console.log('📋 Sample orders:', orders.slice(0, 3).map(o => ({
@@ -181,31 +181,31 @@ const getAllOrders = async (req, res) => {
                 trackingCode: o.trackingCode
             })));
         }
-        
+
         // Sort orders manually: Pending first, then by creation date
         const sortedOrders = orders.sort((a, b) => {
             // Pending orders first
             if (a.status === 'Pending' && b.status !== 'Pending') return -1;
             if (a.status !== 'Pending' && b.status === 'Pending') return 1;
-            
+
             // Then by creation date (newest first)
             const dateA = new Date(a.createdAt || a.date || 0);
             const dateB = new Date(b.createdAt || b.date || 0);
             return dateB - dateA;
         });
-        
+
         // Add additional info to each order for admin display - handle both guest and registered users safely
         const ordersWithInfo = sortedOrders.map(order => {
             try {
                 // Convert to plain object safely
                 const orderObj = order.toObject ? order.toObject() : order;
-                
+
                 return {
                     ...orderObj,
                     // Handle guest orders (no userId) vs registered user orders
                     isGuestOrder: !orderObj.userId || orderObj.userId === null || orderObj.userId === undefined,
-                    displayOrderType: (!orderObj.userId || orderObj.userId === null || orderObj.userId === undefined) 
-                        ? 'Guest Order' 
+                    displayOrderType: (!orderObj.userId || orderObj.userId === null || orderObj.userId === undefined)
+                        ? 'Guest Order'
                         : 'Registered User',
                     shortOrderId: orderObj._id ? orderObj._id.toString().slice(-6) : 'N/A',
                     // Ensure customer info is always available
@@ -237,15 +237,15 @@ const getAllOrders = async (req, res) => {
                 };
             }
         });
-        
+
         console.log(`✅ Successfully processed ${ordersWithInfo.length} orders`)
         res.json(ordersWithInfo);
     } catch (error) {
         console.error('❌ Error fetching all orders:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Error fetching orders",
-            error: error.message 
+            error: error.message
         });
     }
 };
@@ -254,20 +254,22 @@ const getAllOrders = async (req, res) => {
 const getTopProducts = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 5;
-        
+
         // Aggregate orders to find top products
         const topProducts = await orderModel.aggregate([
             { $match: { status: { $in: ['Delivered', 'delivered', 'Completed', 'completed'] } } },
             { $unwind: '$items' },
-            { $group: {
-                _id: '$items.name',
-                totalSold: { $sum: '$items.quantity' },
-                revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }
-            }},
+            {
+                $group: {
+                    _id: '$items.name',
+                    totalSold: { $sum: '$items.quantity' },
+                    revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }
+                }
+            },
             { $sort: { totalSold: -1 } },
             { $limit: limit }
         ]);
-        
+
         res.json({
             success: true,
             data: topProducts.map(p => ({
@@ -297,7 +299,7 @@ const getTimeStats = async (req, res) => {
         // Get orders for different time periods - include all statuses for orders count
         const PENDING_STATUSES = ['pending', 'Pending', 'Order Placed', 'order placed'];
         const COMPLETED_STATUSES = ['completed', 'Completed', 'delivered', 'Delivered'];
-        
+
         // Helper function to get orders for a time period
         const getOrdersForPeriod = async (startDate) => {
             return await orderModel.find({
@@ -383,11 +385,11 @@ const getRecentOrders = async (req, res) => {
             try {
                 // Convert to plain object safely
                 const orderObj = order.toObject ? order.toObject() : order;
-                
+
                 // Handle both guest and registered users safely
                 let userName = 'Guest User';
                 let userType = 'guest';
-                
+
                 if (orderObj.customerInfo && orderObj.customerInfo.name) {
                     userName = orderObj.customerInfo.name;
                     userType = orderObj.userId ? 'registered' : 'guest';
@@ -414,7 +416,7 @@ const getRecentOrders = async (req, res) => {
                             productCode: item.sku || item.productCode || item.code || 'N/A',
                             quantity: item.quantity || 1
                         };
-                    } 
+                    }
                     // Check if item has populated productId (less likely)
                     else if (item.productId && typeof item.productId === 'object') {
                         return {
@@ -425,7 +427,7 @@ const getRecentOrders = async (req, res) => {
                             productCode: item.productId.sku || item.productId.productCode || 'N/A',
                             quantity: item.quantity || 1
                         };
-                    } 
+                    }
                     // Fallback
                     else {
                         return {
@@ -484,7 +486,7 @@ const getRecentOrders = async (req, res) => {
 const getAllUsers = async (req, res) => {
     try {
         const users = await userModel.find().select('-password');
-        
+
         // Add order count for each user
         const usersWithOrderCount = await Promise.all(
             users.map(async (user) => {
@@ -562,8 +564,8 @@ const updateUser = async (req, res) => {
 
         // Update user
         const user = await userModel.findByIdAndUpdate(
-            id, 
-            updateData, 
+            id,
+            updateData,
             { new: true, runValidators: true }
         );
 
@@ -575,9 +577,9 @@ const updateUser = async (req, res) => {
         const userResponse = user.toObject();
         delete userResponse.password;
 
-        res.json({ 
-            message: 'User updated successfully', 
-            user: userResponse 
+        res.json({
+            message: 'User updated successfully',
+            user: userResponse
         });
     } catch (error) {
         console.error('Error updating user:', error);
@@ -622,8 +624,8 @@ const adminLogin = async (req, res) => {
         }
 
         // Find user with admin role
-        const adminUser = await userModel.findOne({ 
-            email: email, 
+        const adminUser = await userModel.findOne({
+            email: email,
             role: 'admin',
             status: 'active'
         });
@@ -637,7 +639,7 @@ const adminLogin = async (req, res) => {
 
         // Verify password
         const isPasswordValid = await bcrypt.compare(password, adminUser.password);
-        
+
         if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
@@ -646,13 +648,19 @@ const adminLogin = async (req, res) => {
         }
 
         // Create JWT token
+        const secret = process.env.JWT_SECRET;
+
+        if (!secret) {
+            throw new Error('JWT_SECRET is not configured. Server configuration error.');
+        }
+
         const token = jwt.sign(
-            { 
-                email: adminUser.email, 
+            {
+                email: adminUser.email,
                 role: adminUser.role,
                 id: adminUser._id
             },
-            process.env.JWT_SECRET || 'your-super-secret-jwt-key-2024-food-delivery-admin-panel',
+            secret,
             { expiresIn: '24h' }
         );
 
@@ -713,13 +721,19 @@ const adminSignup = async (req, res) => {
         await newAdmin.save();
 
         // Create JWT token
+        const secret = process.env.JWT_SECRET;
+
+        if (!secret) {
+            throw new Error('JWT_SECRET is not configured. Server configuration error.');
+        }
+
         const token = jwt.sign(
-            { 
-                email: newAdmin.email, 
+            {
+                email: newAdmin.email,
                 role: newAdmin.role,
                 id: newAdmin._id
             },
-            process.env.JWT_SECRET || 'your-super-secret-jwt-key-2024-food-delivery-admin-panel',
+            secret,
             { expiresIn: '24h' }
         );
 
@@ -788,23 +802,23 @@ const adminSessionCheck = async (req, res) => {
 const getTimeBasedStats = async (req, res) => {
     try {
         const { days = 30, granularity = 'day', metric = 'revenue', orderStatus = 'all' } = req.query;
-        
+
         const endDate = new Date();
         endDate.setHours(23, 59, 59, 999); // End of today
         const startDate = new Date(endDate.getTime() - (parseInt(days) * 24 * 60 * 60 * 1000));
         startDate.setHours(0, 0, 0, 0); // Start of start date
-        
+
         let data = [];
-        
+
         // Generate date range based on granularity
         const dateRange = generateDateRange(startDate, endDate, granularity);
-        
+
         // Get data for each date in the range
         for (const dateInfo of dateRange) {
             const { start, end } = dateInfo;
-            
+
             let value = 0;
-            
+
             switch (metric) {
                 case 'revenue':
                     const revenueQuery = {
@@ -814,7 +828,7 @@ const getTimeBasedStats = async (req, res) => {
                     const revenueOrders = await orderModel.find(revenueQuery);
                     value = revenueOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
                     break;
-                    
+
                 case 'totalOrders':
                     const totalOrdersQuery = {
                         createdAt: { $gte: start, $lt: end }
@@ -824,7 +838,7 @@ const getTimeBasedStats = async (req, res) => {
                     }
                     value = await orderModel.countDocuments(totalOrdersQuery);
                     break;
-                    
+
                 case 'pendingOrders':
                     const pendingQuery = {
                         createdAt: { $gte: start, $lt: end },
@@ -832,7 +846,7 @@ const getTimeBasedStats = async (req, res) => {
                     };
                     value = await orderModel.countDocuments(pendingQuery);
                     break;
-                    
+
                 case 'completedOrders':
                     const completedQuery = {
                         createdAt: { $gte: start, $lt: end },
@@ -840,14 +854,14 @@ const getTimeBasedStats = async (req, res) => {
                     };
                     value = await orderModel.countDocuments(completedQuery);
                     break;
-                    
+
                 case 'users':
                     const usersQuery = {
                         createdAt: { $gte: start, $lt: end }
                     };
                     value = await userModel.countDocuments(usersQuery);
                     break;
-                    
+
                 case 'products':
                     const productsQuery = {
                         createdAt: { $gte: start, $lt: end }
@@ -855,13 +869,13 @@ const getTimeBasedStats = async (req, res) => {
                     value = await foodModel.countDocuments(productsQuery);
                     break;
             }
-            
+
             data.push({
                 date: start.toISOString(),
                 value: value
             });
         }
-        
+
         res.json({
             success: true,
             data: data
@@ -877,11 +891,11 @@ const generateDateRange = (startDate, endDate, granularity) => {
     const ranges = [];
     let currentDate = new Date(startDate);
     currentDate.setHours(0, 0, 0, 0);
-    
+
     while (currentDate <= endDate) {
         let rangeStart = new Date(currentDate);
         let rangeEnd = new Date(currentDate);
-        
+
         switch (granularity) {
             case 'day':
                 rangeEnd.setDate(rangeEnd.getDate() + 1);
@@ -905,18 +919,18 @@ const generateDateRange = (startDate, endDate, granularity) => {
                 rangeEnd.setDate(rangeEnd.getDate() + 1);
                 currentDate.setDate(currentDate.getDate() + 1);
         }
-        
+
         // Make sure we don't go beyond the end date
         if (rangeEnd > endDate) {
             rangeEnd = new Date(endDate);
             rangeEnd.setHours(23, 59, 59, 999);
         }
-        
+
         if (rangeStart <= endDate) {
             ranges.push({ start: rangeStart, end: rangeEnd });
         }
     }
-    
+
     return ranges;
 };
 
@@ -925,45 +939,45 @@ const updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
-        
+
         console.log(`📦 Updating order ${id} status to: ${status}`);
-        
+
         if (!status) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Status is required" 
+            return res.status(400).json({
+                success: false,
+                message: "Status is required"
             });
         }
-        
+
         // Validate status values - support both old and new status formats
         const validStatuses = ['Pending', 'Out for delivery', 'Delivered', 'pending', 'out for delivery', 'delivered'];
         const normalizedStatus = validStatuses.find(s => s.toLowerCase() === status.toLowerCase());
-        
+
         if (!normalizedStatus) {
             return res.status(400).json({
                 success: false,
                 message: `Invalid status. Must be one of: Pending, Out for delivery, Delivered`
             });
         }
-        
+
         // Use the normalized status (capitalized)
-        const finalStatus = normalizedStatus === 'pending' ? 'Pending' : 
-                           normalizedStatus === 'out for delivery' ? 'Out for delivery' : 
-                           normalizedStatus === 'delivered' ? 'Delivered' : normalizedStatus;
-        
+        const finalStatus = normalizedStatus === 'pending' ? 'Pending' :
+            normalizedStatus === 'out for delivery' ? 'Out for delivery' :
+                normalizedStatus === 'delivered' ? 'Delivered' : normalizedStatus;
+
         const updatedOrder = await orderModel.findByIdAndUpdate(
             id,
             { status: finalStatus },
             { new: true, runValidators: true }
         );
-        
+
         if (!updatedOrder) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "Order not found" 
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
             });
         }
-        
+
         console.log(`✅ Order ${id} status updated to: ${finalStatus}`);
         console.log('📋 Updated order:', {
             id: updatedOrder._id,
@@ -973,7 +987,7 @@ const updateOrderStatus = async (req, res) => {
             orderType: updatedOrder.orderType,
             userId: updatedOrder.userId
         });
-        
+
         res.json({
             success: true,
             message: "Order status updated successfully",
@@ -981,10 +995,10 @@ const updateOrderStatus = async (req, res) => {
         });
     } catch (error) {
         console.error('❌ Error updating order status:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: "Error updating order status",
-            error: error.message 
+            error: error.message
         });
     }
 };

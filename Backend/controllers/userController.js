@@ -6,67 +6,73 @@ import { response } from "express";
 
 
 //login user
-const loginUser = async (req,res)=>{
-    const {email,password}=req.body;
+const loginUser = async (req, res) => {
+    const { email, password } = req.body;
     try {
         console.log("Email received:", email)
-        const user =await userModel.findOne({email});
+        const user = await userModel.findOne({ email });
         console.log("User found:", user)
         if (!user) {
-            return res.json({success:false,message:"User Doesn't exists"})
+            return res.json({ success: false, message: "User Doesn't exists" })
         }
-        const isMatch= await bcrypt.compare(password,user.password)
+        const isMatch = await bcrypt.compare(password, user.password)
         console.log("Password match:", isMatch)
 
         if (!isMatch) {
-            return res.json({success:false,message:"Invalid Credentials"})
+            return res.json({ success: false, message: "Invalid Credentials" })
         }
-        const token=createToken(user._id);
-        res.json({success:true,token})
+        const token = createToken(user._id);
+        res.json({ success: true, token })
 
 
     } catch (error) {
         console.log(error);
-        res.json({success:false,message:error.message || "Error"})
+        res.json({ success: false, message: error.message || "Error" })
     }
 }
-const createToken=(id)=>{
-    return jwt.sign({id},process.env.JWT_SECRET || 'your-super-secret-jwt-key-2024-food-delivery-admin-panel')
+const createToken = (id) => {
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+        throw new Error('JWT_SECRET is not configured. Please set JWT_SECRET in environment variables.');
+    }
+
+    return jwt.sign({ id }, secret, { expiresIn: '7d' })
 }
 
 //register user
-const registerUser = async (req,res)=>{
-    const {name ,password,email}=req.body;
+const registerUser = async (req, res) => {
+    const { name, password, email } = req.body;
     try {
         //checking use exits or not
-        const exists=await userModel.findOne({email});
-        if(exists){
-            return res.json({success:false,message:"User already exists"})
+        const exists = await userModel.findOne({ email });
+        if (exists) {
+            return res.json({ success: false, message: "User already exists" })
         }
         // validateing email and password
-        if(!validator.isEmail(email)){
-            return res.json({success:false,message:"Please Enter a valid E-mail"})
+        if (!validator.isEmail(email)) {
+            return res.json({ success: false, message: "Please Enter a valid E-mail" })
         }
-        if(password.length<8){
-            return res.json({success:false,message:"Please enter a strong password"})
+        if (password.length < 8) {
+            return res.json({ success: false, message: "Please enter a strong password" })
         }
 
         //hashing user password
-        const salt= await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password,salt);
+        const salt = await bcrypt.genSalt(10)
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = new userModel({
-            name:name,
-            email:email,
-            password:hashedPassword
+            name: name,
+            email: email,
+            password: hashedPassword
         })
 
         const user = await newUser.save()
-        const token= createToken(user._id)
-        res.json({success:true,token})
+        const token = createToken(user._id)
+        res.json({ success: true, token })
     } catch (error) {
         console.log(error);
-        res.json({success:false,message:error.message || "Error"})
+        res.json({ success: false, message: error.message || "Error" })
     }
 }
 
@@ -75,7 +81,7 @@ const verifyToken = async (req, res) => {
     try {
         // Token được lấy từ authMiddleware (đã verify và decode)
         const userId = req.body.userId;
-        
+
         if (!userId) {
             return res.status(401).json({
                 success: false,
@@ -85,7 +91,7 @@ const verifyToken = async (req, res) => {
 
         // Lấy thông tin user từ database
         const user = await userModel.findById(userId).select('-password -cartData');
-        
+
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -126,7 +132,7 @@ const verifyToken = async (req, res) => {
 const getProfile = async (req, res) => {
     try {
         const userId = req.body.userId;
-        
+
         if (!userId) {
             return res.status(401).json({
                 success: false,
@@ -135,7 +141,7 @@ const getProfile = async (req, res) => {
         }
 
         const user = await userModel.findById(userId).select('-password -cartData');
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -183,7 +189,7 @@ const updateProfile = async (req, res) => {
         console.log("Path:", req.path);
         console.log("Body:", req.body);
         console.log("Headers token:", req.headers.token ? "Present" : "Missing");
-        
+
         const userId = req.body.userId;
         const { name, phone, avatarUrl, email } = req.body;
 
@@ -194,7 +200,7 @@ const updateProfile = async (req, res) => {
                 message: "User ID is required"
             });
         }
-        
+
         console.log("✅ User ID found:", userId);
 
         // Validate that at least one field is provided
@@ -241,9 +247,9 @@ const updateProfile = async (req, res) => {
                     message: "Email cannot be empty"
                 });
             }
-            
+
             const trimmedEmail = email.trim().toLowerCase();
-            
+
             if (!validator.isEmail(trimmedEmail)) {
                 return res.status(400).json({
                     success: false,
@@ -291,7 +297,7 @@ const updateProfile = async (req, res) => {
         });
     } catch (error) {
         console.error("Update profile error:", error);
-        
+
         // Handle MongoDB duplicate key error (unique constraint violation)
         if (error.code === 11000 && error.keyPattern?.email) {
             return res.status(400).json({
@@ -299,7 +305,7 @@ const updateProfile = async (req, res) => {
                 message: "Email already in use"
             });
         }
-        
+
         res.status(500).json({
             success: false,
             message: "Error updating profile",
@@ -339,7 +345,7 @@ const changePassword = async (req, res) => {
 
         // Get user with password
         const user = await userModel.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -349,7 +355,7 @@ const changePassword = async (req, res) => {
 
         // Verify current password
         const isMatch = await bcrypt.compare(currentPassword, user.password);
-        
+
         if (!isMatch) {
             return res.status(400).json({
                 success: false,
@@ -400,7 +406,7 @@ const getAddresses = async (req, res) => {
         }
 
         const user = await userModel.findById(userId).select('addresses defaultAddressId');
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -445,7 +451,7 @@ const addAddress = async (req, res) => {
         }
 
         const user = await userModel.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -477,7 +483,7 @@ const addAddress = async (req, res) => {
 
         // Add address to array
         user.addresses.push(newAddress);
-        
+
         // Save user (pre-save middleware will handle defaultAddressId)
         await user.save();
 
@@ -521,7 +527,7 @@ const updateAddress = async (req, res) => {
         }
 
         const user = await userModel.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -531,7 +537,7 @@ const updateAddress = async (req, res) => {
 
         // Find address in user's addresses array
         const address = user.addresses.id(addressId);
-        
+
         if (!address) {
             return res.status(404).json({
                 success: false,
@@ -550,7 +556,7 @@ const updateAddress = async (req, res) => {
         if (zipcode !== undefined) address.zipcode = zipcode ? zipcode.trim() : '';
         if (country !== undefined) address.country = country.trim();
         if (coordinates !== undefined) address.coordinates = coordinates || null;
-        
+
         // Handle isDefault flag
         if (isDefault === true) {
             // Unset other defaults
@@ -603,7 +609,7 @@ const deleteAddress = async (req, res) => {
         }
 
         const user = await userModel.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -613,7 +619,7 @@ const deleteAddress = async (req, res) => {
 
         // Find address in user's addresses array
         const address = user.addresses.id(addressId);
-        
+
         if (!address) {
             return res.status(404).json({
                 success: false,
@@ -670,7 +676,7 @@ const setDefaultAddress = async (req, res) => {
         }
 
         const user = await userModel.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -680,7 +686,7 @@ const setDefaultAddress = async (req, res) => {
 
         // Find address in user's addresses array
         const address = user.addresses.id(addressId);
-        
+
         if (!address) {
             return res.status(404).json({
                 success: false,
@@ -715,8 +721,8 @@ const setDefaultAddress = async (req, res) => {
 };
 
 export {
-    loginUser, 
-    registerUser, 
+    loginUser,
+    registerUser,
     verifyToken,
     getProfile,
     updateProfile,

@@ -65,6 +65,7 @@ const resources = {
       'nav.deliveryZones': 'Khu vực giao hàng',
       'nav.restaurantInfo': 'Thông tin nhà hàng',
       'nav.messages': 'Tin nhắn',
+      'nav.errorLogs': 'Lỗi hệ thống',
       'nav.emailTest': 'Kiểm tra Email',
       'nav.users': 'Người dùng',
       'nav.permissions': 'Quyền hạn',
@@ -72,6 +73,45 @@ const resources = {
       'nav.language': 'Ngôn ngữ',
       'nav.logout': 'Đăng xuất',
       'nav.profile': 'Hồ sơ',
+
+      // Error Logs
+      'errorLogs.title': 'Nhật ký lỗi',
+      'errorLogs.subtitle': 'Giám sát và quản lý lỗi hệ thống',
+      'errorLogs.totalErrors': 'Tổng lỗi',
+      'errorLogs.unresolved': 'Chưa giải quyết',
+      'errorLogs.byLevel.error': 'Lỗi',
+      'errorLogs.byLevel.warning': 'Cảnh báo',
+      'errorLogs.allLevels': 'Tất cả cấp độ',
+      'errorLogs.error': 'Lỗi',
+      'errorLogs.warning': 'Cảnh báo',
+      'errorLogs.info': 'Thông tin',
+      'errorLogs.allSources': 'Tất cả nguồn',
+      'errorLogs.backend': 'Backend',
+      'errorLogs.frontend': 'Frontend',
+      'errorLogs.admin': 'Admin',
+      'errorLogs.allStatus': 'Tất cả trạng thái',
+      'errorLogs.unresolvedOnly': 'Chưa giải quyết',
+      'errorLogs.resolvedOnly': 'Đã giải quyết',
+      'errorLogs.search': 'Tìm kiếm...',
+      'errorLogs.time': 'Thời gian',
+      'errorLogs.level': 'Cấp độ',
+      'errorLogs.source': 'Nguồn',
+      'errorLogs.message': 'Thông điệp',
+      'errorLogs.url': 'URL/Đường dẫn',
+      'errorLogs.status': 'Trạng thái',
+      'errorLogs.noErrors': 'Không tìm thấy lỗi',
+      'errorLogs.resolved': 'Đã giải quyết',
+      'errorLogs.markResolved': 'Đánh dấu đã giải quyết',
+      'errorLogs.deleteConfirm': 'Xóa nhật ký lỗi này?',
+      'errorLogs.deleted': 'Đã xóa nhật ký lỗi',
+      'errorLogs.deleteError': 'Lỗi khi xóa nhật ký',
+      'errorLogs.fetchError': 'Lỗi khi tải nhật ký',
+      'errorLogs.resolveError': 'Lỗi khi giải quyết',
+      'errorLogs.errorDetails': 'Chi tiết lỗi',
+      'errorLogs.method': 'Phương thức',
+      'errorLogs.userAgent': 'User Agent',
+      'errorLogs.stackTrace': 'Stack Trace',
+      'errorLogs.additionalData': 'Dữ liệu bổ sung',
 
       // Dashboard
       'dashboard.title': 'Bảng điều khiển',
@@ -303,15 +343,15 @@ const resources = {
       'reservations.loading': 'Đang tải đặt lịch...',
       'reservations.noReservationsFound': 'Không tìm thấy đặt lịch nào phù hợp với tiêu chí của bạn.',
       'reservations.clearFilters': 'Xóa bộ lọc',
-      
+
       // Stats
       'reservations.stats.total': 'Total',
       'reservations.stats.pending': 'Pending',
       'reservations.stats.completed': 'Completed',
-      
+
       // Search
       'reservations.search.placeholder': 'Tìm kiếm theo tên, email hoặc số điện thoại...',
-      
+
       // Filters
       'reservations.filters.allStatus': 'Tất cả trạng thái',
       'reservations.filters.pending': 'Chờ xác nhận',
@@ -321,7 +361,7 @@ const resources = {
       'reservations.filters.startDate': 'Ngày bắt đầu',
       'reservations.filters.endDate': 'Ngày kết thúc',
       'reservations.filters.filterByDate': 'Lọc theo ngày',
-      
+
       // Table
       'reservations.table.customer': 'Khách hàng',
       'reservations.table.contact': 'Liên hệ',
@@ -330,19 +370,19 @@ const resources = {
       'reservations.table.status': 'Trạng thái',
       'reservations.table.createdAt': 'Ngày tạo',
       'reservations.table.actions': 'Thao tác',
-      
+
       // Actions
       'reservations.actions.view': 'Xem',
       'reservations.actions.delete': 'Xóa',
       'reservations.actions.deleting': 'Đang xóa...',
       'reservations.actions.tryAgain': 'Thử lại',
-      
+
       // Status
       'reservations.status.pending': 'Chờ xác nhận',
       'reservations.status.completed': 'Đã hoàn thành',
       'reservations.status.cancelled': 'Đã hủy',
       'reservations.status.completed': 'Đã hoàn thành',
-      
+
       // Errors
       'reservations.errors.loadingError': 'Lỗi khi tải đặt lịch',
       'reservations.errors.failedToFetch': 'Không thể tải đặt lịch',
@@ -350,14 +390,14 @@ const resources = {
       'reservations.errors.failedToDelete': 'Không thể xóa đặt lịch',
       'reservations.errors.updateError': 'Lỗi khi cập nhật đặt lịch',
       'reservations.errors.deleteError': 'Lỗi khi xóa đặt lịch',
-      
+
       // Messages
       'reservations.messages.statusUpdatedSuccess': 'Cập nhật trạng thái đặt lịch thành công!',
       'reservations.messages.deletedSuccess': 'Xóa đặt lịch thành công',
-      
+
       // Confirmations
       'reservations.confirmations.deleteReservation': 'Bạn có chắc chắn muốn xóa đặt lịch này? Hành động này không thể hoàn tác.',
-      
+
       // Modal
       'reservations.modal.detailTitle': 'Chi Tiết Đặt Lịch',
       'reservations.modal.bookingId': 'Mã đặt lịch',
@@ -660,6 +700,7 @@ const resources = {
       'nav.deliveryZones': 'Delivery Zones',
       'nav.restaurantInfo': 'Restaurant Info',
       'nav.messages': 'Messages',
+      'nav.errorLogs': 'Error Logs',
       'nav.emailTest': 'Email Test',
       'nav.users': 'Users',
       'nav.permissions': 'Permissions',
@@ -667,6 +708,45 @@ const resources = {
       'nav.language': 'Language',
       'nav.logout': 'Logout',
       'nav.profile': 'Profile',
+
+      // Error Logs
+      'errorLogs.title': 'Error Logs',
+      'errorLogs.subtitle': 'Monitor and manage system errors',
+      'errorLogs.totalErrors': 'Total Errors',
+      'errorLogs.unresolved': 'Unresolved',
+      'errorLogs.byLevel.error': 'Errors',
+      'errorLogs.byLevel.warning': 'Warnings',
+      'errorLogs.allLevels': 'All Levels',
+      'errorLogs.error': 'Error',
+      'errorLogs.warning': 'Warning',
+      'errorLogs.info': 'Info',
+      'errorLogs.allSources': 'All Sources',
+      'errorLogs.backend': 'Backend',
+      'errorLogs.frontend': 'Frontend',
+      'errorLogs.admin': 'Admin',
+      'errorLogs.allStatus': 'All Status',
+      'errorLogs.unresolvedOnly': 'Unresolved',
+      'errorLogs.resolvedOnly': 'Resolved',
+      'errorLogs.search': 'Search...',
+      'errorLogs.time': 'Time',
+      'errorLogs.level': 'Level',
+      'errorLogs.source': 'Source',
+      'errorLogs.message': 'Message',
+      'errorLogs.url': 'URL/Path',
+      'errorLogs.status': 'Status',
+      'errorLogs.noErrors': 'No error logs found',
+      'errorLogs.resolved': 'Resolved',
+      'errorLogs.markResolved': 'Mark as resolved',
+      'errorLogs.deleteConfirm': 'Delete this error log?',
+      'errorLogs.deleted': 'Error log deleted',
+      'errorLogs.deleteError': 'Failed to delete error log',
+      'errorLogs.fetchError': 'Failed to fetch error logs',
+      'errorLogs.resolveError': 'Failed to resolve error',
+      'errorLogs.errorDetails': 'Error Details',
+      'errorLogs.method': 'Method',
+      'errorLogs.userAgent': 'User Agent',
+      'errorLogs.stackTrace': 'Stack Trace',
+      'errorLogs.additionalData': 'Additional Data',
 
       // Dashboard
       'dashboard.title': 'Dashboard',
@@ -921,15 +1001,15 @@ const resources = {
       'reservations.loading': 'Loading reservations...',
       'reservations.noReservationsFound': 'No reservations found matching your criteria.',
       'reservations.clearFilters': 'Clear Filters',
-      
+
       // Stats
       'reservations.stats.total': 'Total',
       'reservations.stats.pending': 'Pending',
       'reservations.stats.completed': 'Completed',
-      
+
       // Search
       'reservations.search.placeholder': 'Search by name, email, or phone...',
-      
+
       // Filters
       'reservations.filters.allStatus': 'All Status',
       'reservations.filters.pending': 'Pending',
@@ -939,7 +1019,7 @@ const resources = {
       'reservations.filters.startDate': 'Start Date',
       'reservations.filters.endDate': 'End Date',
       'reservations.filters.filterByDate': 'Filter by Date',
-      
+
       // Table
       'reservations.table.customer': 'Customer',
       'reservations.table.contact': 'Contact',
@@ -948,19 +1028,19 @@ const resources = {
       'reservations.table.status': 'Status',
       'reservations.table.createdAt': 'Created At',
       'reservations.table.actions': 'Actions',
-      
+
       // Actions
       'reservations.actions.view': 'View',
       'reservations.actions.delete': 'Delete',
       'reservations.actions.deleting': 'Deleting...',
       'reservations.actions.tryAgain': 'Try Again',
-      
+
       // Status
       'reservations.status.pending': 'Pending',
       'reservations.status.completed': 'Completed',
       'reservations.status.cancelled': 'Cancelled',
       'reservations.status.completed': 'Completed',
-      
+
       // Errors
       'reservations.errors.loadingError': 'Error Loading Reservations',
       'reservations.errors.failedToFetch': 'Failed to fetch reservations',
@@ -968,14 +1048,14 @@ const resources = {
       'reservations.errors.failedToDelete': 'Failed to delete reservation',
       'reservations.errors.updateError': 'Error updating reservation',
       'reservations.errors.deleteError': 'Error deleting reservation',
-      
+
       // Messages
       'reservations.messages.statusUpdatedSuccess': 'Reservation status updated successfully!',
       'reservations.messages.deletedSuccess': 'Reservation deleted successfully',
-      
+
       // Confirmations
       'reservations.confirmations.deleteReservation': 'Are you sure you want to delete this reservation? This action cannot be undone.',
-      
+
       // Modal
       'reservations.modal.detailTitle': 'Reservation Details',
       'reservations.modal.bookingId': 'Booking ID',
@@ -1556,15 +1636,15 @@ const resources = {
       'reservations.loading': 'Načítavam rezervácie...',
       'reservations.noReservationsFound': 'Nenašli sa žiadne rezervácie zodpovedajúce vašim kritériám.',
       'reservations.clearFilters': 'Vymazať filtre',
-      
+
       // Stats
       'reservations.stats.total': 'Celkom',
       'reservations.stats.pending': 'Čakajúce',
       'reservations.stats.completed': 'Dokončené',
-      
+
       // Search
       'reservations.search.placeholder': 'Vyhľadávanie podľa mena, emailu alebo telefónu...',
-      
+
       // Filters
       'reservations.filters.allStatus': 'Všetky stavy',
       'reservations.filters.pending': 'Čakajúce na potvrdenie',
@@ -1573,7 +1653,7 @@ const resources = {
       'reservations.filters.startDate': 'Dátum začiatku',
       'reservations.filters.endDate': 'Dátum konca',
       'reservations.filters.filterByDate': 'Filtrovať podľa dátumu',
-      
+
       // Table
       'reservations.table.customer': 'Zákazník',
       'reservations.table.contact': 'Kontakt',
@@ -1582,18 +1662,18 @@ const resources = {
       'reservations.table.status': 'Stav',
       'reservations.table.createdAt': 'Dátum vytvorenia',
       'reservations.table.actions': 'Akcie',
-      
+
       // Actions
       'reservations.actions.view': 'Zobraziť',
       'reservations.actions.delete': 'Vymazať',
       'reservations.actions.deleting': 'Vymazávam...',
       'reservations.actions.tryAgain': 'Skúsiť znova',
-      
+
       // Status
       'reservations.status.pending': 'Čakajúce na potvrdenie',
       'reservations.status.completed': 'Dokončené',
       'reservations.status.cancelled': 'Zrušené',
-      
+
       // Errors
       'reservations.errors.loadingError': 'Chyba pri načítaní rezervácií',
       'reservations.errors.failedToFetch': 'Chyba pri načítaní rezervácií',
@@ -1601,14 +1681,14 @@ const resources = {
       'reservations.errors.failedToDelete': 'Chyba pri vymazaní rezervácie',
       'reservations.errors.updateError': 'Chyba pri aktualizácii rezervácie',
       'reservations.errors.deleteError': 'Chyba pri vymazaní rezervácie',
-      
+
       // Messages
       'reservations.messages.statusUpdatedSuccess': 'Stav rezervácie úspešne aktualizovaný!',
       'reservations.messages.deletedSuccess': 'Rezervácia úspešne vymazaná',
-      
+
       // Confirmations
       'reservations.confirmations.deleteReservation': 'Ste si istí, že chcete vymazať túto rezerváciu? Táto akcia sa nedá vrátiť späť.',
-      
+
       // Modal
       'reservations.modal.detailTitle': 'Detaily rezervácie',
       'reservations.modal.bookingId': 'ID rezervácie',

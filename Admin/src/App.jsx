@@ -16,6 +16,7 @@ import Add from './pages/Add/Add'
 import Login from './pages/Login/Login'
 import DeliveryZones from './pages/DeliveryZones/DeliveryZones'
 import RestaurantInfo from './pages/RestaurantInfo/RestaurantInfo'
+import ErrorLogs from './pages/ErrorLogs/ErrorLogs'
 import MainLayout from './components/Layout/MainLayout'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -122,6 +123,7 @@ const App = () => {
           <Route path='/admin/restaurant-info' element={<RestaurantInfo url={url} />} />
           <Route path='/admin/messages' element={<Messages url={url} />} />
           <Route path='/admin/email-test' element={<EmailTest url={url} />} />
+          <Route path='/admin/error-logs' element={<ErrorLogs url={url} />} />
           <Route path='/admin/add' element={<Add url={url} />} />
           <Route path='/admin/login' element={<Navigate to="/admin" replace />} />
           <Route path='*' element={<Navigate to="/admin" replace />} />

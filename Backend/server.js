@@ -4,6 +4,8 @@ import cors from "cors"
 import mongoose from "mongoose"
 import helmet from "helmet"
 import rateLimit from "express-rate-limit"
+import mongoSanitize from "express-mongo-sanitize"
+import hpp from "hpp"
 import "dotenv/config"
 import { connectDB } from "./config/db.js"
 import foodRouter from "./routes/foodRoute.js"
@@ -22,8 +24,11 @@ import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 import emailTestRouter from "./routes/emailTestRoute.js"
 import deliveryRouter from "./routes/deliveryRoute.js"
 import restaurantInfoRouter from "./routes/restaurantInfoRoutes.js"
+import errorLogRouter from "./routes/errorLogRoute.js"
 import eventBus from "./services/eventBus.js"
 import authMiddleware, { verifyAdmin } from "./middleware/auth.js"
+import { sanitizeRequest, errorHandler } from "./middleware/security.js"
+import { errorHandlerWithLogging } from "./middleware/errorLogging.js"
 
 const app = express()
 
@@ -53,6 +58,25 @@ app.use(
   })
 )
 
+// --- Body parsing with size limits ---
+app.use(express.json({ limit: "10mb" }))
+app.use(express.urlencoded({ extended: true, limit: "10mb" }))
+
+// --- Security Middleware ---
+// Prevent NoSQL injection by sanitizing user input
+app.use(mongoSanitize({
+  replaceWith: '_',
+  onSanitize: ({ req, key }) => {
+    console.warn(`⚠️ Potential NoSQL injection attempt detected in ${key}`);
+  }
+}))
+
+// Prevent HTTP Parameter Pollution
+app.use(hpp())
+
+// Sanitize all user inputs for XSS protection
+app.use(sanitizeRequest)
+
 // --- Rate limiting cho các route nhạy cảm ---
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 phút
@@ -75,9 +99,7 @@ app.use("/api/user/login", authLimiter)
 app.use("/api/admin/login", authLimiter)
 app.use("/api/order", writeLimiter)
 app.use("/api/contact", writeLimiter)
-app.use(express.json({ limit: "50mb" }))
-app.use(express.urlencoded({ extended: true, limit: "50mb" }))
-//db connection
+
 connectDB();
 // Database connection state
 let isConnected = false
@@ -142,6 +164,7 @@ app.use("/api/upload-cloud", uploadRouter)  // Keep Cloudinary as backup
 app.use("/api/cloudinary", cloudinarySignRouter)
 app.use("/api/delivery", deliveryRouter)
 app.use("/api/restaurant-info", restaurantInfoRouter)
+app.use("/api/error-logs", errorLogRouter)
 
 // --- Server-Sent Events (SSE) for realtime notifications ---
 const sseClients = []
@@ -165,7 +188,7 @@ app.get('/api/events', authMiddleware, verifyAdmin, (req, res) => {
 
   // Heartbeat to keep connection alive (Render/Proxies can drop idle)
   const heartbeat = setInterval(() => {
-    try { res.write(`event: ping\n` + `data: ${Date.now()}\n\n`) } catch {}
+    try { res.write(`event: ping\n` + `data: ${Date.now()}\n\n`) } catch { }
   }, 25000)
 
   req.on('close', () => {
@@ -180,7 +203,7 @@ const broadcastEvent = (type, payload, channel = 'orders') => {
   const data = `event: message\n` + `data: ${JSON.stringify({ type, payload })}\n\n`
   sseClients.forEach(c => {
     if (c.channel === 'all' || c.channel === channel) {
-      try { c.res.write(data) } catch {}
+      try { c.res.write(data) } catch { }
     }
   })
 }
@@ -216,7 +239,7 @@ eventBus.on('contact:created', (contactMessage) => {
     status: contactMessage.status,
     createdAt: contactMessage.createdAt
   }, 'messages')
-  
+
   console.log(`🔔 Realtime notification broadcasted for contact message #${contactMessage.messageNumber} from ${contactMessage.name}`)
 })
 
@@ -228,7 +251,7 @@ app.use("/sound", express.static("sound"))
 
 // Health check endpoints
 app.get("/", (req, res) => {
-  res.json({ 
+  res.json({
     success: true,
     message: "🚀 Food Delivery API is Working!",
     timestamp: new Date().toISOString(),
@@ -237,12 +260,12 @@ app.get("/", (req, res) => {
 })
 
 app.get("/api", (req, res) => {
-  res.json({ 
+  res.json({
     success: true,
     message: "🍕 Food Delivery API v1.0",
     endpoints: [
       "/api/food",
-      "/api/user", 
+      "/api/user",
       "/api/cart",
       "/api/order",
       "/api/admin",
@@ -260,7 +283,7 @@ app.get("/api", (req, res) => {
 app.get("/health", async (req, res) => {
   try {
     const dbStatus = mongoose.connection.readyState === 1 ? "connected" : "disconnected"
-    res.json({ 
+    res.json({
       success: true,
       status: "healthy",
       database: dbStatus,
@@ -268,10 +291,10 @@ app.get("/health", async (req, res) => {
       uptime: process.uptime()
     })
   } catch (error) {
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       status: "unhealthy",
-      error: error.message 
+      error: error.message
     })
   }
 })
@@ -297,160 +320,160 @@ app.get("/test-food", async (req, res) => {
 
 // Các route debug chỉ bật khi không phải production
 if (process.env.NODE_ENV !== "production") {
-app.get("/debug", async (req, res) => {
-  try {
-    // Test actual database connectivity instead of connection state
-    let dbStatus = "disconnected"
-    let foodCount = 0
-    let testQuery = "failed"
-    
+  app.get("/debug", async (req, res) => {
     try {
-      const foodModel = (await import("./models/foodModel.js")).default
-      foodCount = await foodModel.countDocuments()
-      testQuery = "success"
-      dbStatus = "connected" // If query works, DB is connected
-    } catch (dbError) {
-      testQuery = dbError.message
-      dbStatus = "error"
-    }
-    
-    res.json({
-      success: true,
-      database: dbStatus,
-      foodCount: foodCount,
-      testQuery: testQuery,
-      environment: process.env.NODE_ENV,
-      mongoUrl: process.env.MONGODB_URL ? "configured" : "missing",
-      nodeVersion: process.version,
-      platform: process.platform,
-      mongooseState: mongoose.connection.readyState
-    })
-  } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      error: error.message 
-    })
-  }
-})
+      // Test actual database connectivity instead of connection state
+      let dbStatus = "disconnected"
+      let foodCount = 0
+      let testQuery = "failed"
 
-app.get("/debug-cloudinary", async (req, res) => {
-  try {
-    const cloudinary = (await import("./config/cloudinary.js")).default
-    
-    // Test cloudinary config
-    const config = {
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET ? "***configured***" : "missing"
-    }
-    
-    // Test API call
-    const result = await cloudinary.api.ping()
-    
-    res.json({
-      success: true,
-      message: "Cloudinary connection working",
-      config: config,
-      ping: result
-    })
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      config: {
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "missing",
-        api_key: process.env.CLOUDINARY_API_KEY ? "***configured***" : "missing",
-        api_secret: process.env.CLOUDINARY_API_SECRET ? "***configured***" : "missing"
+      try {
+        const foodModel = (await import("./models/foodModel.js")).default
+        foodCount = await foodModel.countDocuments()
+        testQuery = "success"
+        dbStatus = "connected" // If query works, DB is connected
+      } catch (dbError) {
+        testQuery = dbError.message
+        dbStatus = "error"
       }
-    })
-  }
-})
 
-app.get("/debug-email", async (req, res) => {
-  try {
-    const { createTransporter } = await import("./services/emailService.js")
-    const transporter = createTransporter()
-    const config = {
-      hasUser: !!process.env.EMAIL_USER,
-      hasPass: !!(process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_PASS),
-      service: process.env.EMAIL_SERVICE || null,
-      host: process.env.EMAIL_HOST || null,
-      port: process.env.EMAIL_PORT || null,
-      secure: process.env.EMAIL_SECURE || null
-    }
-    if (!transporter) {
-      return res.status(200).json({ success: false, configured: false, config })
-    }
-    try {
-      const verified = await transporter.verify()
-      res.json({ success: true, configured: true, verified, config })
-    } catch (verifyErr) {
-      res.json({ success: false, configured: true, verified: false, error: verifyErr.message, config })
-    }
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message })
-  }
-})
-
-app.post("/test-upload", async (req, res) => {
-  try {
-    const { upload } = await import("./middleware/upload.js")
-    const uploadSingle = upload.single("image")
-    
-    uploadSingle(req, res, (err) => {
-      if (err) {
-        console.error("=== UPLOAD ERROR ===", err)
-        return res.status(500).json({
-          success: false,
-          error: "Upload failed: " + err.message,
-          details: err
-        })
-      }
-      
-      console.log("=== UPLOAD TEST DEBUG ===")
-      console.log("File received:", req.file ? "YES" : "NO")
-      console.log("File details:", req.file)
-      
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          error: "No file uploaded"
-        })
-      }
-      
       res.json({
         success: true,
-        message: "Upload successful",
-        file: {
-          url: req.file.path,
-          public_id: req.file.filename,
-          size: req.file.size,
-          originalname: req.file.originalname
+        database: dbStatus,
+        foodCount: foodCount,
+        testQuery: testQuery,
+        environment: process.env.NODE_ENV,
+        mongoUrl: process.env.MONGODB_URL ? "configured" : "missing",
+        nodeVersion: process.version,
+        platform: process.platform,
+        mongooseState: mongoose.connection.readyState
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message
+      })
+    }
+  })
+
+  app.get("/debug-cloudinary", async (req, res) => {
+    try {
+      const cloudinary = (await import("./config/cloudinary.js")).default
+
+      // Test cloudinary config
+      const config = {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET ? "***configured***" : "missing"
+      }
+
+      // Test API call
+      const result = await cloudinary.api.ping()
+
+      res.json({
+        success: true,
+        message: "Cloudinary connection working",
+        config: config,
+        ping: result
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        config: {
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "missing",
+          api_key: process.env.CLOUDINARY_API_KEY ? "***configured***" : "missing",
+          api_secret: process.env.CLOUDINARY_API_SECRET ? "***configured***" : "missing"
         }
       })
-    })
-  } catch (error) {
-    console.error("Test upload error:", error)
-    res.status(500).json({
-      success: false,
-      error: error.message
-    })
-  }
-})
+    }
+  })
+
+  app.get("/debug-email", async (req, res) => {
+    try {
+      const { createTransporter } = await import("./services/emailService.js")
+      const transporter = createTransporter()
+      const config = {
+        hasUser: !!process.env.EMAIL_USER,
+        hasPass: !!(process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.EMAIL_PASS),
+        service: process.env.EMAIL_SERVICE || null,
+        host: process.env.EMAIL_HOST || null,
+        port: process.env.EMAIL_PORT || null,
+        secure: process.env.EMAIL_SECURE || null
+      }
+      if (!transporter) {
+        return res.status(200).json({ success: false, configured: false, config })
+      }
+      try {
+        const verified = await transporter.verify()
+        res.json({ success: true, configured: true, verified, config })
+      } catch (verifyErr) {
+        res.json({ success: false, configured: true, verified: false, error: verifyErr.message, config })
+      }
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message })
+    }
+  })
+
+  app.post("/test-upload", async (req, res) => {
+    try {
+      const { upload } = await import("./middleware/upload.js")
+      const uploadSingle = upload.single("image")
+
+      uploadSingle(req, res, (err) => {
+        if (err) {
+          console.error("=== UPLOAD ERROR ===", err)
+          return res.status(500).json({
+            success: false,
+            error: "Upload failed: " + err.message,
+            details: err
+          })
+        }
+
+        console.log("=== UPLOAD TEST DEBUG ===")
+        console.log("File received:", req.file ? "YES" : "NO")
+        console.log("File details:", req.file)
+
+        if (!req.file) {
+          return res.status(400).json({
+            success: false,
+            error: "No file uploaded"
+          })
+        }
+
+        res.json({
+          success: true,
+          message: "Upload successful",
+          file: {
+            url: req.file.path,
+            public_id: req.file.filename,
+            size: req.file.size,
+            originalname: req.file.originalname
+          }
+        })
+      })
+    } catch (error) {
+      console.error("Test upload error:", error)
+      res.status(500).json({
+        success: false,
+        error: error.message
+      })
+    }
+  })
 }
 
 // 404 handler - phải để cuối cùng
 app.use("*", (req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     success: false,
     error: "Route not found",
     path: req.originalUrl,
     method: req.method,
     message: "Endpoint không tồn tại",
     availableRoutes: [
-      "/api/food", 
-      "/api/user", 
-      "/api/cart", 
+      "/api/food",
+      "/api/user",
+      "/api/cart",
       "/api/order",
       "/api/admin",
       "/api/category",
@@ -460,19 +483,8 @@ app.use("*", (req, res) => {
   })
 })
 
-// Error handling middleware
-app.use((error, req, res, next) => {
-  console.error("Global error handler:", error)
-
-  const isProduction = process.env.NODE_ENV === "production"
-
-  res.status(500).json({
-    success: false,
-    error: "Internal server error",
-    // Ẩn chi tiết lỗi trên production để tránh lộ thông tin nội bộ
-    ...(isProduction ? {} : { message: error.message })
-  })
-})
+// Error handling middleware - Must be after all routes (automatically logs to database)
+app.use(errorHandlerWithLogging)
 
 // Server startup
 const port = process.env.PORT || 4000
@@ -482,13 +494,13 @@ if (process.env.VERCEL !== "1") {
   app.listen(port, async () => {
     console.log(`🚀 Server running on port ${port}`)
     console.log(`Environment: ${process.env.NODE_ENV || "development"}`)
-    
+
     // Email service health check on startup (non-blocking)
     console.log('\n📧 Checking email service configuration...')
     try {
       const { testEmailService } = await import("./services/emailService.js")
       const emailStatus = await testEmailService()
-      
+
       if (emailStatus.success) {
         console.log('✅ Email service is configured and working!')
         console.log(`   From: ${emailStatus.from}`)
