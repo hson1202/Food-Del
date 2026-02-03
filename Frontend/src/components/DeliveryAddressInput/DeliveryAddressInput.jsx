@@ -27,9 +27,9 @@ const buildAddressPayload = ({ address = '', components = {}, latitude, longitud
   };
 };
 
-const DeliveryAddressInput = ({ 
-  value, 
-  onChange, 
+const DeliveryAddressInput = ({
+  value,
+  onChange,
   onDeliveryCalculated,
   url,
   restaurantLocation
@@ -106,14 +106,20 @@ const DeliveryAddressInput = ({
     setError('');
 
     try {
+      console.log('🚚 Calculating delivery for:', { address, latitude, longitude });
+
       const response = await axios.post(`${url}/api/delivery/calculate`, {
         address,
         latitude,
         longitude
       });
 
+      console.log('📦 Delivery calculation response:', response.data);
+
       if (response.data.success) {
         const deliveryData = response.data.data;
+        console.log('✅ Delivery available:', deliveryData.zone.name, `- €${deliveryData.zone.deliveryFee}`);
+
         setDeliveryInfo(deliveryData);
         if (onDeliveryCalculated) {
           onDeliveryCalculated(deliveryData);
@@ -143,7 +149,10 @@ const DeliveryAddressInput = ({
       } else {
         // Out of delivery range - but still update address if available
         const deliveryData = response.data;
-        
+
+        console.warn('⚠️ Delivery NOT available. Distance:', deliveryData.distance, 'km');
+        console.warn('Reason:', deliveryData.outOfRange ? 'Out of range' : 'Unknown');
+
         // Lấy thông báo phù hợp với ngôn ngữ hiện tại
         let errorMessage = deliveryData.message || t('placeOrder.form.deliveryNotAvailable');
         const currentLang = i18n.language || 'vi';
@@ -154,20 +163,22 @@ const DeliveryAddressInput = ({
         } else if (currentLang === 'vi' && deliveryData.message) {
           errorMessage = deliveryData.message;
         }
-        
+
+        console.log('❌ Error message to display:', errorMessage);
+
         if (deliveryData.address) {
           // Use coordinates from selectedAddress if available, otherwise from request
           const currentCoords = selectedAddress?.latitude && selectedAddress?.longitude
             ? { latitude: selectedAddress.latitude, longitude: selectedAddress.longitude }
             : { latitude, longitude };
-          
+
           setQuery(deliveryData.address);
           setSelectedAddress({
             address: deliveryData.address,
             latitude: currentCoords.latitude,
             longitude: currentCoords.longitude
           });
-          
+
           if (onChange) {
             onChange(buildAddressPayload({
               address: deliveryData.address,
@@ -176,7 +187,7 @@ const DeliveryAddressInput = ({
             }));
           }
         }
-        
+
         setError(errorMessage);
         setDeliveryInfo(null);
         if (onDeliveryCalculated) {
@@ -184,7 +195,8 @@ const DeliveryAddressInput = ({
         }
       }
     } catch (err) {
-      console.error('Error calculating delivery:', err);
+      console.error('❌ Error calculating delivery:', err);
+      console.error('Response:', err.response?.data);
       setError(t('placeOrder.form.deliveryCalculationError'));
       setDeliveryInfo(null);
       if (onDeliveryCalculated) {
@@ -241,7 +253,7 @@ const DeliveryAddressInput = ({
   const handleManualLocationConfirm = async (coords) => {
     if (!coords) return;
     setIsManualPickerOpen(false);
-    
+
     // Set temporary query (will be updated by calculateDelivery after reverse geocoding)
     setQuery(t('placeOrder.form.findingAddress'));
     setSelectedAddress({
@@ -249,7 +261,7 @@ const DeliveryAddressInput = ({
       latitude: coords.latitude,
       longitude: coords.longitude
     });
-    
+
     // Calculate delivery - backend will reverse geocode and return the address
     // calculateDelivery will automatically update the query with the address from response
     await calculateDelivery({
@@ -290,11 +302,11 @@ const DeliveryAddressInput = ({
         <div className="suggestions-dropdown">
           {suggestions.map((suggestion) => {
             // Kiểm tra xem địa chỉ có số nhà không
-            const hasHouseNumber = suggestion.components?.houseNumber && 
-                                  suggestion.components.houseNumber.trim().length > 0;
-            const isGeneralAddress = !hasHouseNumber && 
-                                    (suggestion.components?.street || suggestion.shortAddress);
-            
+            const hasHouseNumber = suggestion.components?.houseNumber &&
+              suggestion.components.houseNumber.trim().length > 0;
+            const isGeneralAddress = !hasHouseNumber &&
+              (suggestion.components?.street || suggestion.shortAddress);
+
             return (
               <div
                 key={suggestion.id}

@@ -26,18 +26,18 @@ const extractAddressComponents = (nominatimResult = {}) => {
 
   // Nominatim trả về address components trong object address
   // Số nhà
-  components.houseNumber = 
-    address.house_number || 
-    address.house || 
-    address.housenumber || 
+  components.houseNumber =
+    address.house_number ||
+    address.house ||
+    address.housenumber ||
     "";
 
   // Tên đường
-  components.street = 
-    address.road || 
-    address.street || 
-    address.pedestrian || 
-    address.path || 
+  components.street =
+    address.road ||
+    address.street ||
+    address.pedestrian ||
+    address.path ||
     "";
 
   // Village (thành phố nhỏ, ví dụ: Veča)
@@ -47,18 +47,18 @@ const extractAddressComponents = (nominatimResult = {}) => {
   components.town = address.town || address.city || "";
 
   // City (fallback - dùng village hoặc town nếu không có)
-  components.city = 
-    address.city || 
-    address.town || 
-    address.village || 
-    address.municipality || 
+  components.city =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.municipality ||
     "";
 
   // Tỉnh/Quận/Huyện
-  components.state = 
-    address.state || 
-    address.region || 
-    address.county || 
+  components.state =
+    address.state ||
+    address.region ||
+    address.county ||
     "";
 
   // Mã bưu điện
@@ -110,19 +110,19 @@ const extractAddressComponents = (nominatimResult = {}) => {
 // Bỏ qua state/region và country để tránh lặp lại thông tin
 const formatShortAddress = (components = {}) => {
   const parts = [];
-  
+
   // Phần 1: Street line (số nhà + tên đường)
   if (components.streetLine) {
     parts.push(components.streetLine);
   } else if (components.street) {
     parts.push(components.street);
   }
-  
+
   // Phần 2: Village (thành phố nhỏ, ví dụ: Veča)
   if (components.village && components.village !== components.town) {
     parts.push(components.village);
   }
-  
+
   // Phần 3: Zipcode + Town (thành phố lớn hơn, ví dụ: 927 05 Šaľa)
   if (components.zipcode && components.town) {
     // Kết hợp zipcode và town nếu town khác với village
@@ -157,15 +157,15 @@ const formatShortAddress = (components = {}) => {
       parts.push(components.city);
     }
   }
-  
+
   // KHÔNG thêm state/region và country để tránh lặp lại thông tin
   // (ví dụ: "Region of Nitra 927 01" sẽ bị bỏ qua)
-  
+
   // Nếu không có gì, trả về empty string
   if (parts.length === 0) {
     return "";
   }
-  
+
   return parts.join(", ");
 };
 
@@ -174,28 +174,28 @@ const formatShortAddress = (components = {}) => {
 // -> "203/42 Vinohradnícka, 927 01 Šaľa"
 const cleanDisplayName = (displayName = "") => {
   if (!displayName) return "";
-  
+
   // Tách địa chỉ thành các phần
   const parts = displayName.split(',').map(part => part.trim()).filter(Boolean);
-  
+
   // Loại bỏ các phần chứa "Region of", "State", "Country", "Slovakia"
   const cleanedParts = parts.filter(part => {
     const lowerPart = part.toLowerCase();
     // Bỏ qua các phần chứa từ khóa region/state/country
-    if (lowerPart.includes('region of') || 
-        lowerPart.includes('state') || 
-        (lowerPart.includes('country') && !lowerPart.match(/\d/)) || // Bỏ "country" nhưng giữ nếu có số
-        lowerPart === 'slovakia') {
+    if (lowerPart.includes('region of') ||
+      lowerPart.includes('state') ||
+      (lowerPart.includes('country') && !lowerPart.match(/\d/)) || // Bỏ "country" nhưng giữ nếu có số
+      lowerPart === 'slovakia') {
       return false;
     }
     return true;
   });
-  
+
   // Loại bỏ các phần trùng lặp (ví dụ: "Šaľa" xuất hiện 2 lần)
   // Ưu tiên giữ phần có zipcode (ví dụ: "927 01 Šaľa" thay vì chỉ "Šaľa")
   const uniqueParts = [];
   const seenWords = new Set();
-  
+
   // Đầu tiên, thêm các phần có zipcode (chứa số)
   for (const part of cleanedParts) {
     if (/\d/.test(part)) {
@@ -208,7 +208,7 @@ const cleanDisplayName = (displayName = "") => {
       });
     }
   }
-  
+
   // Sau đó, thêm các phần không có zipcode nhưng chưa bị trùng
   for (const part of cleanedParts) {
     if (!/\d/.test(part)) {
@@ -222,7 +222,7 @@ const cleanDisplayName = (displayName = "") => {
       }
     }
   }
-  
+
   return uniqueParts.join(", ");
 };
 
@@ -231,13 +231,13 @@ const nominatimResultToAddress = (result = {}) => {
   const latitude = parseFloat(result.lat) || DEFAULT_MAP_CENTER.latitude;
   const longitude = parseFloat(result.lon) || DEFAULT_MAP_CENTER.longitude;
   const components = extractAddressComponents(result);
-  
+
   // Format địa chỉ ngắn gọn từ components
   const shortAddress = formatShortAddress(components);
-  
+
   // Nếu không format được địa chỉ ngắn, fallback về display_name đã được clean
   const formattedAddress = shortAddress || cleanDisplayName(result.display_name) || "";
-  
+
   return {
     latitude,
     longitude,
@@ -252,15 +252,15 @@ function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Bán kính trái đất (km)
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-  
-  const a = 
+
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
-  
+
   return distance;
 }
 
@@ -277,29 +277,29 @@ async function geocodeAddress(address) {
     // addressdetails=1: lấy chi tiết địa chỉ
     // limit=5: lấy 5 kết quả để tìm địa chỉ có số nhà
     const url = `${NOMINATIM_BASE_URL}/search?q=${encodedAddress}&format=json&limit=5&countrycodes=sk&addressdetails=1&accept-language=en`;
-    
+
     console.log("🔍 Geocoding address with Nominatim:", address);
-    
+
     const response = await fetch(url, {
       headers: {
         'User-Agent': NOMINATIM_USER_AGENT
       }
     });
-    
+
     if (!response.ok) {
       throw new Error(`Nominatim API error: ${response.status} ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    
+
     if (!data || data.length === 0) {
       throw new Error("Address not found");
     }
-    
+
     // ✨ Ưu tiên chọn địa chỉ có số nhà cụ thể
     let bestResult = data[0];
     let bestParsed = nominatimResultToAddress(bestResult);
-    
+
     // Tìm địa chỉ có số nhà trong các kết quả
     for (const result of data) {
       const parsed = nominatimResultToAddress(result);
@@ -310,14 +310,14 @@ async function geocodeAddress(address) {
         break; // Dừng khi tìm thấy địa chỉ có số nhà
       }
     }
-    
-    console.log("✅ Geocoding successful:", { 
-      latitude: bestParsed.latitude, 
-      longitude: bestParsed.longitude, 
+
+    console.log("✅ Geocoding successful:", {
+      latitude: bestParsed.latitude,
+      longitude: bestParsed.longitude,
       placeName: bestParsed.formattedAddress,
       houseNumber: bestParsed.components.houseNumber || "N/A"
     });
-    
+
     return bestParsed;
   } catch (error) {
     console.error("❌ Geocoding error:", error);
@@ -366,7 +366,7 @@ async function reverseGeocodeCoordinates(latitude, longitude) {
 const getDeliveryZones = async (req, res) => {
   try {
     const zones = await deliveryZoneModel.find({ isActive: true }).sort({ order: 1, minDistance: 1 });
-    
+
     res.json({
       success: true,
       data: zones
@@ -384,10 +384,10 @@ const getDeliveryZones = async (req, res) => {
 const calculateDeliveryFee = async (req, res) => {
   try {
     const { address, latitude, longitude } = req.body;
-    
+
     let customerLat, customerLng, formattedAddress;
     let addressComponents = null;
-    
+
     // Nếu có latitude/longitude thì dùng luôn
     if (latitude && longitude) {
       customerLat = parseFloat(latitude);
@@ -405,7 +405,7 @@ const calculateDeliveryFee = async (req, res) => {
           formattedAddress = `${latitude}, ${longitude}`;
         }
       }
-    } 
+    }
     // Nếu không, geocode từ address
     else if (address) {
       const geocoded = await geocodeAddress(address);
@@ -413,27 +413,27 @@ const calculateDeliveryFee = async (req, res) => {
       customerLng = geocoded.longitude;
       formattedAddress = geocoded.formattedAddress;
       addressComponents = geocoded.components;
-    } 
+    }
     else {
       return res.status(400).json({
         success: false,
         message: "Please provide either address or latitude/longitude"
       });
     }
-    
+
     // Lấy vị trí nhà hàng
-    const restaurant = await restaurantLocationModel.findOne({ 
-      isActive: true, 
-      isPrimary: true 
+    const restaurant = await restaurantLocationModel.findOne({
+      isActive: true,
+      isPrimary: true
     });
-    
+
     if (!restaurant) {
       return res.status(404).json({
         success: false,
         message: "Restaurant location not configured"
       });
     }
-    
+
     // Tính khoảng cách
     const distance = calculateHaversineDistance(
       restaurant.latitude,
@@ -441,14 +441,22 @@ const calculateDeliveryFee = async (req, res) => {
       customerLat,
       customerLng
     );
-    
+
     // Tìm zone phù hợp
     const zones = await deliveryZoneModel.find({ isActive: true }).sort({ minDistance: 1 });
-    
+
+    console.log(`🔍 Delivery calculation for distance: ${distance.toFixed(2)}km`);
+    console.log(`📦 Available zones (${zones.length}):`, zones.map(z => ({
+      name: z.name,
+      range: `${z.minDistance}-${z.maxDistance}km`,
+      fee: `€${z.deliveryFee}`
+    })));
+
     let matchedZone = null;
     for (const zone of zones) {
       if (distance >= zone.minDistance && distance <= zone.maxDistance) {
         matchedZone = zone;
+        console.log(`✅ Matched zone: ${zone.name} (${zone.minDistance}-${zone.maxDistance}km) - Fee: €${zone.deliveryFee}`);
         break;
       }
     }
@@ -458,9 +466,15 @@ const calculateDeliveryFee = async (req, res) => {
       const nearestZone = zones[0];
       if (distance < nearestZone.minDistance) {
         matchedZone = nearestZone;
+        console.log(`⚠️ Distance ${distance.toFixed(2)}km is less than minimum zone. Using nearest zone: ${nearestZone.name}`);
       }
     }
-    
+
+    if (!matchedZone) {
+      console.log(`❌ No zone matched for distance: ${distance.toFixed(2)}km`);
+    }
+
+
     if (!matchedZone) {
       // Kiểm tra xem có zone nào được setup không
       if (zones.length === 0) {
@@ -475,7 +489,7 @@ const calculateDeliveryFee = async (req, res) => {
           noZonesConfigured: true
         });
       }
-      
+
       // Có zone nhưng địa chỉ ngoài tất cả các zone
       const maxDistance = Math.max(...zones.map(z => z.maxDistance || 0));
       return res.json({
@@ -489,7 +503,7 @@ const calculateDeliveryFee = async (req, res) => {
         maxDeliveryDistance: maxDistance
       });
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -513,7 +527,7 @@ const calculateDeliveryFee = async (req, res) => {
         }
       }
     });
-    
+
   } catch (error) {
     console.error("Error calculating delivery fee:", error);
     res.status(500).json({
@@ -527,21 +541,21 @@ const calculateDeliveryFee = async (req, res) => {
 const autocompleteAddress = async (req, res) => {
   try {
     const { query, proximity } = req.query; // proximity: "lng,lat" để ưu tiên kết quả gần nhà hàng
-    
+
     if (!query || query.length < 3) {
       return res.json({
         success: true,
         data: []
       });
     }
-    
+
     const encodedQuery = encodeURIComponent(query);
     // Nominatim search API
     // countrycodes=sk: giới hạn trong Slovakia
     // addressdetails=1: lấy chi tiết địa chỉ
     // limit=15: lấy nhiều kết quả để filter
     let url = `${NOMINATIM_BASE_URL}/search?q=${encodedQuery}&format=json&limit=15&countrycodes=sk&addressdetails=1&accept-language=en`;
-    
+
     // Thêm proximity nếu có (Nominatim dùng viewbox thay vì proximity)
     // viewbox=min_lon,min_lat,max_lon,max_lat
     if (proximity) {
@@ -553,38 +567,38 @@ const autocompleteAddress = async (req, res) => {
         url += `&viewbox=${viewbox}&bounded=1`;
       }
     }
-    
+
     const response = await fetch(url, {
       headers: {
         'User-Agent': NOMINATIM_USER_AGENT
       }
     });
-    
+
     if (!response.ok) {
       throw new Error(`Nominatim API error: ${response.status} ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    
+
     let suggestions = [];
-    
+
     // Parse kết quả từ Nominatim
     if (data && data.length > 0) {
       suggestions = data.map((result, index) => {
         const parsed = nominatimResultToAddress(result);
-        
+
         // Phân loại ưu tiên:
         // Priority 1: Có số nhà rõ ràng
         // Priority 2: Address nhưng không có số nhà (chỉ tên đường)
         // Priority 3: Place (địa chỉ chung chung)
-        const hasHouseNumber = parsed.components.houseNumber && 
-                               parsed.components.houseNumber.trim().length > 0;
-        const isPlace = result.type === 'administrative' || 
-                       result.type === 'city' || 
-                       result.type === 'town' ||
-                       result.type === 'village';
+        const hasHouseNumber = parsed.components.houseNumber &&
+          parsed.components.houseNumber.trim().length > 0;
+        const isPlace = result.type === 'administrative' ||
+          result.type === 'city' ||
+          result.type === 'town' ||
+          result.type === 'village';
         const priority = hasHouseNumber ? 1 : (isPlace ? 3 : 2);
-        
+
         return {
           id: result.place_id || result.osm_id || `nominatim-${index}`,
           address: parsed.formattedAddress, // Địa chỉ đã được format ngắn gọn
@@ -597,7 +611,7 @@ const autocompleteAddress = async (req, res) => {
         };
       });
     }
-    
+
     // ✨ Sắp xếp: ưu tiên địa chỉ có số nhà trước
     suggestions.sort((a, b) => {
       // Ưu tiên theo priority (1 = có số nhà, 2 = address không có số nhà, 3 = place)
@@ -607,15 +621,15 @@ const autocompleteAddress = async (req, res) => {
       // Nếu cùng priority, giữ nguyên thứ tự từ Nominatim
       return 0;
     });
-    
+
     // Chỉ trả về 5 kết quả tốt nhất
     suggestions = suggestions.slice(0, 5);
-    
+
     res.json({
       success: true,
       data: suggestions
     });
-    
+
   } catch (error) {
     console.error("❌ Autocomplete error:", error);
     console.error("Error details:", {
@@ -635,7 +649,7 @@ const autocompleteAddress = async (req, res) => {
 const createDeliveryZone = async (req, res) => {
   try {
     const { name, minDistance, maxDistance, deliveryFee, minOrder, estimatedTime, color, order } = req.body;
-    
+
     const zone = new deliveryZoneModel({
       name,
       minDistance,
@@ -646,15 +660,15 @@ const createDeliveryZone = async (req, res) => {
       color,
       order
     });
-    
+
     await zone.save();
-    
+
     res.json({
       success: true,
       message: "Delivery zone created successfully",
       data: zone
     });
-    
+
   } catch (error) {
     console.error("Error creating delivery zone:", error);
     res.status(500).json({
@@ -668,26 +682,26 @@ const updateDeliveryZone = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
+
     const zone = await deliveryZoneModel.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true }
     );
-    
+
     if (!zone) {
       return res.status(404).json({
         success: false,
         message: "Delivery zone not found"
       });
     }
-    
+
     res.json({
       success: true,
       message: "Delivery zone updated successfully",
       data: zone
     });
-    
+
   } catch (error) {
     console.error("Error updating delivery zone:", error);
     res.status(500).json({
@@ -700,21 +714,21 @@ const updateDeliveryZone = async (req, res) => {
 const deleteDeliveryZone = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const zone = await deliveryZoneModel.findByIdAndDelete(id);
-    
+
     if (!zone) {
       return res.status(404).json({
         success: false,
         message: "Delivery zone not found"
       });
     }
-    
+
     res.json({
       success: true,
       message: "Delivery zone deleted successfully"
     });
-    
+
   } catch (error) {
     console.error("Error deleting delivery zone:", error);
     res.status(500).json({
@@ -727,16 +741,16 @@ const deleteDeliveryZone = async (req, res) => {
 // ========== ADMIN: CRUD RESTAURANT LOCATION ==========
 const getRestaurantLocation = async (req, res) => {
   try {
-    const location = await restaurantLocationModel.findOne({ 
-      isActive: true, 
-      isPrimary: true 
+    const location = await restaurantLocationModel.findOne({
+      isActive: true,
+      isPrimary: true
     });
-    
+
     res.json({
       success: true,
       data: location
     });
-    
+
   } catch (error) {
     console.error("Error fetching restaurant location:", error);
     res.status(500).json({
@@ -749,30 +763,30 @@ const getRestaurantLocation = async (req, res) => {
 const updateRestaurantLocation = async (req, res) => {
   try {
     const { name, address, latitude, longitude, boxFee } = req.body;
-    
+
     console.log('🔍 Update Restaurant Location - Request body:', req.body);
     console.log('📦 Box Fee received:', boxFee, 'Type:', typeof boxFee);
-    
+
     // Tìm location hiện tại hoặc tạo mới
-    let location = await restaurantLocationModel.findOne({ 
-      isActive: true, 
-      isPrimary: true 
+    let location = await restaurantLocationModel.findOne({
+      isActive: true,
+      isPrimary: true
     });
-    
+
     if (location) {
       const oldBoxFee = location.boxFee;
-      
+
       location.name = name || location.name;
       location.address = address || location.address;
       location.latitude = latitude || location.latitude;
       location.longitude = longitude || location.longitude;
-      
+
       // Update box fee if provided
       if (boxFee !== undefined && boxFee !== null) {
         location.boxFee = Number(boxFee);
         console.log(`📦 Box Fee updated: ${oldBoxFee} → ${location.boxFee}`);
       }
-      
+
       await location.save();
       console.log('✅ Location saved successfully');
     } else {
@@ -788,13 +802,13 @@ const updateRestaurantLocation = async (req, res) => {
       await location.save();
       console.log('✅ New location created with boxFee:', location.boxFee);
     }
-    
+
     res.json({
       success: true,
       message: "Restaurant location updated successfully",
       data: location
     });
-    
+
   } catch (error) {
     console.error("Error updating restaurant location:", error);
     res.status(500).json({

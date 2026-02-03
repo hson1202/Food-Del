@@ -108,6 +108,52 @@ const DeliveryZones = ({ url }) => {
       return;
     }
 
+    // ✨ Validate overlapping zones
+    const minDist = parseFloat(zoneForm.minDistance);
+    const maxDist = parseFloat(zoneForm.maxDistance);
+
+    // Check if min > max
+    if (minDist >= maxDist) {
+      toast.error('❌ Min Distance must be less than Max Distance!');
+      return;
+    }
+
+    // Check for overlapping with existing zones
+    const overlappingZones = zones.filter(existingZone => {
+      // Skip if editing the same zone
+      if (editingZone && existingZone._id === editingZone._id) {
+        return false;
+      }
+
+      // Check if ranges overlap
+      const existingMin = existingZone.minDistance;
+      const existingMax = existingZone.maxDistance;
+
+      // Overlap occurs if:
+      // new zone starts inside existing zone OR
+      // new zone ends inside existing zone OR
+      // new zone completely contains existing zone
+      const overlaps =
+        (minDist >= existingMin && minDist <= existingMax) || // new starts in existing
+        (maxDist >= existingMin && maxDist <= existingMax) || // new ends in existing
+        (minDist <= existingMin && maxDist >= existingMax);   // new contains existing
+
+      return overlaps;
+    });
+
+    if (overlappingZones.length > 0) {
+      const overlapNames = overlappingZones.map(z => `"${z.name}" (${z.minDistance}-${z.maxDistance}km)`).join(', ');
+      toast.error(`⚠️ Zone overlap detected! New zone (${minDist}-${maxDist}km) overlaps with: ${overlapNames}`, {
+        autoClose: 10000
+      });
+      console.warn('Overlapping zones:', overlappingZones);
+
+      // Ask for confirmation
+      if (!window.confirm(`WARNING: This zone (${minDist}-${maxDist}km) overlaps with existing zone(s): ${overlapNames}.\n\nWhen a customer's address falls in overlapping zones, the system will use the zone with the SMALLEST minDistance.\n\nDo you want to continue?`)) {
+        return;
+      }
+    }
+
     try {
       const response = await axios.post(
         `${url}/api/delivery/zones/create`,
@@ -142,6 +188,47 @@ const DeliveryZones = ({ url }) => {
       toast.error('❌ Not authorized! Please login again.');
       console.error('No adminToken found in localStorage');
       return;
+    }
+
+    // ✨ Validate overlapping zones
+    const minDist = parseFloat(zoneForm.minDistance);
+    const maxDist = parseFloat(zoneForm.maxDistance);
+
+    // Check if min > max
+    if (minDist >= maxDist) {
+      toast.error('❌ Min Distance must be less than Max Distance!');
+      return;
+    }
+
+    // Check for overlapping with existing zones (excluding current zone being edited)
+    const overlappingZones = zones.filter(existingZone => {
+      // Skip the zone being edited
+      if (editingZone && existingZone._id === editingZone._id) {
+        return false;
+      }
+
+      // Check if ranges overlap
+      const existingMin = existingZone.minDistance;
+      const existingMax = existingZone.maxDistance;
+
+      const overlaps =
+        (minDist >= existingMin && minDist <= existingMax) ||
+        (maxDist >= existingMin && maxDist <= existingMax) ||
+        (minDist <= existingMin && maxDist >= existingMax);
+
+      return overlaps;
+    });
+
+    if (overlappingZones.length > 0) {
+      const overlapNames = overlappingZones.map(z => `"${z.name}" (${z.minDistance}-${z.maxDistance}km)`).join(', ');
+      toast.error(`⚠️ Zone overlap detected! Updated zone (${minDist}-${maxDist}km) overlaps with: ${overlapNames}`, {
+        autoClose: 10000
+      });
+      console.warn('Overlapping zones:', overlappingZones);
+
+      if (!window.confirm(`WARNING: This zone (${minDist}-${maxDist}km) overlaps with: ${overlapNames}.\n\nThe system will use the zone with the SMALLEST minDistance.\n\nDo you want to continue?`)) {
+        return;
+      }
     }
 
     try {
