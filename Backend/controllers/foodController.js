@@ -343,23 +343,38 @@ const updateFood = async (req, res) => {
       weeklyScheduleEnabled, weeklyScheduleDays
     } = req.body
 
+    const existingFood = await foodModel.findById(id)
+    if (!existingFood) {
+      return res.status(404).json({ success: false, message: "Food not found" })
+    }
+
+    const hasField = (field) => Object.prototype.hasOwnProperty.call(req.body, field)
+
+    const skuValue = hasField('sku') ? sku : existingFood.sku
+    const nameValue = hasField('name') ? name : existingFood.name
+    const priceValue = hasField('price') ? price : existingFood.price
+    const categoryValue = hasField('category') ? category : existingFood.category
+    const quantityValue = hasField('quantity') ? quantity : existingFood.quantity
+
     // Validate required fields
-    if (!sku?.trim()) return res.status(400).json({ success: false, message: "SKU is required" })
-    if (!name?.trim()) return res.status(400).json({ success: false, message: "Name is required" })
-    if (price === undefined || price === null || isNaN(Number(price)))
+    if (!skuValue?.trim()) return res.status(400).json({ success: false, message: "SKU is required" })
+    if (!nameValue?.trim()) return res.status(400).json({ success: false, message: "Name is required" })
+    if (priceValue === undefined || priceValue === null || isNaN(Number(priceValue)))
       return res.status(400).json({ success: false, message: "Valid price is required" })
-    if (!category?.trim())
+    if (!categoryValue?.trim())
       return res.status(400).json({ success: false, message: "Category is required" })
-    if (quantity === undefined || quantity === null || isNaN(Number(quantity)) || Number(quantity) < 0)
+    if (quantityValue === undefined || quantityValue === null || isNaN(Number(quantityValue)) || Number(quantityValue) < 0)
       return res.status(400).json({ success: false, message: "Valid quantity is required (must be >= 0)" })
 
     // Handle image update
-    const isPromotionBool = isPromotion === true || isPromotion === "true" || isPromotion === 1 || isPromotion === "1";
+    const isPromotionBool = hasField('isPromotion')
+      ? (isPromotion === true || isPromotion === "true" || isPromotion === 1 || isPromotion === "1")
+      : Boolean(existingFood.isPromotion);
     // Handle disableBoxFee - default to false if not provided
     // FormData sends boolean as string "true" or "false"
     // Xử lý nhiều trường hợp: undefined, null, false, "false", "", 0, hoặc bất kỳ falsy value nào
-    let disableBoxFeeBool = false;
-    if (disableBoxFee !== undefined && disableBoxFee !== null) {
+    let disableBoxFeeBool = Boolean(existingFood.disableBoxFee);
+    if (hasField('disableBoxFee') && disableBoxFee !== undefined && disableBoxFee !== null) {
       disableBoxFeeBool = disableBoxFee === true || 
                          disableBoxFee === "true" || 
                          disableBoxFee === 1 || 
@@ -368,8 +383,8 @@ const updateFood = async (req, res) => {
     }
 
     // Handle isRecommended - default to false if not provided
-    let isRecommendedBool = false;
-    if (isRecommended !== undefined && isRecommended !== null) {
+    let isRecommendedBool = Boolean(existingFood.isRecommended);
+    if (hasField('isRecommended') && isRecommended !== undefined && isRecommended !== null) {
       isRecommendedBool = isRecommended === true || 
                          isRecommended === "true" || 
                          isRecommended === 1 || 
@@ -378,64 +393,110 @@ const updateFood = async (req, res) => {
     }
 
     // Handle recommendPriority - default to 999 if not provided
-    let recommendPriorityNum = 999;
-    if (recommendPriority !== undefined && recommendPriority !== null) {
+    let recommendPriorityNum = Number.isFinite(Number(existingFood.recommendPriority))
+      ? Number(existingFood.recommendPriority)
+      : 999;
+    if (hasField('recommendPriority') && recommendPriority !== undefined && recommendPriority !== null) {
       const parsed = Number(recommendPriority);
       if (!isNaN(parsed) && parsed >= 1 && parsed <= 999) {
         recommendPriorityNum = parsed;
       }
     }
+
+    const parseWeeklyDays = (value, fallback = []) => {
+      let parsed = value
+      if (typeof value === 'string') {
+        try {
+          parsed = JSON.parse(value)
+        } catch (e) {
+          return fallback
+        }
+      }
+
+      if (!Array.isArray(parsed)) return fallback
+
+      const normalized = parsed
+        .map((d) => Number(d))
+        .filter((d) => Number.isInteger(d) && d >= 0 && d <= 6)
+
+      return Array.from(new Set(normalized))
+    }
     
     let updateData = {
-      sku: sku.trim(),
-      name: name.trim(),
-      nameVI: nameVI?.trim(),
-      nameEN: nameEN?.trim(),
-      nameSK: nameSK?.trim(),
+      sku: skuValue.trim(),
+      name: nameValue.trim(),
+      nameVI: hasField('nameVI') ? nameVI?.trim() : existingFood.nameVI,
+      nameEN: hasField('nameEN') ? nameEN?.trim() : existingFood.nameEN,
+      nameSK: hasField('nameSK') ? nameSK?.trim() : existingFood.nameSK,
       // Don't update slug if it's empty - keep existing one
       ...(slug?.trim() && { slug: slug.trim() }),
-      description: description?.trim() || "No description provided",
-      price: Number(price),
-      category: category.trim(),
-      quantity: Number(quantity),
+      description: hasField('description')
+        ? (description?.trim() || "No description provided")
+        : existingFood.description,
+      price: Number(priceValue),
+      category: categoryValue.trim(),
+      quantity: Number(quantityValue),
       isPromotion: isPromotionBool,
       // originalPrice removed - using regular price as base
-      promotionPrice: isPromotionBool ? Number(promotionPrice) : undefined,
-      soldCount: Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0,
+      promotionPrice: isPromotionBool
+        ? (hasField('promotionPrice')
+            ? Number(promotionPrice)
+            : Number(existingFood.promotionPrice || 0))
+        : undefined,
+      soldCount: hasField('soldCount')
+        ? (Number.isFinite(Number(soldCount)) ? Number(soldCount) : 0)
+        : Number(existingFood.soldCount || 0),
       disableBoxFee: Boolean(disableBoxFeeBool), // Ensure it's always a boolean, explicitly set
       isRecommended: Boolean(isRecommendedBool),
-      recommendPriority: recommendPriorityNum,
-      // Time-based availability
-      availableFrom: availableFrom || null,
-      availableTo: availableTo || null,
-      dailyAvailability: {
-        enabled: dailyAvailabilityEnabled === true || dailyAvailabilityEnabled === "true",
-        timeFrom: dailyTimeFrom?.trim() || null,
-        timeTo: dailyTimeTo?.trim() || null
-      },
-      weeklySchedule: (() => {
-        const isEnabled = weeklyScheduleEnabled === true || weeklyScheduleEnabled === "true";
-        let daysArray = [];
-        
-        if (weeklyScheduleDays) {
-          try {
-            // Parse if it's a JSON string
-            const parsed = typeof weeklyScheduleDays === 'string' ? JSON.parse(weeklyScheduleDays) : weeklyScheduleDays;
-            // Validate it's an array of numbers 0-6
-            if (Array.isArray(parsed) && parsed.every(d => Number.isInteger(d) && d >= 0 && d <= 6)) {
-              daysArray = parsed;
-            }
-          } catch (e) {
-            console.error('Error parsing weeklyScheduleDays:', e);
-          }
-        }
-        
-        // Auto-disable if no days selected (prevents showing food on all days)
-        return {
-          enabled: isEnabled && daysArray.length > 0,
-          days: daysArray
-        };
-      })()
+      recommendPriority: recommendPriorityNum
+    }
+
+    // Time-based availability - only update when fields are explicitly provided
+    if (hasField('availableFrom')) {
+      updateData.availableFrom = availableFrom || null
+    }
+    if (hasField('availableTo')) {
+      updateData.availableTo = availableTo || null
+    }
+
+    const hasDailyAvailabilityField =
+      hasField('dailyAvailabilityEnabled') || hasField('dailyTimeFrom') || hasField('dailyTimeTo')
+
+    if (hasDailyAvailabilityField) {
+      const existingDaily = existingFood.dailyAvailability || {}
+      const dailyEnabled = hasField('dailyAvailabilityEnabled')
+        ? (dailyAvailabilityEnabled === true || dailyAvailabilityEnabled === "true")
+        : Boolean(existingDaily.enabled)
+      const dailyFrom = hasField('dailyTimeFrom')
+        ? (dailyTimeFrom?.trim() || null)
+        : (existingDaily.timeFrom || null)
+      const dailyTo = hasField('dailyTimeTo')
+        ? (dailyTimeTo?.trim() || null)
+        : (existingDaily.timeTo || null)
+
+      updateData.dailyAvailability = {
+        enabled: dailyEnabled,
+        timeFrom: dailyEnabled ? dailyFrom : null,
+        timeTo: dailyEnabled ? dailyTo : null
+      }
+    }
+
+    const hasWeeklyScheduleField =
+      hasField('weeklyScheduleEnabled') || hasField('weeklyScheduleDays')
+
+    if (hasWeeklyScheduleField) {
+      const existingWeekly = existingFood.weeklySchedule || {}
+      const isEnabled = hasField('weeklyScheduleEnabled')
+        ? (weeklyScheduleEnabled === true || weeklyScheduleEnabled === "true")
+        : Boolean(existingWeekly.enabled)
+      const daysArray = hasField('weeklyScheduleDays')
+        ? parseWeeklyDays(weeklyScheduleDays, [])
+        : parseWeeklyDays(existingWeekly.days, [])
+
+      updateData.weeklySchedule = {
+        enabled: isEnabled && daysArray.length > 0,
+        days: daysArray
+      }
     }
 
     // If new image uploaded, update image field with Cloudinary URL or local filename
@@ -476,10 +537,6 @@ const updateFood = async (req, res) => {
       updateData,
       { new: true, runValidators: true }
     )
-
-    if (!updatedFood) {
-      return res.status(404).json({ success: false, message: "Food not found" })
-    }
 
     res.json({ success: true, message: "Food updated successfully", data: updatedFood })
 

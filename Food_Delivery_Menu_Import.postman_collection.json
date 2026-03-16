@@ -1,0 +1,2672 @@
+{
+    "info": {
+        "_postman_id": "b53f4d8e-1234-4567-8901-abcdef123456",
+        "name": "Food Delivery Menu Full Import",
+        "description": "Full menu import (Weekly + Mon-Fri). Import and Run Runner.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Login (Get Token)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData.success && jsonData.token) {",
+                            "    pm.environment.set(\"token\", jsonData.token);",
+                            "    pm.globals.set(\"token\", jsonData.token);",
+                            "    console.log(\"Token updated\");",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"admin@gmail.com\",\n    \"password\": \"123\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/admin/login",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "admin",
+                        "login"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Weekly Menu (T2-T6, 10:30-14:30)",
+            "item": [
+                {
+                    "name": "M1. Kung Pao kuracie s ryžou",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M1-WEEK",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Kung Pao kuracie s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nameSK",
+                                    "value": "Kung Pao kuracie s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "M1. Kung Pao kuracie s ryžou - 6,50 €",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "6.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "TÝŽDENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "100",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1,2,3,4,5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "M2. Opekané rezance s kuracím mäsom",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M2-WEEK",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Opekané rezance s kuracím mäsom",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "classification",
+                                    "value": "weekly",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "M2. Opekané rezance s kuracím mäsom - 6,90 €",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "6.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "TÝŽDENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "100",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1,2,3,4,5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M3. Kura v Tempure s ryžou",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M3-WEEK",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Kura v Tempure s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "M3. Kura v Tempure s ryžou - 6,90 €",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "6.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "TÝŽDENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "100",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1,2,3,4,5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M4. Chrumkavá kačica s ryžou",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M4-WEEK",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Chrumkavá kačica s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "M4. Chrumkavá kačica s ryžou - 8,00 €",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "8.0",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "TÝŽDENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "100",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1,2,3,4,5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Monday (PONDELOK)",
+            "item": [
+                {
+                    "name": "M5. Tomyum udon",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M5-MON",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Tomyum udon s kuracím mäsom",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M6. Kuracie špízy",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M6-MON",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Kuracie špízy v medovo-teriyaki omáčke s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M7. Kuracie mäso na zelenine",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M7-MON",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Kuracie mäso na zelenine s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M8. Poke ryža hovädzie",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M8-MON",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Poke ryža hovädzie",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "8.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M9. Tori Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M9-MON",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Tori Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "10.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M10. Nigiri Maki Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M10-MON",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Nigiri Maki Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "11.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[1]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Tuesday (UTOROK)",
+            "item": [
+                {
+                    "name": "M5. Vyprážaný syr s hranolkami",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M5-TUE",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Vyprážaný syr s hranolkami",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[2]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M6. Chrumkavá kura s ryžou",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M6-TUE",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Chrumkavá kura s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.0",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[2]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M7. Bún bò Nam Bộ",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M7-TUE",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Bún bò Nam Bộ",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "8.0",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[2]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M8. Poke ryža s kuracím mäsom",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M8-TUE",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Poke ryža s kuracím mäsom",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "8.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[2]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M9. Gyuniku Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M9-TUE",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Gyuniku Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "10.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[2]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M10. Sake Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M10-TUE",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Sake Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "11.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[2]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Wednesday (STREDA)",
+            "item": [
+                {
+                    "name": "M5. Medové kúsky s ryžou",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M5-WED",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Medové kúsky s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "6.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[3]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M6. Kuracie špízy",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M6-WED",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Kuracie špízy v medovo-teriyaki omáčke s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[3]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M7. UDON CURRY s kuracím mäsom",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M7-WED",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "UDON CURRY s kuracím mäsom",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[3]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M8. Kamo Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M8-WED",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Kamo Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "10.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[3]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M9. Sashimi Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M9-WED",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Sashimi Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "12.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[3]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Thursday (ŠTVRTOK)",
+            "item": [
+                {
+                    "name": "M5. Tom Yum Udon",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M5-THU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Tom Yum Udon s kuracím mäsom",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[4]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M6. Bún bò Nam Bộ",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M6-THU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Bún bò Nam Bộ s kuracím mäsom",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[4]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M7. Hovädzie mäso na zelenine",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M7-THU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Hovädzie mäso na zelenine s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "8.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[4]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M8. Gyuniku Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M8-THU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Gyuniku Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "10.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[4]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M9. Sake Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M9-THU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Sake Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "11.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[4]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Friday (PIATOK)",
+            "item": [
+                {
+                    "name": "M5. Chrumkavá kura s ryžou",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M5-FRI",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Chrumkavá kura s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.0",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M6. UDON CURRY",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M6-FRI",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "UDON CURRY s kuracím mäsom",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M7. Kuracie špízy",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M7-FRI",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Kuracie špízy v medovo-teriyaki omáčke s ryžou",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "7.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M8. Bún nem",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M8-FRI",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Bún nem",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "8.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M9. Kamo Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M9-FRI",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Kamo Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "10.9",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "M10. Salmon Bento",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "token",
+                                "value": "{{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "sku",
+                                    "value": "M10-FRI",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "name",
+                                    "value": "Salmon Bento",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "price",
+                                    "value": "13.5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "DENNÉ MENU",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "quantity",
+                                    "value": "50",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleDays",
+                                    "value": "[5]",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "weeklyScheduleEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyAvailabilityEnabled",
+                                    "value": "true",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeFrom",
+                                    "value": "10:30",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "dailyTimeTo",
+                                    "value": "14:30",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/food/add",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "food",
+                                "add"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:4000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}

@@ -5,11 +5,14 @@ import FoodItem from '../../components/FoodItem/FoodItem'
 import ProductDetail from '../../components/ProductDetail/ProductDetail'
 import CartPopup from '../../components/CartPopup/CartPopup'
 import CategoryFilter from '../../components/CategoryFilter/CategoryFilter'
+import DailyMenu from '../../components/DailyMenu/DailyMenu'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
 import config from '../../config/config'
 import { isFoodAvailable } from '../../utils/timeUtils'
+
+const DAILY_MENU_KEYWORDS = ['daily', 'daily menu', 'denné menu', 'menu hàng ngày', 'thực đơn ngày']
 
 const Menu = () => {
   const { food_list, isLoadingFood } = useContext(StoreContext)
@@ -84,6 +87,32 @@ const Menu = () => {
   const normalizeValue = (value) =>
     typeof value === 'string' ? value.trim().toLowerCase() : ''
 
+  const parentMatchesKeywords = useCallback((parent, keywords = []) => {
+    if (!parent) return false
+
+    const possibleLabels = [
+      parent.name,
+      parent.nameEN,
+      parent.nameVI,
+      parent.nameSK,
+      getLocalizedName(parent),
+    ]
+      .filter(Boolean)
+      .map(normalizeValue)
+
+    return keywords.some((keyword) => possibleLabels.includes(normalizeValue(keyword)))
+  }, [getLocalizedName])
+
+  const isDailyMenuParent = useCallback((parent) => {
+    return parentMatchesKeywords(parent, DAILY_MENU_KEYWORDS)
+  }, [parentMatchesKeywords])
+
+  const selectedParentObject = useMemo(() => {
+    return parentCategories.find(p => (p._id?.toString() || 'first') === selectedParentCategory) || null
+  }, [parentCategories, selectedParentCategory])
+
+  const isShowingDailyMenu = useMemo(() => isDailyMenuParent(selectedParentObject), [isDailyMenuParent, selectedParentObject])
+
   const doesFoodBelongToCategory = useCallback((food, category) => {
     if (!category) return false
     const categoryId = category._id?.toString()
@@ -106,7 +135,10 @@ const Menu = () => {
 
     const foodCategoryId = food.categoryId?.toString()
 
-    return (categoryId && foodCategoryId && categoryId === foodCategoryId) || foodCategoryMatches
+    // food.category may store the category's _id directly (admin dropdown sends _id as value)
+    const foodCategoryIsId = !!(categoryId && food.category && food.category === categoryId)
+
+    return (categoryId && foodCategoryId && categoryId === foodCategoryId) || foodCategoryMatches || foodCategoryIsId
   }, [getLocalizedName])
 
   const filteredFoods = useMemo(() => {
@@ -127,7 +159,7 @@ const Menu = () => {
 
   // Backend already sorts by sortOrder, so we just use the order as received
   // No need to sort by createdAt anymore
-  const menuSections = useMemo(() => {
+  const allMenuSections = useMemo(() => {
     if (!parentCategories.length) return []
 
     const coveredFoodIds = new Set()
@@ -190,13 +222,54 @@ const Menu = () => {
       })
     }
 
-    // Filter by selected parent category if any
-    if (selectedParentCategory) {
-      return sections.filter(section => section._id === selectedParentCategory)
+    return sections
+  }, [parentCategories, filteredFoods, t, getLocalizedName, doesFoodBelongToCategory])
+
+  const menuSections = useMemo(() => {
+    if (!selectedParentCategory) {
+      return allMenuSections
     }
 
-    return sections
-  }, [parentCategories, filteredFoods, selectedParentCategory, t, getLocalizedName, doesFoodBelongToCategory])
+    return allMenuSections.filter(section => section._id === selectedParentCategory)
+  }, [allMenuSections, selectedParentCategory])
+
+  useEffect(() => {
+    if (!selectedParentCategory || !parentCategories.length) return
+
+    const selectedParent = parentCategories.find(
+      (parent) => (parent._id?.toString() || 'first') === selectedParentCategory
+    )
+
+    // Never auto-switch away from the daily menu tab — DailyMenu handles its own content
+    if (isDailyMenuParent(selectedParent)) return
+
+    const hasVisibleSection = allMenuSections.some(
+      (section) => section._id === selectedParentCategory
+    )
+
+    if (hasVisibleSection) return
+
+    const preferredFallback = parentCategories.find((parent) => {
+      const parentId = parent._id?.toString() || 'first'
+      const isVisible = allMenuSections.some((section) => section._id === parentId)
+
+      return isVisible && parentMatchesKeywords(parent, ['MAIN MENU', 'HLAVNÉ MENU', 'MENU CHÍNH'])
+    })
+
+    const nextVisibleParent = preferredFallback || parentCategories.find((parent) => {
+      const parentId = parent._id?.toString() || 'first'
+      return allMenuSections.some((section) => section._id === parentId)
+    })
+
+    if (!nextVisibleParent) return
+
+    const nextParentId = nextVisibleParent._id?.toString() || 'first'
+
+    if (nextParentId !== selectedParentCategory) {
+      setSelectedParentCategory(nextParentId)
+      setSelectedCategory(null)
+    }
+  }, [selectedParentCategory, parentCategories, allMenuSections, parentMatchesKeywords, isDailyMenuParent])
 
   useEffect(() => {
     if (!selectedCategory?.id || selectedCategory?.source === 'scroll') return
@@ -253,13 +326,15 @@ const Menu = () => {
           {/* Separator Line */}
           <div className="menu-filter-separator"></div>
 
-        {/* Category Filter Carousel */}
-        <CategoryFilter 
-          categories={menuSections}
-          onCategorySelect={setSelectedCategory}
-          selectedCategory={selectedCategory}
-          categoryRefs={categoryRefs}
-        />
+        {/* Category Filter Carousel — hidden when daily menu is active */}
+        {!isShowingDailyMenu && (
+          <CategoryFilter 
+            categories={menuSections}
+            onCategorySelect={setSelectedCategory}
+            selectedCategory={selectedCategory}
+            categoryRefs={categoryRefs}
+          />
+        )}
       </div>
 
       {/* Food Sections - Grouped by Parent Category */}
@@ -269,6 +344,8 @@ const Menu = () => {
             <div className="loading-spinner"></div>
             <p>Loading delicious dishes...</p>
           </div>
+        ) : isShowingDailyMenu ? (
+          <DailyMenu />
         ) : parentCategories.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🍽️</div>

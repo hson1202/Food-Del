@@ -7,6 +7,60 @@ import i18n from '../../i18n'
 import EditProductPopup from '../../components/EditProductPopup/EditProductPopup'
 import config from '../../config/config'
 
+const createInitialEditForm = () => ({
+  sku: '',
+  name: '',
+  nameVI: '',
+  nameEN: '',
+  nameSK: '',
+  description: '',
+  price: '',
+  category: '',
+  quantity: 0,
+  isPromotion: false,
+  promotionPrice: '',
+  soldCount: 0,
+  disableBoxFee: false,
+  isRecommended: false,
+  recommendPriority: 999,
+  image: null,
+  imagePreview: null,
+  options: [],
+  // Time-based availability
+  availableFrom: '',
+  availableTo: '',
+  dailyAvailabilityEnabled: false,
+  dailyTimeFrom: '',
+  dailyTimeTo: '',
+  weeklyScheduleEnabled: false,
+  weeklyScheduleDays: []
+})
+
+const toDateTimeLocalValue = (value) => {
+  if (!value) return ''
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return ''
+  const local = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60000)
+  return local.toISOString().slice(0, 16)
+}
+
+const normalizeWeeklyScheduleDays = (days) => {
+  if (!Array.isArray(days)) return []
+  const normalized = days
+    .map((day) => Number(day))
+    .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+  return Array.from(new Set(normalized)).sort((a, b) => a - b)
+}
+
+const cloneOptions = (options) => {
+  if (!Array.isArray(options)) return []
+  return options.map((option) => ({
+    ...option,
+    choices: Array.isArray(option.choices)
+      ? option.choices.map((choice) => ({ ...choice }))
+      : []
+  }))
+}
 
 const Products = ({ url }) => {
   const { t } = useTranslation();
@@ -37,35 +91,7 @@ const Products = ({ url }) => {
   // Quick edit state
   const [quickEditing, setQuickEditing] = useState(null) // { productId, field: 'price' | 'quantity' }
   const [quickEditValue, setQuickEditValue] = useState('')
-  const INITIAL_EDIT_FORM = {
-    sku: '',
-    name: '',
-    nameVI: '',
-    nameEN: '',
-    nameSK: '',
-    description: '',
-    price: '',
-    category: '',
-    quantity: 0,
-    isPromotion: false,
-    promotionPrice: '',
-    soldCount: 0,
-    disableBoxFee: false,
-    isRecommended: false,
-    recommendPriority: 999,
-    image: null,
-    imagePreview: null,
-    options: [],
-    // Time-based availability
-    availableFrom: '',
-    availableTo: '',
-    dailyAvailabilityEnabled: false,
-    dailyTimeFrom: '',
-    dailyTimeTo: '',
-    weeklyScheduleEnabled: false,
-    weeklyScheduleDays: []
-  }
-  const [editForm, setEditForm] = useState(INITIAL_EDIT_FORM)
+  const [editForm, setEditForm] = useState(() => createInitialEditForm())
   const [error, setError] = useState(null)
   const [newProduct, setNewProduct] = useState({
     sku: '',
@@ -111,6 +137,42 @@ const Products = ({ url }) => {
     price: 0,
     image: null
   })
+
+  const buildEditFormFromProduct = (product) => {
+    const base = createInitialEditForm()
+    if (!product) return base
+
+    return {
+      ...base,
+      sku: product.sku || '',
+      name: product.name || '',
+      nameVI: product.nameVI || '',
+      nameEN: product.nameEN || '',
+      nameSK: product.nameSK || '',
+      description: product.description || '',
+      price: product.price ?? '',
+      category: product.category || '',
+      quantity: Number.isFinite(Number(product.quantity)) ? Number(product.quantity) : 0,
+      isPromotion: Boolean(product.isPromotion),
+      promotionPrice: product.promotionPrice ?? '',
+      soldCount: Number.isFinite(Number(product.soldCount)) ? Number(product.soldCount) : 0,
+      disableBoxFee: Boolean(product.disableBoxFee),
+      isRecommended: Boolean(product.isRecommended),
+      recommendPriority: Number.isFinite(Number(product.recommendPriority)) ? Number(product.recommendPriority) : 999,
+      options: cloneOptions(product.options),
+      availableFrom: toDateTimeLocalValue(product.availableFrom),
+      availableTo: toDateTimeLocalValue(product.availableTo),
+      dailyAvailabilityEnabled: Boolean(product.dailyAvailability?.enabled),
+      dailyTimeFrom: product.dailyAvailability?.timeFrom || '',
+      dailyTimeTo: product.dailyAvailability?.timeTo || '',
+      weeklyScheduleEnabled: Boolean(product.weeklySchedule?.enabled),
+      weeklyScheduleDays: normalizeWeeklyScheduleDays(product.weeklySchedule?.days)
+    }
+  }
+
+  const resetEditForm = () => {
+    setEditForm(createInitialEditForm())
+  }
 
  // useEffect - Fetch when page, filter, or status changes
 useEffect(() => {
@@ -344,39 +406,14 @@ const handleQuickEditCancel = () => {
 
   const handleEditProduct = (product) => {
     setEditingProduct(product)
-    setEditForm({
-      sku: product.sku || '',
-      name: product.name || '',
-      nameVI: product.nameVI || '',
-      nameEN: product.nameEN || '',
-      nameSK: product.nameSK || '',
-      description: product.description || '',
-      price: product.price || '',
-      category: product.category || '',
-      quantity: product.quantity || 0,
-      isPromotion: product.isPromotion || false,
-      promotionPrice: product.promotionPrice || '',
-      soldCount: product.soldCount || 0,
-      disableBoxFee: product.disableBoxFee || false,
-      isRecommended: product.isRecommended || false,
-      recommendPriority: product.recommendPriority !== undefined ? product.recommendPriority : 999,
-      options: product.options || [], // Ensure options are included
-      // Time-based availability
-      availableFrom: product.availableFrom ? new Date(product.availableFrom).toISOString().slice(0, 16) : '',
-      availableTo: product.availableTo ? new Date(product.availableTo).toISOString().slice(0, 16) : '',
-      dailyAvailabilityEnabled: product.dailyAvailability?.enabled || false,
-      dailyTimeFrom: product.dailyAvailability?.timeFrom || '',
-      dailyTimeTo: product.dailyAvailability?.timeTo || '',
-      weeklyScheduleEnabled: product.weeklySchedule?.enabled || false,
-      weeklyScheduleDays: product.weeklySchedule?.days || []
-    });
+    setEditForm(buildEditFormFromProduct(product))
   };
 
   const closeEditForm = () => {
     if (editForm.imagePreview) URL.revokeObjectURL(editForm.imagePreview);
     if (editingProduct) {
       setEditingProduct(null);
-      setEditForm(INITIAL_EDIT_FORM);
+      resetEditForm();
     }
   };
 
@@ -489,8 +526,20 @@ const handleQuickEditCancel = () => {
           return;
         }
         
-        // Skip boolean fields - they will be set explicitly below
-        if (key === 'isPromotion' || key === 'disableBoxFee') {
+        // Skip fields that are handled explicitly below
+        if (
+          key === 'isPromotion' ||
+          key === 'disableBoxFee' ||
+          key === 'isRecommended' ||
+          key === 'recommendPriority' ||
+          key === 'availableFrom' ||
+          key === 'availableTo' ||
+          key === 'dailyAvailabilityEnabled' ||
+          key === 'dailyTimeFrom' ||
+          key === 'dailyTimeTo' ||
+          key === 'weeklyScheduleEnabled' ||
+          key === 'weeklyScheduleDays'
+        ) {
           return;
         }
         
@@ -586,24 +635,7 @@ const handleQuickEditCancel = () => {
         }
         
         setEditingProduct(null);
-        setEditForm({
-          sku: '',
-          name: '',
-          nameVI: '',
-          nameEN: '',
-          nameSK: '',
-          description: '',
-          price: '',
-          category: '',
-          quantity: 0,
-          isPromotion: false,
-          promotionPrice: '',
-          soldCount: 0,
-          disableBoxFee: false,
-          image: null,
-          imagePreview: null,
-          options: [] // Reset options
-        });
+        resetEditForm();
         fetchFoodList(false, undefined, true); // Refresh list và preserve scroll position
       } else {
         toast.error('Failed to update product: ' + response.data.message);
@@ -1024,7 +1056,7 @@ const handleQuickEditCancel = () => {
 
   // Backend now handles filtering and pagination, so just use the foodList directly
   // Sorting by quantity for visual priority (optional - can be removed if backend handles it)
-  const filteredProducts = useMemo(() => foodList
+  const filteredProducts = useMemo(() => [...foodList]
   .sort((a, b) => {
     const qa = Number(a.quantity) || 0;
     const qb = Number(b.quantity) || 0;
