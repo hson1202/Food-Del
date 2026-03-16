@@ -348,6 +348,7 @@ const resources = {
       'reservations.stats.total': 'Total',
       'reservations.stats.pending': 'Pending',
       'reservations.stats.completed': 'Completed',
+      'reservations.stats.cancelled': 'Đã hủy',
 
       // Search
       'reservations.search.placeholder': 'Tìm kiếm theo tên, email hoặc số điện thoại...',
@@ -1006,6 +1007,7 @@ const resources = {
       'reservations.stats.total': 'Total',
       'reservations.stats.pending': 'Pending',
       'reservations.stats.completed': 'Completed',
+      'reservations.stats.cancelled': 'Cancelled',
 
       // Search
       'reservations.search.placeholder': 'Search by name, email, or phone...',
@@ -1641,6 +1643,7 @@ const resources = {
       'reservations.stats.total': 'Celkom',
       'reservations.stats.pending': 'Čakajúce',
       'reservations.stats.completed': 'Dokončené',
+      'reservations.stats.cancelled': 'Zrušené',
 
       // Search
       'reservations.search.placeholder': 'Vyhľadávanie podľa mena, emailu alebo telefónu...',

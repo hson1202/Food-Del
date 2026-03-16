@@ -172,7 +172,9 @@ const DeliveryAddressInput = ({
             ? { latitude: selectedAddress.latitude, longitude: selectedAddress.longitude }
             : { latitude, longitude };
 
-          setQuery(deliveryData.address);
+          if (!suppressQueryUpdate) {
+            setQuery(deliveryData.address);
+          }
           setSelectedAddress({
             address: deliveryData.address,
             latitude: currentCoords.latitude,
@@ -250,6 +252,30 @@ const DeliveryAddressInput = ({
     }
   };
 
+  // Handle input blur (auto-calculate if typed but not selected)
+  const handleInputBlur = () => {
+    // Delay slightly so a suggestion click (if any) can process first
+    setTimeout(() => {
+      // If user typed something but hasn't fully selected a valid address from dropdown
+      // We will ask backend to geocode what they typed directly
+      if (query && !selectedAddress && query.length >= 3) {
+        setShowSuggestions(false);
+        calculateDelivery({ address: query, suppressQueryUpdate: true });
+      }
+    }, 200);
+  };
+
+  // Handle Enter keypress
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission
+      if (query && !selectedAddress && query.length >= 3) {
+        setShowSuggestions(false);
+        calculateDelivery({ address: query });
+      }
+    }
+  };
+
   const handleManualLocationConfirm = async (coords) => {
     if (!coords) return;
     setIsManualPickerOpen(false);
@@ -290,6 +316,8 @@ const DeliveryAddressInput = ({
           type="text"
           value={query}
           onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleKeyDown}
           placeholder={t('placeOrder.form.addressPlaceholder')}
           className="address-input"
           autoComplete="off"
@@ -311,7 +339,7 @@ const DeliveryAddressInput = ({
               <div
                 key={suggestion.id}
                 className={`suggestion-item ${isGeneralAddress ? 'suggestion-item-warning' : ''}`}
-                onClick={() => handleSelectSuggestion(suggestion)}
+                onMouseDown={() => handleSelectSuggestion(suggestion)}
               >
                 <span className="suggestion-icon">📍</span>
                 <div className="suggestion-text">

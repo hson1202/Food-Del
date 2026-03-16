@@ -50,13 +50,10 @@ const Reservations = ({ url }) => {
 
   const updateReservationStatus = async (id, status, adminNote = '') => {
     try {
-      console.log('Updating reservation status:', { id, status, adminNote })
       setUpdatingStatus(true)
       const token = localStorage.getItem('adminToken')
-      console.log('Token:', token ? 'Present' : 'Missing')
       
       const requestBody = { status, adminNote }
-      console.log('Request body:', requestBody)
       
       const response = await fetch(`${config.BACKEND_URL}/api/reservation/${id}/status`, {
         method: 'PUT',
@@ -67,18 +64,12 @@ const Reservations = ({ url }) => {
         body: JSON.stringify(requestBody)
       })
 
-      console.log('Response status:', response.status)
-      console.log('Response ok:', response.ok)
-
       if (!response.ok) {
-        const errorText = await response.text()
-        console.log('Error response:', errorText)
         throw new Error(t('reservations.errors.failedToUpdate'))
       }
 
       const result = await response.json()
       if (result.success) {
-        // Update local state
         setReservations(prev => 
           prev.map(res => 
             res._id === id 
@@ -94,8 +85,6 @@ const Reservations = ({ url }) => {
         )
         setShowModal(false)
         setSelectedReservation(null)
-        
-        // Show success message
         showNotification(t('reservations.messages.statusUpdatedSuccess'), 'success')
       }
     } catch (err) {
@@ -163,6 +152,15 @@ const Reservations = ({ url }) => {
     }
   }
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'pending': return '⏳'
+      case 'completed': return '✅'
+      case 'cancelled': return '❌'
+      default: return '📋'
+    }
+  }
+
   const formatDate = (dateString) => {
     const date = new Date(dateString)
     const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
@@ -179,7 +177,6 @@ const Reservations = ({ url }) => {
   }
 
   const showNotification = (message, type = 'info') => {
-    // Simple notification system - you can replace this with react-toastify or similar
     const notification = document.createElement('div')
     notification.className = `notification notification-${type}`
     notification.textContent = message
@@ -216,7 +213,7 @@ const Reservations = ({ url }) => {
     }, 3000)
   }
 
-  // Filter reservations based on status and search term
+  // Filter reservations
   const filteredReservations = reservations.filter(reservation => {
     const matchesStatus = filterStatus === 'all' || reservation.status === filterStatus
     const matchesSearch = 
@@ -227,7 +224,7 @@ const Reservations = ({ url }) => {
     return matchesStatus && matchesSearch
   })
 
-  // Add CSS animations
+  // CSS animations
   useEffect(() => {
     const style = document.createElement('style')
     style.textContent = `
@@ -268,6 +265,7 @@ const Reservations = ({ url }) => {
 
   return (
     <div className="reservations-page">
+      {/* ── Page Header ── */}
       <div className="page-header">
         <div className="header-content">
           <h1>{t('reservations.pageTitle')}</h1>
@@ -278,33 +276,51 @@ const Reservations = ({ url }) => {
             <span>🔄</span> {t('common.refresh') || 'Refresh'}
           </button>
         </div>
-        <div className="header-stats">
-          <div className="stat-item">
+      </div>
+
+      {/* ── Stats Row ── */}
+      <div className="stats-row">
+        <div className="stat-card stat-total">
+          <span className="stat-icon">📋</span>
+          <div className="stat-body">
             <span className="stat-number">{reservations.length}</span>
             <span className="stat-label">{t('reservations.stats.total')}</span>
           </div>
-          <div className="stat-item">
+        </div>
+        <div className="stat-card stat-pending">
+          <span className="stat-icon">⏳</span>
+          <div className="stat-body">
             <span className="stat-number">{reservations.filter(r => r.status === 'pending').length}</span>
             <span className="stat-label">{t('reservations.stats.pending')}</span>
           </div>
-          <div className="stat-item">
+        </div>
+        <div className="stat-card stat-completed">
+          <span className="stat-icon">✅</span>
+          <div className="stat-body">
             <span className="stat-number">{reservations.filter(r => r.status === 'completed').length}</span>
             <span className="stat-label">{t('reservations.stats.completed')}</span>
           </div>
         </div>
+        <div className="stat-card stat-cancelled">
+          <span className="stat-icon">❌</span>
+          <div className="stat-body">
+            <span className="stat-number">{reservations.filter(r => r.status === 'cancelled').length}</span>
+            <span className="stat-label">{t('reservations.stats.cancelled')}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* ── Filters ── */}
       <div className="filters-section">
         <div className="filters-row">
           <div className="search-box">
+            <span className="search-icon">🔍</span>
             <input
               type="text"
               placeholder={t('reservations.search.placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <span className="search-icon">🔍</span>
           </div>
           
           <div className="status-filter">
@@ -316,7 +332,6 @@ const Reservations = ({ url }) => {
               <option value="pending">{t('reservations.filters.pending')}</option>
               <option value="completed">{t('reservations.filters.completed')}</option>
               <option value="cancelled">{t('reservations.filters.cancelled')}</option>
-
             </select>
           </div>
 
@@ -337,7 +352,6 @@ const Reservations = ({ url }) => {
               className="filter-btn"
               onClick={() => {
                 if (dateRange.startDate && dateRange.endDate) {
-                  // Implement date range filtering
                   console.log('Filter by date range:', dateRange)
                 }
               }}
@@ -348,197 +362,159 @@ const Reservations = ({ url }) => {
         </div>
       </div>
 
-      {/* Reservations Table */}
-      <div className="reservations-table">
-        <table>
-          <thead>
-            <tr>
-              <th>{t('reservations.table.customer')}</th>
-              <th>{t('reservations.table.contact')}</th>
-              <th>{t('reservations.table.dateTime')}</th>
-              <th>{t('reservations.table.guests')}</th>
-              <th>{t('reservations.table.status')}</th>
-              <th>{t('reservations.table.createdAt')}</th>
-              <th>{t('reservations.table.actions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredReservations.map((reservation) => (
-              <tr key={reservation._id}>
-                <td>
-                  <div className="customer-info">
-                    <strong>{reservation.customerName}</strong>
-                    {reservation.note && (
-                      <span className="note-indicator" title={reservation.note}>📝</span>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  <div className="contact-info">
-                    <div>{reservation.email}</div>
-                    <div>{reservation.phone}</div>
-                  </div>
-                </td>
-                <td>
-                  <div className="datetime-info">
-                    <div>{formatDate(reservation.reservationDate)}</div>
-                    <div>{formatTime(reservation.reservationTime)}</div>
-                  </div>
-                </td>
-                <td>
-                  <span className="guests-count">{reservation.numberOfPeople}</span>
-                </td>
-                <td>
-                  <span 
-                    className="status-badge"
-                    style={{ backgroundColor: getStatusColor(reservation.status) }}
-                  >
-                    {getStatusText(reservation.status)}
-                  </span>
-                </td>
-                <td>
-                  {formatDate(reservation.createdAt)}
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    <button 
-                      className="btn-view"
-                      onClick={() => openModal(reservation)}
-                    >
-                      {t('reservations.actions.view')}
-                    </button>
-                    <button 
-                      className={`btn-delete ${deletingId === reservation._id ? 'deleting' : ''}`}
-                      onClick={() => deleteReservation(reservation._id)}
-                      disabled={deletingId === reservation._id}
-                    >
-                      {deletingId === reservation._id ? t('reservations.actions.deleting') : t('reservations.actions.delete')}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* ── Reservation Cards Grid ── */}
+      <div className="reservations-grid">
+        {filteredReservations.map((reservation) => (
+          <div
+            className={`reservation-card reservation-card--${reservation.status}`}
+            key={reservation._id}
+          >
+            {/* Card Top: Status + ID */}
+            <div className="card-top">
+              <span className={`card-status-badge ${reservation.status}`}>
+                {getStatusIcon(reservation.status)} {getStatusText(reservation.status)}
+              </span>
+              <span className="card-id">#{reservation._id.slice(-6).toUpperCase()}</span>
+            </div>
 
-        {filteredReservations.length === 0 && (
-          <div className="no-reservations">
-            <div className="no-data-icon">📅</div>
-            <p>{t('reservations.noReservationsFound')}</p>
-            {searchTerm || filterStatus !== 'all' ? (
+            {/* Card Header: Customer name */}
+            <div className="card-header">
+              <h3 className="card-customer-name">
+                {reservation.customerName}
+                {reservation.note && (
+                  <span className="note-indicator" title={reservation.note}>📝</span>
+                )}
+              </h3>
+            </div>
+
+            {/* Card Body: Key info */}
+            <div className="card-body">
+              <div className="card-info-row">
+                <span className="card-info-icon">📅</span>
+                <span className="card-info-text">{formatDate(reservation.reservationDate)}</span>
+              </div>
+              <div className="card-info-row">
+                <span className="card-info-icon">🕐</span>
+                <span className="card-info-text card-info-time">{formatTime(reservation.reservationTime)}</span>
+              </div>
+              <div className="card-info-row">
+                <span className="card-info-icon">👥</span>
+                <span className="card-info-text">
+                  <strong>{reservation.numberOfPeople}</strong> {t('reservations.modal.people') || 'khách'}
+                </span>
+              </div>
+              <div className="card-info-row">
+                <span className="card-info-icon">📞</span>
+                <span className="card-info-text">{reservation.phone}</span>
+              </div>
+              <div className="card-info-row">
+                <span className="card-info-icon">✉️</span>
+                <span className="card-info-text card-info-email">{reservation.email}</span>
+              </div>
+            </div>
+
+            {/* Card Footer: Actions */}
+            <div className="card-footer">
               <button 
-                onClick={() => {
-                  setSearchTerm('')
-                  setFilterStatus('all')
-                }}
-                className="clear-filters-btn"
+                className="card-btn card-btn-view"
+                onClick={() => openModal(reservation)}
               >
-                {t('reservations.clearFilters')}
+                {t('reservations.actions.view')}
               </button>
-            ) : null}
+              <button 
+                className={`card-btn card-btn-delete ${deletingId === reservation._id ? 'deleting' : ''}`}
+                onClick={() => deleteReservation(reservation._id)}
+                disabled={deletingId === reservation._id}
+              >
+                {deletingId === reservation._id ? t('reservations.actions.deleting') : t('reservations.actions.delete')}
+              </button>
+            </div>
           </div>
-        )}
+        ))}
       </div>
 
-      {/* Reservation Detail Modal */}
+      {filteredReservations.length === 0 && (
+        <div className="no-reservations">
+          <div className="no-data-icon">📅</div>
+          <p>{t('reservations.noReservationsFound')}</p>
+          {searchTerm || filterStatus !== 'all' ? (
+            <button 
+              onClick={() => {
+                setSearchTerm('')
+                setFilterStatus('all')
+              }}
+              className="clear-filters-btn"
+            >
+              {t('reservations.clearFilters')}
+            </button>
+          ) : null}
+        </div>
+      )}
+
+      {/* ── Reservation Detail Modal (Simplified Basic Version) ── */}
       {showModal && selectedReservation && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            {/* Status Badge */}
-            <div className={`modal-status-badge ${selectedReservation.status}`}>
-              {getStatusText(selectedReservation.status)}
-            </div>
-            
             <div className="modal-header">
-              <h2>{t('reservations.modal.detailTitle')}</h2>
+              <div className="modal-title-group">
+                <h2>{t('reservations.modal.detailTitle')}</h2>
+                <div className="modal-meta">
+                  <span className="booking-id-simple">#{selectedReservation._id.slice(-6).toUpperCase()}</span>
+                  <span className={`modal-status-badge-simple ${selectedReservation.status}`}>
+                    {getStatusText(selectedReservation.status)}
+                  </span>
+                </div>
+              </div>
               <button className="close-btn" onClick={closeModal}>×</button>
             </div>
             
             <div className="modal-body">
-              {/* Booking ID */}
-              <p className="booking-id">
-                {t('reservations.modal.bookingId')}: <strong>#{selectedReservation._id.slice(-6).toUpperCase()}</strong>
-              </p>
+              <div className="modal-info-grid">
+                {/* Information Block */}
+                <div className="info-block">
+                  <h3>{t('reservations.modal.customerInfoTitle')}</h3>
+                  <div className="info-row-simple">
+                    <span className="info-label">{t('reservations.modal.customerName')}:</span>
+                    <span className="info-value"><strong>{selectedReservation.customerName}</strong></span>
+                  </div>
+                  <div className="info-row-simple">
+                    <span className="info-label">{t('reservations.modal.phone')}:</span>
+                    <span className="info-value">{selectedReservation.phone}</span>
+                  </div>
+                  <div className="info-row-simple">
+                    <span className="info-label">{t('reservations.modal.email')}:</span>
+                    <span className="info-value">{selectedReservation.email}</span>
+                  </div>
+                </div>
 
-              {/* Customer Information */}
-              <div className="detail-section">
-                <h3>{t('reservations.modal.customerInfoTitle')}</h3>
-                <div className="info-row">
-                  <span className="info-label">{t('reservations.modal.customerName')}:</span>
-                  <span className="info-value highlight">{selectedReservation.customerName}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">{t('reservations.modal.phone')}:</span>
-                  <span className="info-value">{selectedReservation.phone}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">{t('reservations.modal.email')}:</span>
-                  <span className="info-value">{selectedReservation.email}</span>
-                </div>
-              </div>
-
-              {/* Reservation Information */}
-              <div className="detail-section">
-                <h3>{t('reservations.modal.reservationInfoTitle')}</h3>
-                
-                {/* Date Time Box */}
-                <div className="date-time-box">
-                  <div className="date">{formatDate(selectedReservation.reservationDate)}</div>
-                  <div className="time">{formatTime(selectedReservation.reservationTime)}</div>
-                </div>
-                
-                <div className="info-row">
-                  <span className="info-label">{t('reservations.modal.numberOfGuests')}:</span>
-                  <span className="info-value highlight">{selectedReservation.numberOfPeople} {t('reservations.modal.people')}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">{t('reservations.modal.createdAt')}:</span>
-                  <span className="info-value">{formatDate(selectedReservation.createdAt)} - {formatTime(selectedReservation.createdAt)}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">{t('reservations.modal.status')}:</span>
-                  <span className="info-value highlight">{getStatusText(selectedReservation.status)}</span>
+                <div className="info-block">
+                  <h3>{t('reservations.modal.reservationInfoTitle')}</h3>
+                  <div className="info-row-simple">
+                    <span className="info-label">{t('reservations.table.dateTime')}:</span>
+                    <span className="info-value"><strong>{formatDate(selectedReservation.reservationDate)} - {formatTime(selectedReservation.reservationTime)}</strong></span>
+                  </div>
+                  <div className="info-row-simple">
+                    <span className="info-label">{t('reservations.modal.numberOfGuests')}:</span>
+                    <span className="info-value">{selectedReservation.numberOfPeople} {t('reservations.modal.people')}</span>
+                  </div>
+                  <div className="info-row-simple">
+                    <span className="info-label">{t('reservations.modal.createdAt')}:</span>
+                    <span className="info-value">{formatDate(selectedReservation.createdAt)}</span>
+                  </div>
                 </div>
               </div>
 
               {/* Special Requests */}
               {selectedReservation.note && (
-                <div className="notes-section">
-                  <div className="notes-title">{t('reservations.modal.notesTitle')}:</div>
-                  <div className="notes-text">
-                    {selectedReservation.note}
-                  </div>
+                <div className="notes-box-simple">
+                  <strong>{t('reservations.modal.notesTitle')}:</strong> {selectedReservation.note}
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="modal-action-buttons">
-               
-                <button className="modal-btn modal-btn-secondary" onClick={() => {
-                  // Print functionality
-                  window.print()
-                }}>
-                  {t('reservations.modal.printDetails')}
-                </button>
-                <button className="modal-btn modal-btn-danger" onClick={() => {
-                  // Cancel functionality
-                  if (window.confirm(t('reservations.modal.confirmCancel'))) {
-                    updateReservationStatus(selectedReservation._id, 'cancelled', t('reservations.modal.cancelledByAdmin'))
-                  }
-                }}>
-                  {t('reservations.modal.cancel')}
-                </button>
-              </div>
-
-                            {/* Status Management for Admin */}
-              <div className="detail-section">
+              {/* Status Management for Admin */}
+              <div className="status-actions-simple">
                 <h3>{t('reservations.modal.statusManagementTitle')}</h3>
-                <div className="status-actions">
-                  <div className="status-change-info">
-                    <p><strong>Trạng thái hiện tại:</strong> {getStatusText(selectedReservation.status)}</p>
-                    <p><strong>Thay đổi thành:</strong></p>
-                  </div>
-                  
+                <div className="status-controls">
                   <select 
                     value={selectedReservation.status}
                     onChange={(e) => {
@@ -547,6 +523,7 @@ const Reservations = ({ url }) => {
                         status: e.target.value
                       })
                     }}
+                    className="basic-select"
                   >
                     <option value="pending">{t('reservations.modal.pending')}</option>
                     <option value="completed">{t('reservations.modal.completed')}</option>
@@ -562,11 +539,24 @@ const Reservations = ({ url }) => {
                         adminNote: e.target.value
                       })
                     }}
-                    rows="3"
+                    rows="2"
+                    className="basic-textarea"
                   />
-                  
+                </div>
+                
+                <div className="modal-action-buttons">
+                  <button className="modal-btn modal-btn-secondary" onClick={() => window.print()}>
+                    {t('reservations.modal.printDetails')}
+                  </button>
+                  <button className="modal-btn modal-btn-danger" onClick={() => {
+                    if (window.confirm(t('reservations.modal.confirmCancel'))) {
+                      updateReservationStatus(selectedReservation._id, 'cancelled', t('reservations.modal.cancelledByAdmin'))
+                    }
+                  }}>
+                    {t('reservations.modal.cancel')}
+                  </button>
                   <button 
-                    className={`btn-update ${updatingStatus ? 'updating' : ''}`}
+                    className={`btn-update-simple ${updatingStatus ? 'updating' : ''}`}
                     onClick={() => updateReservationStatus(
                       selectedReservation._id,
                       selectedReservation.status,

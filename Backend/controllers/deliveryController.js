@@ -561,10 +561,12 @@ const autocompleteAddress = async (req, res) => {
     if (proximity) {
       const [lng, lat] = proximity.split(',').map(parseFloat);
       if (!isNaN(lng) && !isNaN(lat)) {
-        // Tạo viewbox xung quanh điểm proximity (khoảng 10km)
-        const offset = 0.1; // ~10km
+        // Tạo viewbox xung quanh điểm proximity (~50km) để ưu tiên kết quả gần nhà hàng
+        // KHÔNG dùng bounded=1 vì sẽ chặn hoàn toàn địa chỉ ngoài viewbox,
+        // làm các zone giao hàng mới (khoảng cách xa hơn) không tìm được địa chỉ
+        const offset = 0.5; // ~55km - đủ rộng để bao phủ mọi zone giao hàng thực tế
         const viewbox = `${lng - offset},${lat - offset},${lng + offset},${lat + offset}`;
-        url += `&viewbox=${viewbox}&bounded=1`;
+        url += `&viewbox=${viewbox}`;
       }
     }
 
