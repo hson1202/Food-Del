@@ -3,8 +3,10 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import './Messages.css';
 import config from '../../config/config';
+import { useTranslation } from 'react-i18next';
 
 const Messages = ({ url }) => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -238,68 +240,68 @@ const Messages = ({ url }) => {
   return (
     <div className="messages-page">
       <div className="messages-header">
-        <h1>Customer Messages</h1>
-        <p>Manage and respond to customer inquiries</p>
+        <h1>{t('msg.title')}</h1>
+        <p>{t('msg.subtitle')}</p>
       </div>
 
       {/* Statistics Cards */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-number">{stats.total}</div>
-          <div className="stat-label">Total Messages</div>
+          <div className="stat-label">{t('msg.total')}</div>
         </div>
         <div className="stat-card unread">
           <div className="stat-number">{stats.unread}</div>
-          <div className="stat-label">Unread</div>
+          <div className="stat-label">{t('msg.unread')}</div>
         </div>
         <div className="stat-card read">
           <div className="stat-number">{stats.read}</div>
-          <div className="stat-label">Read</div>
+          <div className="stat-label">{t('msg.read')}</div>
         </div>
         <div className="stat-card resolved">
           <div className="stat-number">{stats.resolved}</div>
-          <div className="stat-label">Resolved</div>
+          <div className="stat-label">{t('msg.resolved')}</div>
         </div>
       </div>
 
       {/* Filters */}
       <div className="filters-section">
         <div className="filter-group">
-          <label>Status:</label>
+          <label>{t('msg.status')}</label>
           <select 
             value={filters.status} 
             onChange={(e) => handleFilterChange('status', e.target.value)}
           >
-            <option value="all">All Status</option>
-            <option value="unread">Unread</option>
-            <option value="read">Read</option>
-            <option value="in-progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
+            <option value="all">{t('msg.allStatus')}</option>
+            <option value="unread">{t('msg.unread')}</option>
+            <option value="read">{t('msg.read')}</option>
+            <option value="in-progress">{t('msg.inProgress')}</option>
+            <option value="resolved">{t('msg.resolved')}</option>
+            <option value="closed">{t('msg.closed')}</option>
           </select>
         </div>
 
         <div className="filter-group">
-          <label>Subject:</label>
+          <label>{t('msg.subject')}</label>
           <select 
             value={filters.subject} 
             onChange={(e) => handleFilterChange('subject', e.target.value)}
           >
-            <option value="all">All Subjects</option>
-            <option value="general">General</option>
-            <option value="reservation">Reservation</option>
-            <option value="feedback">Feedback</option>
-            <option value="complaint">Complaint</option>
-            <option value="partnership">Partnership</option>
-            <option value="other">Other</option>
+            <option value="all">{t('msg.allSubjects')}</option>
+            <option value="general">{t('msg.general')}</option>
+            <option value="reservation">{t('msg.reservation')}</option>
+            <option value="feedback">{t('msg.feedback')}</option>
+            <option value="complaint">{t('msg.complaint')}</option>
+            <option value="partnership">{t('msg.partnership')}</option>
+            <option value="other">{t('msg.other')}</option>
           </select>
         </div>
 
         <div className="filter-group">
-          <label>Search:</label>
+          <label>{t('msg.search')}</label>
           <input
             type="text"
-            placeholder="Search messages..."
+            placeholder={t('msg.searchPlaceholder')}
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
           />
@@ -310,17 +312,17 @@ const Messages = ({ url }) => {
       <div className="messages-container">
         {error ? (
           <div className="error-message">
-            <h3>Error loading messages</h3>
+            <h3>{t('msg.errorLoading')}</h3>
             <p>{error}</p>
             <button onClick={() => {
               setError(null);
               fetchMessages();
-            }}>Retry</button>
+            }}>{t('msg.retry')}</button>
           </div>
         ) : loading ? (
-          <div className="loading">Loading messages...</div>
+          <div className="loading">{t('msg.loading')}</div>
         ) : !Array.isArray(messages) || messages.length === 0 ? (
-          <div className="no-messages">No messages found</div>
+          <div className="no-messages">{t('msg.noMessages')}</div>
         ) : (
           <>
                          <div className="messages-list">
@@ -352,7 +354,7 @@ const Messages = ({ url }) => {
                   <div className="message-footer">
                     <span className="message-date">{formatDate(message.createdAt)}</span>
                     {message.adminResponse && (
-                      <span className="has-response">✓ Responded</span>
+                      <span className="has-response">✓ {t('msg.responded')}</span>
                     )}
                   </div>
                 </div>
@@ -366,18 +368,18 @@ const Messages = ({ url }) => {
                   onClick={() => handlePageChange(pagination.currentPage - 1)}
                   disabled={pagination.currentPage === 1}
                 >
-                  Previous
+                  {t('msg.previous')}
                 </button>
                 
                 <span className="page-info">
-                  Page {pagination.currentPage} of {pagination.totalPages}
+                  {t('msg.page')} {pagination.currentPage} {t('msg.of')} {pagination.totalPages}
                 </span>
                 
                 <button 
                   onClick={() => handlePageChange(pagination.currentPage + 1)}
                   disabled={pagination.currentPage === pagination.totalPages}
                 >
-                  Next
+                  {t('msg.next')}
                 </button>
               </div>
             )}
@@ -390,39 +392,39 @@ const Messages = ({ url }) => {
         <div className="message-detail-modal">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Message Details</h2>
+              <h2>{t('msg.details')}</h2>
               <button className="close-btn" onClick={closeMessageDetail}>×</button>
             </div>
             
             <div className="message-detail-content">
               <div className="message-info">
                 <div className="info-row">
-                  <label>From:</label>
+                  <label>{t('msg.from')}</label>
                   <span>{selectedMessage.name} ({selectedMessage.email})</span>
                 </div>
                 <div className="info-row">
-                  <label>Subject:</label>
+                  <label>{t('msg.subject')}</label>
                   <span>{selectedMessage.subject}</span>
                 </div>
                 <div className="info-row">
-                  <label>Date:</label>
+                  <label>{t('msg.date')}</label>
                   <span>{formatDate(selectedMessage.createdAt)}</span>
                 </div>
                 <div className="info-row">
-                  <label>Status:</label>
+                  <label>{t('msg.status')}</label>
                   <select 
                     value={selectedMessage.status}
                     onChange={(e) => updateMessageStatus(selectedMessage._id, e.target.value)}
                   >
-                    <option value="unread">Unread</option>
-                    <option value="read">Read</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
+                    <option value="unread">{t('msg.unread')}</option>
+                    <option value="read">{t('msg.read')}</option>
+                    <option value="in-progress">{t('msg.inProgress')}</option>
+                    <option value="resolved">{t('msg.resolved')}</option>
+                    <option value="closed">{t('msg.closed')}</option>
                   </select>
                 </div>
                 <div className="info-row">
-                  <label>Priority:</label>
+                  <label>{t('msg.priority')}</label>
                   <span className={`priority-badge ${getPriorityBadgeClass(selectedMessage.priority)}`}>
                     {selectedMessage.priority}
                   </span>
@@ -430,17 +432,16 @@ const Messages = ({ url }) => {
               </div>
 
               <div className="message-content">
-                <label>Message:</label>
+                <label>{t('msg.message')}</label>
                 <div className="message-text">{selectedMessage.message}</div>
               </div>
 
               {selectedMessage.adminResponse && (
                 <div className="admin-response">
-                  <label>Admin Response:</label>
+                  <label>{t('msg.adminResponse')}</label>
                   <div className="response-text">{selectedMessage.adminResponse}</div>
                   <div className="response-meta">
-                    Responded by: {selectedMessage.respondedBy || 'Admin'} 
-                    on {formatDate(selectedMessage.respondedAt)}
+                    {t('msg.respondedBy')} {selectedMessage.respondedBy || 'Admin'} {t('msg.on')} {formatDate(selectedMessage.respondedAt)}
                   </div>
                 </div>
               )}
@@ -450,7 +451,7 @@ const Messages = ({ url }) => {
                   className="delete-btn"
                   onClick={() => deleteMessage(selectedMessage._id)}
                 >
-                  Delete Message
+                  {t('msg.delete')}
                 </button>
               </div>
             </div>

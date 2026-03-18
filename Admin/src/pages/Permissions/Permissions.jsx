@@ -3,8 +3,10 @@ import './Permissions.css'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import config from '../../config/config'
+import { useTranslation } from 'react-i18next'
 
 const Permissions = ({ url }) => {
+  const { t } = useTranslation()
   const [roles, setRoles] = useState([])
   const [permissions, setPermissions] = useState([])
   const [rolePermissions, setRolePermissions] = useState({})
@@ -103,20 +105,20 @@ const Permissions = ({ url }) => {
   return (
     <div className='permissions-page'>
       <div className="permissions-header">
-        <h1>Permission Management</h1>
-        <p>Configure role-based access control</p>
+        <h1>{t('perm.title')}</h1>
+        <p>{t('perm.subtitle')}</p>
       </div>
 
       {/* Roles Overview */}
       <div className="roles-overview">
-        <h2>Roles</h2>
+        <h2>{t('perm.roles')}</h2>
         <div className="roles-grid">
           {roles.map((role) => (
             <div key={role.id} className="role-card" style={{ borderLeftColor: getRoleColor(role.id) }}>
               <h3>{role.name}</h3>
               <p>{role.description}</p>
               <div className="role-stats">
-                <span>{rolePermissions[role.id]?.length || 0} permissions</span>
+                <span>{rolePermissions[role.id]?.length || 0} {t('perm.permissions')}</span>
               </div>
             </div>
           ))}
@@ -125,12 +127,12 @@ const Permissions = ({ url }) => {
 
       {/* Permissions Matrix */}
       <div className="permissions-matrix">
-        <h2>Permissions Matrix</h2>
+        <h2>{t('perm.permissionsMatrix')}</h2>
         <div className="matrix-container">
           <table className="permissions-table">
             <thead>
               <tr>
-                <th>Permission</th>
+                <th>{t('perm.permission')}</th>
                 {roles.map((role) => (
                   <th key={role.id} style={{ backgroundColor: getRoleColor(role.id) }}>
                     {role.name}
@@ -166,7 +168,7 @@ const Permissions = ({ url }) => {
 
       {/* Permission Groups */}
       <div className="permission-groups">
-        <h2>Permission Groups</h2>
+        <h2>{t('perm.permissionGroups')}</h2>
         <div className="groups-grid">
           <div className="group-card">
             <h3>Dashboard Access</h3>

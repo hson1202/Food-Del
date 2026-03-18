@@ -404,12 +404,34 @@ const DeliveryAddressInput = ({
 
       {manualPinAvailable && (
         <>
+          {/* Village / address not found hint */}
+          {error && (
+            <div className="village-hint-banner">
+              <span className="village-hint-icon">🗺️</span>
+              <div className="village-hint-text">
+                <strong>
+                  {i18n.language === 'sk'
+                    ? 'Vaša adresa sa nenachádza v zozname?'
+                    : i18n.language === 'en'
+                    ? 'Address not found in suggestions?'
+                    : 'Địa chỉ không xuất hiện trong gợi ý?'}
+                </strong>
+                <span>
+                  {i18n.language === 'sk'
+                    ? 'Ak žijete v okolitej dedine alebo obci, ktorú mapa nerozpozná, použite tlačidlo nižšie a označte svoju polohu priamo na mape.'
+                    : i18n.language === 'en'
+                    ? 'If you live in a nearby village not found by the map, use the button below to pin your exact location on the map.'
+                    : 'Nếu bạn ở làng/xã lân cận không được tìm thấy trên bản đồ, hãy nhấn nút bên dưới để ghim vị trí trực tiếp.'}
+                </span>
+              </div>
+            </div>
+          )}
           <button
             type="button"
-            className="manual-pin-trigger"
+            className="manual-pin-trigger manual-pin-prominent"
             onClick={() => setIsManualPickerOpen(true)}
           >
-            {t('placeOrder.form.manualPinButton')}
+            📍 {t('placeOrder.form.manualPinButton')}
           </button>
           <ManualLocationPicker
             isOpen={isManualPickerOpen}

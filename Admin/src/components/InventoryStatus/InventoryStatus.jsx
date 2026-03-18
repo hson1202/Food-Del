@@ -1,7 +1,10 @@
 import React from 'react';
 import './InventoryStatus.css';
+import { useTranslation } from 'react-i18next';
 
 const InventoryStatus = ({ quantity, threshold = 5 }) => {
+  const { t } = useTranslation();
+
   const getStatusClass = () => {
     if (quantity === 0) return 'out-of-stock';
     if (quantity <= threshold) return 'low-stock';
@@ -15,9 +18,9 @@ const InventoryStatus = ({ quantity, threshold = 5 }) => {
   };
 
   const getStatusText = () => {
-    if (quantity === 0) return 'Out of Stock';
-    if (quantity <= threshold) return 'Low Stock';
-    return 'In Stock';
+    if (quantity === 0) return t('inv.outOfStock');
+    if (quantity <= threshold) return t('inv.lowStock');
+    return t('inv.inStock');
   };
 
   const getProgressBarColor = () => {
@@ -42,7 +45,7 @@ const InventoryStatus = ({ quantity, threshold = 5 }) => {
       <div className="inventory-details">
         <div className="quantity-display">
           <span className="quantity-number">{quantity}</span>
-          <span className="quantity-label">units</span>
+          <span className="quantity-label">{t('inv.units')}</span>
         </div>
         
         <div className="progress-container">
@@ -58,13 +61,13 @@ const InventoryStatus = ({ quantity, threshold = 5 }) => {
       
       {quantity <= threshold && quantity > 0 && (
         <div className="stock-warning">
-          Only {quantity} left!
+          {t('inv.onlyLeft', { quantity })}
         </div>
       )}
       
       {quantity === 0 && (
         <div className="stock-warning critical">
-          Restock needed!
+          {t('inv.restockNeeded')}
         </div>
       )}
     </div>
@@ -72,3 +75,4 @@ const InventoryStatus = ({ quantity, threshold = 5 }) => {
 };
 
 export default InventoryStatus;
+

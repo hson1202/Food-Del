@@ -4,14 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import config from '../../config/config';
 import './Reservation.css';
 
-// Import hero images
-import back8 from '../../assets/back8.jpg';
-import back9 from '../../assets/back9.jpg';
-import back10 from '../../assets/back10.jpg';
-import back11 from '../../assets/back11.jpg';
-import back12 from '../../assets/back12.jpg';
-import headerImg from '../../assets/header_img.png';
-
 const Reservation = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -30,10 +22,6 @@ const Reservation = () => {
   const [reservationLoading, setReservationLoading] = useState(false);
   const [reservationErrors, setReservationErrors] = useState({});
   const [reservationSuccess, setReservationSuccess] = useState(false);
-
-  // Hero image rotation
-  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const heroImages = [back8, back9, back10, back11, back12, headerImg];
 
   const handleReservationChange = (e) => {
     const { name, value } = e.target;
@@ -239,33 +227,8 @@ const Reservation = () => {
   // Generate time slots for selected date
   const timeSlots = generateTimeSlots(reservationData.reservationDate);
 
-  // Auto-rotate hero images
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentHeroIndex((prevIndex) => 
-        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 5000); // Change every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [heroImages.length]);
-
   return (
     <div className="reservation-page">
-      <div className="reservation-hero">
-        <div className="hero-background">
-          <img 
-            src={heroImages[currentHeroIndex]}
-            alt="Reservation hero background"
-            className="hero-bg-image"
-          />
-        </div>
-        <div className="hero-content">
-          <h1>Book Your Table</h1>
-          <p>Reserve a table at Viet Bowls for an unforgettable dining experience</p>
-        </div>
-      </div>
-
       <div className="reservation-container">
         <div className="reservation-form-section">
           <h2>Make a Reservation</h2>

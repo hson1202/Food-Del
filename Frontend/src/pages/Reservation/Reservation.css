@@ -4,59 +4,7 @@
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-/* Hero Section */
-.reservation-hero {
-  position: relative;
-  color: white;
-  padding: 80px 0;
-  text-align: center;
-  overflow: hidden;
-}
 
-.hero-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-.hero-bg-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 1s ease-in-out;
-}
-
-.reservation-hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 2;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 3;
-}
-
-.reservation-hero .hero-content h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  font-weight: 700;
-}
-
-.reservation-hero .hero-content p {
-  font-size: 1.2rem;
-  opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto;
-}
 
 /* Main Container */
 .reservation-container {
@@ -512,14 +460,6 @@
 }
 
 @media (max-width: 768px) {
-  .reservation-hero .hero-content h1 {
-    font-size: 2.5rem;
-  }
-  
-  .reservation-hero .hero-content p {
-    font-size: 1rem;
-  }
-  
   .reservation-container {
     padding: 20px;
   }
@@ -562,14 +502,6 @@
 }
 
 @media (max-width: 480px) {
-  .reservation-hero {
-    padding: 60px 0;
-  }
-  
-  .reservation-hero .hero-content h1 {
-    font-size: 2rem;
-  }
-  
   .reservation-container {
     padding: 15px;
   }

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './EmailTest.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const EmailTest = ({ url }) => {
+  const { t } = useTranslation();
   const [emailStatus, setEmailStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [testEmail, setTestEmail] = useState('');
@@ -97,13 +99,13 @@ const EmailTest = ({ url }) => {
   return (
     <div className="email-test-container">
       <div className="email-test-header">
-        <h2>📧 Email Service Configuration</h2>
+        <h2>📧 {t('email.title')}</h2>
         <button 
           onClick={fetchEmailStatus} 
           className="refresh-btn"
           disabled={loading}
         >
-          🔄 Refresh
+          🔄 {t('email.refresh')}
         </button>
       </div>
 
@@ -113,11 +115,11 @@ const EmailTest = ({ url }) => {
           {isConfigured ? '✅' : '⚠️'}
         </div>
         <div className="status-content">
-          <h3>{isConfigured ? 'Email Service Configured' : 'Email Service NOT Configured'}</h3>
+          <h3>{isConfigured ? t('email.configured') : t('email.notConfigured')}</h3>
           <p>
             {isConfigured 
-              ? 'Email service is set up. Orders and notifications will be sent via email.'
-              : 'Email service is not configured. Emails will NOT be sent.'}
+              ? t('email.configuredDesc')
+              : t('email.notConfiguredDesc')}
           </p>
         </div>
       </div>
@@ -125,7 +127,7 @@ const EmailTest = ({ url }) => {
       {/* Configuration Details */}
       {emailStatus && (
         <div className="config-details">
-          <h3>Configuration Details</h3>
+          <h3>{t('email.configDetails')}</h3>
           <div className="config-grid">
             {Object.entries(emailStatus.config || {}).map(([key, value]) => (
               <div key={key} className="config-item">
@@ -141,25 +143,25 @@ const EmailTest = ({ url }) => {
 
       {/* Test Connection */}
       <div className="test-section">
-        <h3>Test Email Connection</h3>
-        <p>Verify that email credentials are valid and SMTP connection works.</p>
+        <h3>{t('email.testConnection')}</h3>
+        <p>{t('email.testConnectionDesc')}</p>
         <button 
           onClick={testEmailConnection} 
           className="test-btn"
           disabled={loading || !isConfigured}
         >
-          {loading ? '⏳ Testing...' : '🔍 Test Connection'}
+          {loading ? `⏳ ${t('email.testing')}` : `🔍 ${t('email.testConnection')}`}
         </button>
       </div>
 
       {/* Send Test Email */}
       <div className="send-test-section">
-        <h3>Send Test Email</h3>
-        <p>Send a test email to verify the complete email flow.</p>
+        <h3>{t('email.sendTest')}</h3>
+        <p>{t('email.sendTestDesc')}</p>
         <form onSubmit={sendTestEmail} className="test-email-form">
           <input
             type="email"
-            placeholder="Enter email address"
+            placeholder={t('email.enterEmail')}
             value={testEmail}
             onChange={(e) => setTestEmail(e.target.value)}
             className="test-email-input"
@@ -170,7 +172,7 @@ const EmailTest = ({ url }) => {
             className="send-btn"
             disabled={sendingTest || !isConfigured}
           >
-            {sendingTest ? '📤 Sending...' : '📧 Send Test Email'}
+            {sendingTest ? `📤 ${t('email.sending')}` : `📧 ${t('email.sendTest')}`}
           </button>
         </form>
         
@@ -185,7 +187,7 @@ const EmailTest = ({ url }) => {
       {/* Recommendations */}
       {!isConfigured && emailStatus?.recommendations && (
         <div className="recommendations">
-          <h3>⚡ How to Fix</h3>
+          <h3>⚡ {t('email.howToFix')}</h3>
           <ol>
             {emailStatus.recommendations.map((rec, index) => (
               <li key={index}>{rec}</li>
@@ -204,7 +206,7 @@ const EmailTest = ({ url }) => {
 
       {/* Usage Info */}
       <div className="usage-info">
-        <h3>📚 Email Usage</h3>
+        <h3>📚 {t('email.usageLimit')}</h3>
         <div className="usage-grid">
           <div className="usage-item">
             <div className="usage-icon">👤</div>

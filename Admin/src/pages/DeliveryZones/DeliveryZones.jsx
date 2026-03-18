@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './DeliveryZones.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const DeliveryZones = ({ url }) => {
+  const { t } = useTranslation();
   const [zones, setZones] = useState([]);
   const [restaurantLocation, setRestaurantLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -303,14 +305,6 @@ const DeliveryZones = ({ url }) => {
       order: zone.order
     });
     setShowZoneForm(true);
-
-    // Scroll to form after a short delay to ensure it's rendered
-    setTimeout(() => {
-      const form = document.querySelector('.zone-form');
-      if (form) {
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
   };
 
   const resetZoneForm = () => {
@@ -367,8 +361,8 @@ const DeliveryZones = ({ url }) => {
   return (
     <div className="delivery-zones-page">
       <div className="page-header">
-        <h1>Delivery Zones Management</h1>
-        <p>Manage delivery zones, fees, and restaurant location</p>
+        <h1>{t('dz.title')}</h1>
+        <p>{t('dz.subtitle')}</p>
       </div>
 
       {/* Debug Token Info */}
@@ -382,8 +376,8 @@ const DeliveryZones = ({ url }) => {
             </svg>
           </div>
           <div className="warning-content">
-            <strong>Authentication Issue Detected!</strong>
-            <p>No token found in localStorage. Please logout and login again.</p>
+            <strong>{t('dz.authIssue')}</strong>
+            <p>{t('dz.authDesc')}</p>
             <button
               className="btn btn-primary"
               onClick={() => {
@@ -391,7 +385,7 @@ const DeliveryZones = ({ url }) => {
                 window.location.href = '/login';
               }}
             >
-              Go to Login
+              {t('dz.goToLogin')}
             </button>
           </div>
         </div>
@@ -400,12 +394,12 @@ const DeliveryZones = ({ url }) => {
       {/* Restaurant Location Section */}
       <div className="section-card location-section">
         <div className="section-header">
-          <h2>Restaurant Location</h2>
+          <h2>{t('dz.restaurantLocation')}</h2>
           <button
             className="btn btn-primary"
             onClick={() => setShowLocationForm(!showLocationForm)}
           >
-            {showLocationForm ? 'Cancel' : restaurantLocation ? 'Edit Location' : 'Set Location'}
+            {showLocationForm ? t('dz.cancel') : restaurantLocation ? t('dz.editLocation') : t('dz.setLocation')}
           </button>
         </div>
 
@@ -413,21 +407,21 @@ const DeliveryZones = ({ url }) => {
           <div className="location-display">
             <div className="location-info">
               <div className="info-item">
-                <span className="label">Name:</span>
+                <span className="label">{t('dz.name')}:</span>
                 <span className="value">{restaurantLocation.name}</span>
               </div>
               <div className="info-item">
-                <span className="label">Address:</span>
+                <span className="label">{t('dz.address')}:</span>
                 <span className="value">{restaurantLocation.address}</span>
               </div>
               <div className="info-item">
-                <span className="label">Coordinates:</span>
+                <span className="label">{t('dz.coordinates')}:</span>
                 <span className="value">
                   {restaurantLocation.latitude}, {restaurantLocation.longitude}
                 </span>
               </div>
               <div className="info-item">
-                <span className="label">Box Fee:</span>
+                <span className="label">{t('dz.boxFee')}:</span>
                 <span className="value" style={{ fontWeight: 'bold', color: '#ff6b35' }}>
                   €{(restaurantLocation.boxFee !== undefined ? restaurantLocation.boxFee : 0.3).toFixed(2)}
                 </span>
@@ -440,7 +434,7 @@ const DeliveryZones = ({ url }) => {
           <form className="location-form" onSubmit={handleUpdateLocation}>
             <div className="form-grid">
               <div className="form-group">
-                <label>Restaurant Name</label>
+                <label>{t('dz.name')}</label>
                 <input
                   type="text"
                   name="name"
@@ -450,7 +444,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group full-width">
-                <label>Address</label>
+                <label>{t('dz.address')}</label>
                 <input
                   type="text"
                   name="address"
@@ -485,7 +479,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Box Fee (€)</label>
+                <label>{t('dz.boxFee')}</label>
                 <input
                   type="number"
                   name="boxFee"
@@ -497,20 +491,20 @@ const DeliveryZones = ({ url }) => {
                   required
                 />
                 <small style={{ display: 'block', marginTop: '5px', color: '#666' }}>
-                  Default packaging fee per item (can be disabled per product)
+                  {t('dz.defaultBoxFeeHelp')}
                 </small>
               </div>
             </div>
             <div className="form-actions">
               <button type="submit" className="btn btn-success">
-                Save Location
+                {t('dz.saveLocation')}
               </button>
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => setShowLocationForm(false)}
               >
-                Cancel
+                {t('dz.cancel')}
               </button>
             </div>
           </form>
@@ -520,34 +514,39 @@ const DeliveryZones = ({ url }) => {
       {/* Delivery Zones Section */}
       <div className="section-card zones-section">
         <div className="section-header">
-          <h2>Delivery Zones</h2>
+          <h2>{t('dz.deliveryZones')}</h2>
           <button
             className="btn btn-primary"
             onClick={() => {
               resetZoneForm();
-              setShowZoneForm(!showZoneForm);
+              setShowZoneForm(true);
             }}
           >
-            {showZoneForm ? 'Cancel' : '+ Add Zone'}
+            + {t('dz.addZone')}
           </button>
         </div>
 
         {showZoneForm && (
-          <form
-            className="zone-form"
-            onSubmit={editingZone ? handleUpdateZone : handleCreateZone}
-          >
-            <div className="form-header-title">
-              <h3>{editingZone ? 'Edit Delivery Zone' : 'Create New Delivery Zone'}</h3>
-              <p className="form-subtitle">
-                {editingZone
-                  ? 'Update the delivery zone details below. Changes will affect customer orders immediately.'
-                  : 'Set up a new delivery zone with distance range, fees, and minimum order.'}
-              </p>
-            </div>
-            <div className="form-grid">
+          <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) { resetZoneForm(); setShowZoneForm(false); } }}>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h3>{editingZone ? t('dz.editZone') : t('dz.createZone')}</h3>
+                <button type="button" className="modal-close-btn" onClick={() => { resetZoneForm(); setShowZoneForm(false); }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+              <form
+                className="zone-form modal-form"
+                onSubmit={editingZone ? handleUpdateZone : handleCreateZone}
+              >
+                <p className="form-subtitle">
+                  {editingZone
+                    ? 'Update the delivery zone details below. Changes will affect customer orders immediately.'
+                    : 'Set up a new delivery zone with distance range, fees, and minimum order.'}
+                </p>
+                <div className="form-grid">
               <div className="form-group">
-                <label>Zone Name *</label>
+                <label>{t('dz.zoneName')} *</label>
                 <input
                   type="text"
                   name="name"
@@ -558,7 +557,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Min Distance (km) *</label>
+                <label>{t('dz.minDistance')} *</label>
                 <input
                   type="number"
                   name="minDistance"
@@ -570,7 +569,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Max Distance (km) *</label>
+                <label>{t('dz.maxDistance')} *</label>
                 <input
                   type="number"
                   name="maxDistance"
@@ -582,7 +581,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Delivery Fee (€) *</label>
+                <label>{t('dz.deliveryFee')} *</label>
                 <input
                   type="number"
                   name="deliveryFee"
@@ -596,7 +595,7 @@ const DeliveryZones = ({ url }) => {
                 <small className="field-hint">This is the shipping cost customers will pay</small>
               </div>
               <div className="form-group">
-                <label>Min Order (€) *</label>
+                <label>{t('dz.minOrder')} *</label>
                 <input
                   type="number"
                   name="minOrder"
@@ -610,7 +609,7 @@ const DeliveryZones = ({ url }) => {
                 <small className="field-hint">Minimum order value required for this zone</small>
               </div>
               <div className="form-group">
-                <label>Estimated Time (min) *</label>
+                <label>{t('dz.estimatedTime')} *</label>
                 <input
                   type="number"
                   name="estimatedTime"
@@ -622,7 +621,7 @@ const DeliveryZones = ({ url }) => {
                 <small className="field-hint">Expected delivery time</small>
               </div>
               <div className="form-group">
-                <label>Color</label>
+                <label>{t('dz.color')}</label>
                 <input
                   type="color"
                   name="color"
@@ -631,7 +630,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Display Order</label>
+                <label>{t('dz.displayOrder')}</label>
                 <input
                   type="number"
                   name="order"
@@ -641,10 +640,7 @@ const DeliveryZones = ({ url }) => {
                 />
               </div>
             </div>
-            <div className="form-actions">
-              <button type="submit" className="btn btn-success">
-                {editingZone ? 'Update Zone' : 'Create Zone'}
-              </button>
+            <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -653,17 +649,22 @@ const DeliveryZones = ({ url }) => {
                   setShowZoneForm(false);
                 }}
               >
-                Cancel
+                {t('dz.cancel')}
+              </button>
+              <button type="submit" className="btn btn-success">
+                {editingZone ? t('dz.updateZone') : t('dz.createZone')}
               </button>
             </div>
           </form>
+            </div>
+          </div>
         )}
 
         <div className="zones-list">
           {zones.length === 0 ? (
             <div className="no-zones">
-              <p>No delivery zones configured yet.</p>
-              <p>Click "Add Zone" to create your first delivery zone.</p>
+              <p>{t('dz.noZones')}</p>
+              <p>{t('dz.addZoneHint')}</p>
             </div>
           ) : (
             <div className="zones-grid">
@@ -671,7 +672,7 @@ const DeliveryZones = ({ url }) => {
                 <div
                   key={zone._id}
                   className="zone-card"
-                  style={{ borderLeftColor: zone.color }}
+                  style={{ '--card-color': zone.color }}
                 >
                   <div className="zone-header">
                     <h3>{zone.name}</h3>
@@ -700,13 +701,13 @@ const DeliveryZones = ({ url }) => {
                   </div>
                   <div className="zone-details">
                     <div className="detail-row">
-                      <span className="label">Distance:</span>
+                      <span className="label">{t('dz.distance')}</span>
                       <span className="value">{zone.minDistance} - {zone.maxDistance} km</span>
                     </div>
                     <div className="detail-row">
                       <span className="label">Delivery Fee:</span>
                       <span className="value fee">
-                        {zone.deliveryFee === 0 ? 'FREE' : `€${zone.deliveryFee.toFixed(2)}`}
+                        {zone.deliveryFee === 0 ? t('dz.free') : `€${zone.deliveryFee.toFixed(2)}`}
                       </span>
                     </div>
                     <div className="detail-row">
@@ -718,9 +719,9 @@ const DeliveryZones = ({ url }) => {
                       <span className="value">{zone.estimatedTime} min</span>
                     </div>
                     <div className="detail-row">
-                      <span className="label">Status:</span>
+                      <span className="label">{t('dz.status')}</span>
                       <span className={`status ${zone.isActive ? 'active' : 'inactive'}`}>
-                        {zone.isActive ? 'Active' : 'Inactive'}
+                        {zone.isActive ? t('dz.active') : t('dz.inactive')}
                       </span>
                     </div>
                   </div>
@@ -731,19 +732,7 @@ const DeliveryZones = ({ url }) => {
         </div>
       </div>
 
-      {/* Help Section */}
-      <div className="help-section">
-        <h3>How to use Mapbox</h3>
-        <ol>
-          <li>Sign up for free at <a href="https://account.mapbox.com/auth/signup" target="_blank" rel="noopener noreferrer">mapbox.com</a></li>
-          <li>Get your access token from <a href="https://account.mapbox.com/access-tokens" target="_blank" rel="noopener noreferrer">Access Tokens page</a></li>
-          <li>Add <code>MAPBOX_ACCESS_TOKEN=your_token</code> to your backend <code>.env</code> file</li>
-          <li>Restart your backend server</li>
-          <li>Configure restaurant location with accurate coordinates</li>
-          <li>Create delivery zones with distance ranges and fees</li>
-        </ol>
-        <p><strong>Free tier:</strong> 100,000 requests/month - more than enough for most restaurants!</p>
-      </div>
+
     </div>
   );
 };

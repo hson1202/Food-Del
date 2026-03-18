@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './RestaurantInfo.css';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const RestaurantInfo = ({ url }) => {
+  const { t } = useTranslation();
   const [info, setInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -215,7 +217,7 @@ const RestaurantInfo = ({ url }) => {
       <div className="restaurant-info-page">
         <div className="loading-container">
           <div className="spinner"></div>
-          <p>Đang tải thông tin...</p>
+          <p>{t('ri.loading')}</p>
         </div>
       </div>
     );
@@ -225,8 +227,8 @@ const RestaurantInfo = ({ url }) => {
     <div className="restaurant-info-page">
       <div className="page-header">
         <div>
-          <h1>🏪 Thông Tin Nhà Hàng</h1>
-          <p>Quản lý thông tin hiển thị trên website</p>
+          <h1>🏪 {t('ri.title')}</h1>
+          <p>{t('ri.subtitle')}</p>
         </div>
         <div className="header-actions">
           <button 
@@ -234,7 +236,7 @@ const RestaurantInfo = ({ url }) => {
             onClick={handleReset}
             disabled={isSaving}
           >
-            ↺ Reset
+            ↺ {t('ri.reset')}
           </button>
         </div>
       </div>
@@ -244,25 +246,25 @@ const RestaurantInfo = ({ url }) => {
           className={`tab ${activeTab === 'basic' ? 'active' : ''}`}
           onClick={() => setActiveTab('basic')}
         >
-          📝 Thông Tin Cơ Bản
+          📝 {t('ri.basicInfo')}
         </button>
         <button 
           className={`tab ${activeTab === 'hours' ? 'active' : ''}`}
           onClick={() => setActiveTab('hours')}
         >
-          🕐 Giờ Mở Cửa
+          🕐 {t('ri.openingHours')}
         </button>
         <button 
           className={`tab ${activeTab === 'social' ? 'active' : ''}`}
           onClick={() => setActiveTab('social')}
         >
-          📱 Mạng Xã Hội
+          📱 {t('ri.socialMedia')}
         </button>
         <button 
           className={`tab ${activeTab === 'translations' ? 'active' : ''}`}
           onClick={() => setActiveTab('translations')}
         >
-          🌍 Dịch Thuật
+          🌍 {t('ri.translations')}
         </button>
       </div>
 
@@ -270,10 +272,10 @@ const RestaurantInfo = ({ url }) => {
         {/* Basic Information Tab */}
         {activeTab === 'basic' && (
           <div className="form-section">
-            <h2>Thông Tin Cơ Bản</h2>
+            <h2>{t('ri.basicInfo')}</h2>
             
             <div className="form-group">
-              <label>Tên Nhà Hàng</label>
+              <label>{t('ri.restaurantName')}</label>
               <input
                 type="text"
                 name="restaurantName"
@@ -285,7 +287,7 @@ const RestaurantInfo = ({ url }) => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Số Điện Thoại</label>
+                <label>{t('ri.phone')}</label>
                 <input
                   type="text"
                   name="phone"
@@ -296,7 +298,7 @@ const RestaurantInfo = ({ url }) => {
               </div>
 
               <div className="form-group">
-                <label>Email</label>
+                <label>{t('ri.email')}</label>
                 <input
                   type="email"
                   name="email"
@@ -308,7 +310,7 @@ const RestaurantInfo = ({ url }) => {
             </div>
 
             <div className="form-group">
-              <label>Địa Chỉ</label>
+              <label>{t('ri.address')}</label>
               <input
                 type="text"
                 name="address"
@@ -319,7 +321,7 @@ const RestaurantInfo = ({ url }) => {
             </div>
 
             <div className="form-group">
-              <label>Google Maps Embed URL</label>
+              <label>{t('ri.googleMapsUrl')}</label>
               <textarea
                 name="googleMapsUrl"
                 value={formData.googleMapsUrl}
@@ -331,7 +333,7 @@ const RestaurantInfo = ({ url }) => {
             </div>
 
             <div className="form-group">
-              <label>Copyright Text</label>
+              <label>{t('ri.copyrightText')}</label>
               <input
                 type="text"
                 name="copyrightText"
@@ -346,10 +348,10 @@ const RestaurantInfo = ({ url }) => {
         {/* Opening Hours Tab */}
         {activeTab === 'hours' && (
           <div className="form-section">
-            <h2>Giờ Mở Cửa</h2>
+            <h2>{t('ri.openingHours')}</h2>
             
             <div className="form-group">
-              <label>Thứ 2 - Thứ 7</label>
+              <label>{t('ri.weekdays')}</label>
               <input
                 type="text"
                 name="openingHours.weekdays"
@@ -360,7 +362,7 @@ const RestaurantInfo = ({ url }) => {
             </div>
 
             <div className="form-group">
-              <label>Chủ Nhật</label>
+              <label>{t('ri.sunday')}</label>
               <input
                 type="text"
                 name="openingHours.sunday"
@@ -375,7 +377,7 @@ const RestaurantInfo = ({ url }) => {
         {/* Social Media Tab */}
         {activeTab === 'social' && (
           <div className="form-section">
-            <h2>Mạng Xã Hội</h2>
+            <h2>{t('ri.socialMedia')}</h2>
             
             <div className="form-group">
               <label>Facebook</label>
@@ -426,7 +428,7 @@ const RestaurantInfo = ({ url }) => {
         {/* Translations Tab */}
         {activeTab === 'translations' && (
           <div className="form-section">
-            <h2>Dịch Thuật (Multilingual Support)</h2>
+            <h2>{t('ri.translations')}</h2>
             
             {/* Vietnamese */}
             <div className="translation-section">
@@ -586,7 +588,7 @@ const RestaurantInfo = ({ url }) => {
             className="btn-save"
             disabled={isSaving}
           >
-            {isSaving ? '💾 Đang lưu...' : '💾 Lưu Thay Đổi'}
+            {isSaving ? `💾 ${t('ri.saving')}` : `💾 ${t('ri.saveChanges')}`}
           </button>
         </div>
       </form>

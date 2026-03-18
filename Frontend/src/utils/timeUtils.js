@@ -180,12 +180,14 @@ export const getAvailabilityStatus = (food, language = 'vi') => {
     if (timeFrom && timeTo) {
       const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
-      const isAvailable = currentTime >= timeFrom && currentTime <= timeTo;
+      const isAvailableNow = currentTime >= timeFrom && currentTime <= timeTo;
       
+      // Always show the time range so customers know when to order
       return {
-        available: isAvailable,
-        message: isAvailable ? t.available : t.noLongerAvailable,
-        timeInfo: `${timeFrom} - ${timeTo}`
+        available: isAvailableNow,
+        message: isAvailableNow ? t.available : t.noLongerAvailable,
+        timeInfo: `${timeFrom} – ${timeTo}`,
+        showAlways: true // always display even if available
       };
     }
   }

@@ -87,6 +87,11 @@ const Products = ({ url }) => {
   // Bulk actions state
   const [selectedProducts, setSelectedProducts] = useState([])
   const [selectAll, setSelectAll] = useState(false)
+
+  // Schedule filter state
+  const [scheduleFilter, setScheduleFilter] = useState('all') // 'all' | 'weekly' | 'daily'
+  // Day-of-week filter for weekly tab (null = all days, 0=Sun..6=Sat)
+  const [selectedWeekDay, setSelectedWeekDay] = useState(null)
   
   // Quick edit state
   const [quickEditing, setQuickEditing] = useState(null) // { productId, field: 'price' | 'quantity' }
@@ -174,14 +179,14 @@ const Products = ({ url }) => {
     setEditForm(createInitialEditForm())
   }
 
- // useEffect - Fetch when page, filter, or status changes
+ // useEffect - Fetch when page, filter, status, or scheduleFilter changes
 useEffect(() => {
   const controller1 = new AbortController();
   const controller2 = new AbortController();
   fetchFoodList(false, controller1.signal);
   fetchCategories(controller2.signal);
   return () => { controller1.abort(); controller2.abort(); };
-}, [currentPage, itemsPerPage, statusFilter, filterCategory, searchTerm]);
+}, [currentPage, itemsPerPage, statusFilter, filterCategory, searchTerm, scheduleFilter]);
 
 // useEffect để restore scroll position sau khi foodList được update
 useEffect(() => {
@@ -208,11 +213,19 @@ const fetchFoodList = async (showToast = false, signal, preserveScroll = false) 
   
   setIsLoading(true); setError(null);
   try {
-    // Build query params with pagination
-    const params = new URLSearchParams({
-      page: currentPage,
-      limit: itemsPerPage,
-    });
+    // Khi đang lọc theo lịch (Menu Ngày / Menu Tuần), cần lấy toàn bộ sản phẩm
+    // để filter client-side hoạt động đúng trên tất cả các trang
+    const isScheduleFilterActive = scheduleFilter !== 'all';
+
+    // Build query params
+    const params = new URLSearchParams();
+    if (isScheduleFilterActive) {
+      // Lấy tất cả sản phẩm (không phân trang) khi filter theo lịch
+      params.append('noPagination', 'true');
+    } else {
+      params.append('page', currentPage);
+      params.append('limit', itemsPerPage);
+    }
     
     if (statusFilter !== 'all') params.append('status', statusFilter);
     if (filterCategory !== 'all') params.append('category', filterCategory);
@@ -222,8 +235,8 @@ const fetchFoodList = async (showToast = false, signal, preserveScroll = false) 
     const items = data?.data ?? [];
     setFoodList(Array.isArray(items) ? items : []);
     
-    // Set pagination info from response
-    if (data.pagination) {
+    // Set pagination info from response (chỉ khi có phân trang)
+    if (data.pagination && !isScheduleFilterActive) {
       setTotalItems(data.pagination.total);
       setTotalPages(data.pagination.totalPages);
     }
@@ -1056,17 +1069,28 @@ const handleQuickEditCancel = () => {
 
   // Backend now handles filtering and pagination, so just use the foodList directly
   // Sorting by quantity for visual priority (optional - can be removed if backend handles it)
-  const filteredProducts = useMemo(() => [...foodList]
-  .sort((a, b) => {
-    const qa = Number(a.quantity) || 0;
-    const qb = Number(b.quantity) || 0;
-    // ưu tiên: 0 trước, rồi <=5, rồi >5; sau đó theo tên
-    if (qa === 0 && qb !== 0) return -1;
-    if (qb === 0 && qa !== 0) return 1;
-    if (qa <= 5 && qb > 5) return -1;
-    if (qb <= 5 && qa > 5) return 1;
-    return (a.name || '').localeCompare(b.name || '');
-  }), [foodList]);
+  const filteredProducts = useMemo(() => {
+    let list = [...foodList];
+    // Schedule filter (client-side)
+    if (scheduleFilter === 'weekly') {
+      list = list.filter(p => p.weeklySchedule?.enabled === true);
+      // Lọc thêm theo ngày cụ thể trong tuần nếu đã chọn
+      if (selectedWeekDay !== null) {
+        list = list.filter(p => Array.isArray(p.weeklySchedule?.days) && p.weeklySchedule.days.includes(selectedWeekDay));
+      }
+    } else if (scheduleFilter === 'daily') {
+      list = list.filter(p => p.dailyAvailability?.enabled === true);
+    }
+    return list.sort((a, b) => {
+      const qa = Number(a.quantity) || 0;
+      const qb = Number(b.quantity) || 0;
+      if (qa === 0 && qb !== 0) return -1;
+      if (qb === 0 && qa !== 0) return 1;
+      if (qa <= 5 && qb > 5) return -1;
+      if (qb <= 5 && qa > 5) return 1;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }, [foodList, scheduleFilter, selectedWeekDay]);
 
   const getStatusBadge = (status) => {
     if (!status) {
@@ -2124,8 +2148,8 @@ const handleQuickEditCancel = () => {
       {/* Status Filter Tabs */}
       <div className="status-filter-tabs">
         <button
-          className={`status-tab ${statusFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('all')}
+          className={`status-tab ${statusFilter === 'all' && scheduleFilter === 'all' ? 'active' : ''}`}
+          onClick={() => { setStatusFilter('all'); setScheduleFilter('all'); }}
         >
           <span className="tab-icon">📦</span>
           All Products
@@ -2133,7 +2157,7 @@ const handleQuickEditCancel = () => {
         </button>
         <button
           className={`status-tab ${statusFilter === 'active' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('active')}
+          onClick={() => { setStatusFilter('active'); setScheduleFilter('all'); }}
         >
           <span className="tab-icon">✅</span>
           Active
@@ -2144,7 +2168,7 @@ const handleQuickEditCancel = () => {
         </button>
         <button
           className={`status-tab ${statusFilter === 'inactive' ? 'active' : ''}`}
-          onClick={() => setStatusFilter('inactive')}
+          onClick={() => { setStatusFilter('inactive'); setScheduleFilter('all'); }}
         >
           <span className="tab-icon">⏸️</span>
           Inactive
@@ -2153,7 +2177,68 @@ const handleQuickEditCancel = () => {
             return status === 'inactive'
           }).length})</span>
         </button>
+        <button
+          className={`status-tab ${scheduleFilter === 'weekly' ? 'active schedule-tab' : 'schedule-tab'}`}
+          onClick={() => { setScheduleFilter('weekly'); setStatusFilter('all'); setSelectedWeekDay(null); }}
+          title="Hiển thị sản phẩm có lịch theo tuần (Weekly Schedule)"
+        >
+          <span className="tab-icon">📅</span>
+          Menu Tuần
+          <span className="tab-count">({foodList.filter(p => p.weeklySchedule?.enabled === true).length})</span>
+        </button>
+        <button
+          className={`status-tab ${scheduleFilter === 'daily' ? 'active schedule-tab' : 'schedule-tab'}`}
+          onClick={() => { setScheduleFilter('daily'); setStatusFilter('all'); setSelectedWeekDay(null); }}
+          title="Hiển thị sản phẩm có giờ phục vụ hàng ngày (Daily Availability)"
+        >
+          <span className="tab-icon">🕐</span>
+          Menu Ngày
+          <span className="tab-count">({foodList.filter(p => p.dailyAvailability?.enabled === true).length})</span>
+        </button>
       </div>
+
+      {/* Day-of-week picker – hiện khi đang ở tab Menu Tuần */}
+      {scheduleFilter === 'weekly' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
+          padding: '10px 16px', background: '#f0f9ff',
+          border: '1px solid #bae6fd', borderRadius: '10px', marginBottom: '12px'
+        }}>
+          <span style={{ fontWeight: 600, color: '#0369a1', fontSize: '13px', whiteSpace: 'nowrap' }}>📅 Xem menu ngày:</span>
+          {[
+            { label: 'Tất cả', value: null },
+            { label: 'T2', value: 1 },
+            { label: 'T3', value: 2 },
+            { label: 'T4', value: 3 },
+            { label: 'T5', value: 4 },
+            { label: 'T6', value: 5 },
+            { label: 'T7', value: 6 },
+            { label: 'CN', value: 0 },
+          ].map(day => {
+            const count = day.value === null
+              ? foodList.filter(p => p.weeklySchedule?.enabled === true).length
+              : foodList.filter(p => p.weeklySchedule?.enabled === true && Array.isArray(p.weeklySchedule?.days) && p.weeklySchedule.days.includes(day.value)).length;
+            const isActive = selectedWeekDay === day.value;
+            return (
+              <button
+                key={String(day.value)}
+                onClick={() => setSelectedWeekDay(day.value)}
+                style={{
+                  padding: '5px 12px', borderRadius: '20px', border: '1.5px solid',
+                  borderColor: isActive ? '#0284c7' : '#cbd5e1',
+                  background: isActive ? '#0284c7' : '#fff',
+                  color: isActive ? '#fff' : '#334155',
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: '13px', cursor: 'pointer',
+                  transition: 'all 0.15s'
+                }}
+              >
+                {day.label} <span style={{ opacity: 0.7, fontSize: '11px' }}>({count})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
       
 
 
@@ -2312,7 +2397,15 @@ const handleQuickEditCancel = () => {
                 <div className="product-content">
                   <div className="product-header">
                     <h3>{product.name || product.nameVI || product.nameEN || product.nameSK || 'Unnamed Product'}</h3>
-                    <span className="product-sku">SKU: {product.sku || 'N/A'}</span>
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
+                      <span className="product-sku">SKU: {product.sku || 'N/A'}</span>
+                      {product.weeklySchedule?.enabled && (
+                        <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', borderRadius: '4px', padding: '1px 6px', fontWeight: 600 }}>📅 Menu Tuần</span>
+                      )}
+                      {product.dailyAvailability?.enabled && (
+                        <span style={{ fontSize: '11px', background: '#fef3c7', color: '#92400e', borderRadius: '4px', padding: '1px 6px', fontWeight: 600 }}>🕐 {product.dailyAvailability.timeFrom}–{product.dailyAvailability.timeTo}</span>
+                      )}
+                    </div>
                   </div>
                   <div className="product-info">
                     <p className="product-category">{getCategoryName(product.category) || 'No Category'}</p>

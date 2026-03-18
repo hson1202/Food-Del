@@ -224,10 +224,10 @@ const FoodItem = ({id, name, nameVI, nameEN, nameSK, price, description, image, 
           </div>
         )}
 
-        {/* Time Availability Badge */}
+        {/* Time Availability Badge - Always shown when schedule is configured */}
         {(availableFrom || availableTo || dailyAvailability?.enabled || weeklySchedule?.enabled) && (
           <div className={`time-badge ${isAvailable ? 'available' : 'unavailable'}`}>
-            <span className="time-icon">⏰</span>
+            <span className="time-icon">{isAvailable ? '⏰' : '⛔'}</span>
             {availabilityInfo.timeInfo && (
               <span className="time-text">{availabilityInfo.timeInfo}</span>
             )}
