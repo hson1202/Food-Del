@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import ManualLocationPicker from '../ManualLocationPicker/ManualLocationPicker';
 
-const DEFAULT_COORDS = { latitude: 50.08804, longitude: 14.42076 };
+const DEFAULT_COORDS = { latitude: 48.148598, longitude: 17.107748 }; // Bratislava (fallback)
 
 const buildAddressPayload = ({ address = '', components = {}, latitude, longitude }) => {
   const hasCoords =
@@ -438,11 +438,9 @@ const DeliveryAddressInput = ({
             onClose={() => setIsManualPickerOpen(false)}
             onConfirm={handleManualLocationConfirm}
             initialCoords={
-              selectedAddress?.latitude && selectedAddress?.longitude
-                ? { latitude: selectedAddress.latitude, longitude: selectedAddress.longitude }
-                : restaurantLocation?.latitude && restaurantLocation?.longitude
-                  ? { latitude: restaurantLocation.latitude, longitude: restaurantLocation.longitude }
-                  : DEFAULT_COORDS
+              restaurantLocation?.latitude && restaurantLocation?.longitude
+                ? { latitude: restaurantLocation.latitude, longitude: restaurantLocation.longitude }
+                : DEFAULT_COORDS
             }
             restaurantLocation={restaurantLocation}
           />

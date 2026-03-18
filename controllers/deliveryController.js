@@ -3,7 +3,7 @@ import restaurantLocationModel from "../models/restaurantLocationModel.js";
 
 // ========== MAPBOX CONFIG ==========
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN;
-const DEFAULT_MAP_CENTER = { latitude: 50.08804, longitude: 14.42076 };
+const DEFAULT_MAP_CENTER = { latitude: 48.148598, longitude: 17.107748 }; // Bratislava (fallback)
 
 const extractAddressComponents = (feature = {}) => {
   const components = {

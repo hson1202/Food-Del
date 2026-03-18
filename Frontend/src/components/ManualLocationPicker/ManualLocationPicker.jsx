@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-const DEFAULT_COORDS = { latitude: 50.08804, longitude: 14.42076 };
+const DEFAULT_COORDS = { latitude: 48.148598, longitude: 17.107748 }; // Bratislava (fallback)
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
 const NOMINATIM_USER_AGENT = 'FoodDeliveryApp/1.0';
 
