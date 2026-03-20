@@ -822,11 +822,17 @@ const getTimeBasedStats = async (req, res) => {
             switch (metric) {
                 case 'revenue':
                     const revenueQuery = {
-                        createdAt: { $gte: start, $lt: end },
-                        status: { $in: ['completed', 'Delivered'] }
+                        $or: [
+                            { createdAt: { $gte: start, $lt: end } },
+                            { date: { $gte: start, $lt: end } }
+                        ],
+                        status: { $in: ['completed', 'Completed', 'delivered', 'Delivered'] }
                     };
                     const revenueOrders = await orderModel.find(revenueQuery);
-                    value = revenueOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
+                    value = revenueOrders.reduce((sum, order) => {
+                        const amount = typeof order.amount === 'string' ? parseFloat(order.amount) || 0 : (order.amount || 0);
+                        return sum + amount;
+                    }, 0);
                     break;
 
                 case 'totalOrders':
@@ -849,8 +855,11 @@ const getTimeBasedStats = async (req, res) => {
 
                 case 'completedOrders':
                     const completedQuery = {
-                        createdAt: { $gte: start, $lt: end },
-                        status: { $in: ['completed', 'Delivered'] }
+                        $or: [
+                            { createdAt: { $gte: start, $lt: end } },
+                            { date: { $gte: start, $lt: end } }
+                        ],
+                        status: { $in: ['completed', 'Completed', 'delivered', 'Delivered'] }
                     };
                     value = await orderModel.countDocuments(completedQuery);
                     break;

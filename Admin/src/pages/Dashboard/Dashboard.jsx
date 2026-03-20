@@ -477,6 +477,103 @@ const Dashboard = ({ url }) => {
         </div>
       </div>
 
+      {/* Overview Stats */}
+      <div className="stats-grid">
+        <div className="stat-card revenue">
+          <div className="stat-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h3>{formatCurrency(stats.totalRevenue || 0)}</h3>
+            <p>{t('dashboard.totalRevenue')}</p>
+            <div className="stat-details">
+              <div className="detail-item">
+                <span>{t('dashboard.thisMonth')}:</span>
+                <strong>{formatCurrency(stats.currentMonth?.revenue || 0)}</strong>
+              </div>
+              <div className="detail-item">
+                <span>{t('dashboard.lastMonth')}:</span>
+                <strong>{formatCurrency(stats.lastMonth?.revenue || 0)}</strong>
+              </div>
+            </div>
+            <div className={`stat-trend ${trends.revenue > 0 ? 'positive' : trends.revenue < 0 ? 'negative' : 'neutral'}`}>
+              {trends.revenue > 0 ? '▲' : trends.revenue < 0 ? '▼' : '—'} {Math.abs(trends.revenue)}% {t('dashboard.vsLastMonth')}
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card orders">
+          <div className="stat-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h3>{(stats.totalOrders || 0).toLocaleString()}</h3>
+            <p>{t('dashboard.totalOrders')}</p>
+            <div className="stat-details">
+              <div className="detail-item">
+                <span>{t('dashboard.thisMonth')}:</span>
+                <strong>{stats.currentMonth?.orders || 0}</strong>
+              </div>
+              <div className="detail-item">
+                <span>{t('dashboard.lastMonth')}:</span>
+                <strong>{stats.lastMonth?.orders || 0}</strong>
+              </div>
+            </div>
+            <div className={`stat-trend ${trends.orders > 0 ? 'positive' : trends.orders < 0 ? 'negative' : 'neutral'}`}>
+              {trends.orders > 0 ? '▲' : trends.orders < 0 ? '▼' : '—'} {Math.abs(trends.orders)}% {t('dashboard.vsLastMonth')}
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card pending">
+          <div className="stat-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h3>{(stats.pendingOrders || 0).toLocaleString()}</h3>
+            <p>{t('dashboard.pendingOrders')}</p>
+            <div className="stat-details">
+              <div className="detail-item">
+                <span>{t('dashboard.lastMonth')}:</span>
+                <strong>{stats.lastMonth?.pending || 0}</strong>
+              </div>
+            </div>
+            <div className={`stat-trend ${(stats.pendingOrders || 0) > 0 ? 'urgent' : 'neutral'}`}>
+              {(stats.pendingOrders || 0) > 0 ? `${stats.pendingOrders} ${t('dashboard.needsAttention')}` : t('dashboard.allClear')}
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card completed">
+          <div className="stat-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div className="stat-content">
+            <h3>{(stats.completedOrders || 0).toLocaleString()}</h3>
+            <p>{t('dashboard.completedOrders')}</p>
+            <div className="stat-details">
+              <div className="detail-item">
+                <span>{t('dashboard.lastMonth')}:</span>
+                <strong>{stats.lastMonth?.completed || 0}</strong>
+              </div>
+            </div>
+            <div className={`stat-trend ${trends.completed > 0 ? 'positive' : trends.completed < 0 ? 'negative' : 'neutral'}`}>
+              {trends.completed > 0 ? '▲' : trends.completed < 0 ? '▼' : '—'} {Math.abs(trends.completed)}% {t('dashboard.vsLastMonth')}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Quick Stats - Today Overview */}
       <div className="quick-stats-section">
         <h2>📊 {t('dashboard.todayOverview')}</h2>
@@ -621,7 +718,7 @@ const Dashboard = ({ url }) => {
                     tick={{ fontSize: 12 }}
                     tickFormatter={(value) =>
                       chartFilters.metric === 'revenue'
-                        ? `${Math.round(value / 1000)}k`
+                        ? (value >= 1000 ? `${(value / 1000).toFixed(1)}k` : `€${value}`)
                         : value
                     }
                   />
