@@ -17,6 +17,8 @@ const StoreContextProvider =(props)=>{
     const [isLoadingFood, setIsLoadingFood] = useState(false);
     const [foodPagination, setFoodPagination] = useState(null);
     const [boxFee, setBoxFee] = useState(0.3); // Default box fee, will be fetched from backend
+    const [restaurantInfo, setRestaurantInfo] = useState(null);
+    const [restaurantInfoLoading, setRestaurantInfoLoading] = useState(true);
 
     const addToCart =async (itemId, itemData = null) =>{  
         if (!cartItems[itemId]) {  
@@ -156,6 +158,20 @@ const StoreContextProvider =(props)=>{
         await fetchFoodList(foodPagination.page + 1, true);
     }
     
+    const fetchRestaurantInfo = async () => {
+        try {
+            setRestaurantInfoLoading(true);
+            const response = await axios.get(url + "/api/restaurant-info");
+            if (response.data.success) {
+                setRestaurantInfo(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching restaurant info:', error);
+        } finally {
+            setRestaurantInfoLoading(false);
+        }
+    }
+
     const fetchBoxFee = async () => {
         try {
             const response = await axios.get(url + "/api/delivery/restaurant-location");
@@ -205,6 +221,7 @@ const StoreContextProvider =(props)=>{
 
     useEffect(()=>{
         async function loadData(){
+            await fetchRestaurantInfo();
             await fetchFoodList();
             await fetchBoxFee(); // Fetch box fee from restaurant settings
             
@@ -251,7 +268,9 @@ const StoreContextProvider =(props)=>{
         foodPagination,
         loadMoreFood,
         fetchFoodList,
-        boxFee  // Dynamic box fee from restaurant settings
+        boxFee,  // Dynamic box fee from restaurant settings
+        restaurantInfo,
+        restaurantInfoLoading
     }
 
     return (

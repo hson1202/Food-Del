@@ -15,7 +15,7 @@ const Navbar = ({ setShowLogin }) => {
     
     const { t } = useTranslation();
     const [menu,setMenu]=useState("home");
-    const { isMobileMenuOpen, setIsMobileMenuOpen } = useContext(StoreContext);
+    const { isMobileMenuOpen, setIsMobileMenuOpen, restaurantInfo } = useContext(StoreContext);
     const { user, logout: authLogout, isAuthenticated } = useAuth();
     const location = useLocation();
     
@@ -70,7 +70,11 @@ const Navbar = ({ setShowLogin }) => {
         <div className='navbar-wrapper'>
             <div className='navbar'>
                 <Link to='/' onClick={() => handleNavLinkClick("home")}>
-                    <img src={assets.logo} alt='' className='logo'/>
+                    <img
+                        src={restaurantInfo?.logoUrl || assets.logo}
+                        alt={restaurantInfo?.restaurantName || ''}
+                        className='logo'
+                    />
                 </Link>
 
             {/* Mobile center language switcher */}

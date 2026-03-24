@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import './AboutUs.css'
 import { aboutImages, teamImages } from '../../assets/assets'
+import { StoreContext } from '../../Context/StoreContext'
 
 const AboutUs = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+  const { restaurantInfo } = useContext(StoreContext)
   // 🖼️ EASY IMAGE REPLACEMENT - Thay đổi hình ảnh ở đây
   // Có sẵn: back1, back2, back3, back4, back5, back6, back7, back8, back9, back10, back11, back12, back13, back14, back15, back16
   // Team: food_1, food_2, food_3, food_4, food_5, food_6, food_7, food_8, food_9, food_10, food_11, food_12, food_13, food_14, food_15, food_16, food_17, food_18, food_19, food_20, food_21, food_22, food_23, food_24, food_25, food_26, food_27, food_28, food_29, food_30, food_31, food_32
@@ -30,9 +34,13 @@ const AboutUs = () => {
       {/* Hero Section */}
       <div className="about-hero">
         <div className="hero-content">
-          <h1 className="hero-title">About Viet Bowls</h1>
+          <h1 className="hero-title">
+            {t('about.heroTitle', { name: restaurantInfo?.restaurantName || '' })}
+          </h1>
           <p className="hero-subtitle">
-            Bringing authentic Vietnamese flavors to your table since 2020
+            {restaurantInfo?.foundingYear
+              ? t('about.heroSubtitle', { year: restaurantInfo.foundingYear })
+              : t('about.heroSubtitleNoYear', 'Bringing authentic flavors to your table')}
           </p>
           <div className="hero-stats">
             <div className="stat-item">
@@ -52,9 +60,9 @@ const AboutUs = () => {
         <div className="hero-image">
           {/* Placeholder cho hình ảnh hero */}
           <div className="image-placeholder">
-            <img 
+            <img
               src={IMAGES.hero}
-              alt="Viet Bowls Restaurant"
+              alt={restaurantInfo?.restaurantName || 'Restaurant'}
               className="hero-img"
             />
           </div>
@@ -67,8 +75,7 @@ const AboutUs = () => {
           <div className="section-text">
             <h2>Our Story</h2>
             <p>
-              Founded with a passion for authentic Vietnamese cuisine, Viet Bowls began as a small family restaurant
-              with a big dream - to share the rich flavors and traditions of Vietnam with our community.
+              {t('about.storyParagraph1', { name: restaurantInfo?.restaurantName || 'Our restaurant' })}
             </p>
             <p>
               What started as a humble kitchen serving traditional pho and banh mi has grown into a beloved
@@ -78,7 +85,11 @@ const AboutUs = () => {
             <div className="story-highlights">
               <div className="highlight-item">
                 <span className="highlight-icon">🏠</span>
-                <span className="highlight-text">Family-owned since 2020</span>
+                <span className="highlight-text">
+                  {restaurantInfo?.foundingYear
+                    ? t('about.familyOwned', { year: restaurantInfo.foundingYear })
+                    : t('about.familyOwnedNoYear', 'Family-owned')}
+                </span>
               </div>
               <div className="highlight-item">
                 <span className="highlight-icon">👨‍🍳</span>
@@ -119,10 +130,7 @@ const AboutUs = () => {
           <div className="section-text">
             <h2>Our Mission</h2>
             <p>
-              At Viet Bowls, we believe that food is more than just sustenance - it's a way to connect with
-              culture, tradition, and community. Our mission is to bring the authentic flavors of Vietnam to
-              your doorstep, making it easy for everyone to experience the rich culinary heritage of this
-              beautiful country.
+              {t('about.missionParagraph', { name: restaurantInfo?.restaurantName || 'Our restaurant' })}
             </p>
             <div className="mission-goals">
               <div className="goal-item">
@@ -155,7 +163,7 @@ const AboutUs = () => {
       <div className="about-section values-section">
         <div className="section-header">
           <h2>Our Core Values</h2>
-          <p>These principles guide everything we do at Viet Bowls</p>
+          <p>{t('about.valuesSubtitle', { name: restaurantInfo?.restaurantName || 'our restaurant' })}</p>
         </div>
         <div className="values-grid">
           <div className="value-card">
@@ -185,7 +193,7 @@ const AboutUs = () => {
       <div className="about-section team-section">
         <div className="section-header">
           <h2>Meet Our Team</h2>
-          <p>The passionate people behind Viet Bowls</p>
+          <p>{t('about.teamSubtitle', { name: restaurantInfo?.restaurantName || 'our restaurant' })}</p>
         </div>
         <div className="team-grid">
           <div className="team-member">

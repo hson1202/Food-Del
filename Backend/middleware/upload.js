@@ -5,10 +5,22 @@ import cloudinary from "../config/cloudinary.js"
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    // Strict MIME type validation
-    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new Error(`Invalid file type: ${file.mimetype}. Only JPEG, PNG, and WebP images are allowed.`);
+      throw new Error(`Invalid file type: ${file.mimetype}. Only JPEG, PNG, WebP, and SVG images are allowed.`);
+    }
+
+    const isSvg = file.mimetype === 'image/svg+xml';
+
+    if (isSvg) {
+      return {
+        folder: "food-delivery/uploads",
+        resource_type: "image",
+        allowed_formats: ["svg"],
+        use_filename: true,
+        unique_filename: true,
+        format: "svg"
+      };
     }
 
     return {

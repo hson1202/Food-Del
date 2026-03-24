@@ -93,9 +93,13 @@ const Home = () => {
         {/* Hero Section */}
         <div className="about-hero">
           <div className="hero-content">
-            <h1 className="hero-title">About Viet Bowls</h1>
+            <h1 className="hero-title">
+              {t('about.heroTitle', { name: restaurantInfo?.restaurantName || '' })}
+            </h1>
             <p className="hero-subtitle">
-              Bringing authentic Vietnamese flavors to your table since 2020
+              {restaurantInfo?.foundingYear
+                ? t('about.heroSubtitle', { year: restaurantInfo.foundingYear })
+                : t('about.heroSubtitleNoYear', 'Bringing authentic flavors to your table')}
             </p>
             <div className="hero-stats">
               <div className="stat-item">
@@ -114,9 +118,9 @@ const Home = () => {
           </div>
           <div className="hero-image">
             <div className="image-placeholder">
-              <img 
+              <img
                 src={IMAGES.hero}
-                alt="Viet Bowls Restaurant"
+                alt={restaurantInfo?.restaurantName || 'Restaurant'}
                 className="hero-img"
               />
             </div>
@@ -129,8 +133,7 @@ const Home = () => {
             <div className="section-text">
               <h2>Our Story</h2>
               <p>
-                Founded with a passion for authentic Vietnamese cuisine, Viet Bowls began as a small family restaurant
-                with a big dream - to share the rich flavors and traditions of Vietnam with our community.
+                {t('about.storyParagraph1', { name: restaurantInfo?.restaurantName || 'Our restaurant' })}
               </p>
               <p>
                 What started as a humble kitchen serving traditional pho and banh mi has grown into a beloved
@@ -140,7 +143,11 @@ const Home = () => {
               <div className="story-highlights">
                 <div className="highlight-item">
                   <span className="highlight-icon">🏠</span>
-                  <span className="highlight-text">Family-owned since 2020</span>
+                  <span className="highlight-text">
+                    {restaurantInfo?.foundingYear
+                      ? t('about.familyOwned', { year: restaurantInfo.foundingYear })
+                      : t('about.familyOwnedNoYear', 'Family-owned')}
+                  </span>
                 </div>
                 <div className="highlight-item">
                   <span className="highlight-icon">👨‍🍳</span>
@@ -179,10 +186,7 @@ const Home = () => {
             <div className="section-text">
               <h2>Our Mission</h2>
               <p>
-                At Viet Bowls, we believe that food is more than just sustenance - it's a way to connect with
-                culture, tradition, and community. Our mission is to bring the authentic flavors of Vietnam to
-                your doorstep, making it easy for everyone to experience the rich culinary heritage of this
-                beautiful country.
+                {t('about.missionParagraph', { name: restaurantInfo?.restaurantName || 'Our restaurant' })}
               </p>
               <div className="mission-goals">
                 <div className="goal-item">
@@ -215,7 +219,7 @@ const Home = () => {
         <div className="about-section values-section">
           <div className="section-header">
             <h2>Our Core Values</h2>
-            <p>These principles guide everything we do at Viet Bowls</p>
+            <p>{t('about.valuesSubtitle', { name: restaurantInfo?.restaurantName || 'our restaurant' })}</p>
           </div>
           <div className="values-grid">
             <div className="value-card">
@@ -245,7 +249,7 @@ const Home = () => {
         <div className="about-section team-section">
           <div className="section-header">
             <h2>Meet Our Team</h2>
-            <p>The passionate people behind Viet Bowls</p>
+            <p>{t('about.teamSubtitle', { name: restaurantInfo?.restaurantName || 'our restaurant' })}</p>
           </div>
           <div className="team-grid">
             <div className="team-member">
@@ -312,18 +316,18 @@ const Home = () => {
           <div className="map-container">
             {infoLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>Loading map...</div>
-            ) : (
-              <iframe 
-                src={restaurantInfo?.googleMapsUrl || "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12630.561638352605!2d17.871616!3d48.149105!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b6d006b93bc13%3A0x625b631240812045!2sVIET%20BOWLS!5e1!3m2!1svi!2sus!4v1754749939682!5m2!1svi!2sus"}
-                width="100%" 
-                height="450" 
-                style={{border:0}} 
-                allowFullScreen="" 
-                loading="lazy" 
+            ) : restaurantInfo?.googleMapsUrl ? (
+              <iframe
+                src={restaurantInfo.googleMapsUrl}
+                width="100%"
+                height="450"
+                style={{border:0}}
+                allowFullScreen=""
+                loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="VietBowls Restaurant Location"
+                title={`${restaurantInfo.restaurantName || 'Restaurant'} Location`}
               ></iframe>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Blog.css'
 import axios from 'axios'
 import config from '../../config/config'
+import { StoreContext } from '../../Context/StoreContext'
 
 const Blog = () => {
   const navigate = useNavigate()
+  const { restaurantInfo } = useContext(StoreContext)
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [blogPosts, setBlogPosts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -54,7 +56,7 @@ const Blog = () => {
       {/* Hero Section */}
       <div className="blog-hero">
         <div className="hero-content">
-          <h1>Viet Bowls Blog</h1>
+          <h1>{restaurantInfo?.restaurantName ? `${restaurantInfo.restaurantName} Blog` : 'Blog'}</h1>
           <p>Discover the latest news, recipes, and stories from our Vietnamese kitchen</p>
         </div>
       </div>

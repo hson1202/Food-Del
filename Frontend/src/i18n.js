@@ -114,12 +114,27 @@ const resources = {
       'cartPopup.recommendedForYou': 'Gợi ý cho bạn',
       'cartPopup.perfectWith': 'Hoàn hảo với món ăn của bạn',
 
+      // Header
+      'header.headline': 'Đặt món ăn yêu thích của bạn tại đây',
+      'header.subtext': 'Khám phá thực đơn đa dạng với các món ăn ngon được chế biến từ nguyên liệu tươi ngon nhất.',
+      'header.viewMenu': 'Xem Thực Đơn',
+      'header.bookTable': 'Đặt Bàn',
+
       // About Us
-      'about.title': 'Về VietBowls',
-      'about.subtitle': 'Mang hương vị Việt Nam chân chính đến bàn ăn của bạn từ năm 2020',
+      'about.title': 'Về {{name}}',
+      'about.subtitle': 'Mang hương vị chân thực đến bàn ăn của bạn từ năm {{year}}',
+      'about.heroTitle': 'Về {{name}}',
+      'about.heroSubtitle': 'Mang hương vị chân thực đến bàn ăn của bạn từ năm {{year}}',
+      'about.heroSubtitleNoYear': 'Mang hương vị chân thực đến bàn ăn của bạn',
       'about.story': 'Câu chuyện của chúng tôi',
-      'about.storyText1': 'Được thành lập với niềm đam mê ẩm thực Việt Nam chân chính, VietBowls bắt đầu như một nhà hàng gia đình nhỏ với một ước mơ lớn - chia sẻ hương vị phong phú và truyền thống của Việt Nam với cộng đồng của chúng tôi.',
-      'about.storyText2': 'Những gì bắt đầu như một nhà bếp khiêm tốn phục vụ phở và bánh mì truyền thống đã phát triển thành một điểm đến yêu thích cho những người yêu ẩm thực tìm kiếm hương vị Việt Nam chân chính. Công thức của chúng tôi đã được truyền lại qua nhiều thế hệ, bảo tồn hương vị chân chính của Việt Nam.',
+      'about.storyParagraph1': 'Được thành lập với niềm đam mê ẩm thực chân thực, {{name}} bắt đầu như một nhà hàng gia đình nhỏ với một ước mơ lớn - chia sẻ hương vị phong phú và truyền thống với cộng đồng của chúng tôi.',
+      'about.storyText1': 'Được thành lập với niềm đam mê ẩm thực chân thực, {{name}} bắt đầu như một nhà hàng gia đình nhỏ với một ước mơ lớn - chia sẻ hương vị phong phú và truyền thống với cộng đồng của chúng tôi.',
+      'about.storyText2': 'Những gì bắt đầu như một nhà bếp khiêm tốn đã phát triển thành một điểm đến yêu thích cho những người yêu ẩm thực. Công thức của chúng tôi đã được truyền lại qua nhiều thế hệ.',
+      'about.familyOwned': 'Gia đình sở hữu từ năm {{year}}',
+      'about.familyOwnedNoYear': 'Gia đình sở hữu',
+      'about.missionParagraph': 'Tại {{name}}, chúng tôi tin rằng thức ăn không chỉ là chất dinh dưỡng - đó là cách kết nối với văn hóa, truyền thống và cộng đồng. Sứ mệnh của chúng tôi là mang hương vị chân thực đến tận cửa nhà bạn.',
+      'about.valuesSubtitle': 'Những nguyên tắc này định hướng mọi việc chúng tôi làm tại {{name}}',
+      'about.teamSubtitle': 'Những người đam mê đứng sau {{name}}',
 
       // Contact
       'contact.hero.title': 'Liên Hệ Với Chúng Tôi',
@@ -127,14 +142,14 @@ const resources = {
       'contact.getInTouch.title': 'Liên Hệ',
       'contact.getInTouch.subtitle': 'Hãy để lại thông tin, chúng tôi sẽ liên hệ lại ngay',
       'contact.address.title': 'Địa Chỉ',
-      'contact.address.content': 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
+      'contact.address.content': '',
       'contact.phone.title': 'Điện Thoại',
-      'contact.phone.content': '+421 952 514 268',
+      'contact.phone.content': '',
       'contact.email.title': 'Email',
-      'contact.email.content': 'vietbowlssala666@gmail.com',
+      'contact.email.content': '',
       'contact.openingHours': 'Giờ Mở Cửa',
-      'contact.weekdays': 'Thứ 2 - Thứ 7: 11:00 - 20:00',
-      'contact.sunday': 'Chủ nhật: 11:00 - 17:00',
+      'contact.weekdays': '',
+      'contact.sunday': '',
       'contact.form.title': 'Gửi Tin Nhắn',
       'contact.form.fullName': 'Họ và Tên',
       'contact.form.fullNamePlaceholder': 'Nhập họ và tên của bạn',
@@ -181,13 +196,13 @@ const resources = {
       'footer.reserveDescription': 'Đặt bàn ngay hôm nay và thưởng thức ẩm thực Việt Nam chân thực',
       'footer.reserveButton': 'Đặt ngay',
       'footer.allRightsReserved': 'Bảo lưu mọi quyền.',
-      'footer.brandDescription': 'Viet Bowls mang ẩm thực Việt đến tận cửa nhà bạn với những món ăn chuẩn vị, nguyên liệu tươi và dịch vụ tận tâm.',
+      'footer.brandDescription': '',
       'footer.cta': 'Đặt món ngay',
       'footer.navTitle': 'Khám phá',
       'footer.serviceTitle': 'Dịch vụ',
       'footer.contactTitle': 'Kết nối',
       'footer.bottomTagline': 'Món ngon chuẩn vị, làm mới mỗi ngày.',
-      'footer.bottomCopyright': '© 2025 Viet Bowls. Bảo lưu mọi quyền.',
+      'footer.bottomCopyright': '',
       'footer.navLinks': [
         { label: 'Trang chủ', href: '#hero' },
         { label: 'Menu', href: '#menu' },
@@ -200,11 +215,7 @@ const resources = {
         { label: 'Chính sách', href: '#policy' },
         { label: 'Hỗ trợ', href: '#support' }
       ],
-      'footer.contactInfo': [
-        { label: 'Email', value: 'vietbowlssala666@gmail.com' },
-        { label: 'Hotline', value: '+421 952 514 268' },
-        { label: 'Địa chỉ', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
-      ],
+      'footer.contactInfo': [],
       'footer.socialLabels': {
         fb: 'Facebook',
         tw: 'Twitter',
@@ -244,8 +255,8 @@ const resources = {
       'contact.reservation.validation.peopleRequired': 'Số người là bắt buộc',
       
       // Contact Reservation Business Hours
-      'contact.reservation.businessHours.weekdays': 'Thứ 2 - Thứ 7: 11:00 - 20:00',
-      'contact.reservation.businessHours.sunday': 'Chủ nhật: 11:00 - 17:00',
+      'contact.reservation.businessHours.weekdays': '',
+      'contact.reservation.businessHours.sunday': '',
       
       // Contact Reservation Success
       'contact.reservation.success.title': 'Đặt Bàn Thành Công!',
@@ -278,7 +289,7 @@ const resources = {
       'footer.getInTouch': 'LIÊN HỆ',
       'footer.phone': 'Điện thoại',
       'footer.email': 'Email',
-      'footer.copyright': 'Bản quyền 2025 © VietBow - Đã đăng ký bản quyền.',
+      'footer.copyright': '',
 
       // Language Switcher
       'language.switch': 'Đổi ngôn ngữ',
@@ -582,7 +593,55 @@ const resources = {
       'login.loginHere': 'Đăng nhập tại đây',
 
       // Explore Menu
-      'exploreMenu.loadingCategories': 'Đang tải danh mục...'
+      'exploreMenu.loadingCategories': 'Đang tải danh mục...',
+
+      // Booking / Reservation Page
+      'booking.title': 'Đặt Bàn',
+      'booking.subtitle': 'Vui lòng điền thông tin vào form dưới để đặt bàn',
+      'booking.success.inline.title': 'Đặt Bàn Thành Công!',
+      'booking.success.inline.message': 'Chúng tôi sẽ liên hệ với bạn sớm để xác nhận đặt bàn.',
+      'booking.success.inline.emailNote': '📧 Lưu ý: Xác nhận qua email tạm thời không khả dụng. Chúng tôi sẽ liên hệ qua điện thoại.',
+      'booking.success.popup.title': 'Đặt Bàn Đã Được Xác Nhận!',
+      'booking.success.popup.message1': 'Cảm ơn bạn đã chọn {{name}}! Bàn của bạn đã được đặt thành công.',
+      'booking.success.popup.message2': 'Chúng tôi sẽ liên hệ với bạn trong vòng 2 giờ để xác nhận chi tiết đặt bàn.',
+      'booking.success.popup.emailNote': '📧 Lưu ý: Xác nhận qua email tạm thời không khả dụng. Chúng tôi sẽ liên hệ qua điện thoại.',
+      'booking.success.popup.close': 'Đóng',
+      'booking.success.popup.backToHome': 'Về Trang Chủ',
+      'booking.form.fullName': 'Họ và Tên *',
+      'booking.form.fullNamePlaceholder': 'Nhập họ và tên đầy đủ',
+      'booking.form.phone': 'Số Điện Thoại *',
+      'booking.form.phonePlaceholder': 'Nhập số điện thoại (VD: +84 555-123-4567)',
+      'booking.form.email': 'Địa Chỉ Email *',
+      'booking.form.emailPlaceholder': 'Nhập địa chỉ email',
+      'booking.form.date': 'Ngày *',
+      'booking.form.time': 'Giờ *',
+      'booking.form.selectTime': 'Chọn giờ',
+      'booking.form.selectDateFirst': 'Chọn ngày trước',
+      'booking.form.numberOfPeople': 'Số Người *',
+      'booking.form.person': 'Người',
+      'booking.form.people': 'Người',
+      'booking.form.specialRequests': 'Yêu Cầu Đặc Biệt',
+      'booking.form.specialRequestsPlaceholder': 'Yêu cầu đặc biệt hoặc chế độ ăn kiêng?',
+      'booking.form.cancel': 'Hủy',
+      'booking.form.submit': 'Đặt Bàn',
+      'booking.form.submitting': 'Đang gửi...',
+      'booking.info.hours': 'Giờ Mở Cửa',
+      'booking.info.contact': 'Thông Tin Liên Hệ',
+      'booking.info.policy': 'Chính Sách Đặt Bàn',
+      'booking.info.policy.item1': 'Đặt chỗ được giữ trong 15 phút',
+      'booking.info.policy.item2': 'Vui lòng đến trước 5 phút so với giờ đặt bàn',
+      'booking.info.policy.item3': 'Nhóm từ 8 người trở lên, vui lòng gọi trực tiếp',
+      'booking.info.policy.item4': 'Hủy đặt bàn phải thực hiện trước 2 giờ',
+      'booking.validation.fullNameRequired': 'Họ và tên là bắt buộc',
+      'booking.validation.nameMinLength': 'Tên phải có ít nhất 2 ký tự',
+      'booking.validation.phoneRequired': 'Số điện thoại là bắt buộc',
+      'booking.validation.phoneMinDigits': 'Số điện thoại phải có ít nhất 10 chữ số',
+      'booking.validation.emailRequired': 'Email là bắt buộc',
+      'booking.validation.emailInvalid': 'Vui lòng nhập địa chỉ email hợp lệ',
+      'booking.validation.dateRequired': 'Ngày là bắt buộc',
+      'booking.validation.datePast': 'Không thể chọn ngày trong quá khứ',
+      'booking.validation.timeRequired': 'Giờ là bắt buộc',
+      'booking.validation.peopleRequired': 'Số người là bắt buộc'
     }
   },
   en: {
@@ -696,12 +755,27 @@ const resources = {
       'cartPopup.recommendedForYou': 'Recommended for you',
       'cartPopup.perfectWith': 'Perfect with your meal',
 
+      // Header
+      'header.headline': 'Order your favourite food here',
+      'header.subtext': 'Choose from a diverse menu featuring a delectable array of dishes crafted with the finest ingredients and culinary expertise.',
+      'header.viewMenu': 'View Menu',
+      'header.bookTable': 'Book a Table',
+
       // About Us
-      'about.title': 'About VietBowls',
-      'about.subtitle': 'Bringing authentic Vietnamese flavors to your table since 2020',
+      'about.title': 'About {{name}}',
+      'about.subtitle': 'Bringing authentic flavors to your table since {{year}}',
+      'about.heroTitle': 'About {{name}}',
+      'about.heroSubtitle': 'Bringing authentic flavors to your table since {{year}}',
+      'about.heroSubtitleNoYear': 'Bringing authentic flavors to your table',
       'about.story': 'Our Story',
-      'about.storyText1': 'Founded with a passion for authentic Vietnamese cuisine, VietBowls began as a small family restaurant with a big dream - to share the rich flavors and traditions of Vietnam with our community.',
-      'about.storyText2': 'What started as a humble kitchen serving traditional pho and banh mi has grown into a beloved destination for food lovers seeking authentic Vietnamese flavors. Our recipes have been passed down through generations, preserving the authentic taste of Vietnam.',
+      'about.storyParagraph1': 'Founded with a passion for great food, {{name}} began as a small family restaurant with a big dream - to share rich flavors and traditions with our community.',
+      'about.storyText1': 'Founded with a passion for great food, {{name}} began as a small family restaurant with a big dream - to share rich flavors and traditions with our community.',
+      'about.storyText2': 'What started as a humble kitchen has grown into a beloved destination for food lovers. Our recipes have been passed down through generations, preserving authentic taste.',
+      'about.familyOwned': 'Family-owned since {{year}}',
+      'about.familyOwnedNoYear': 'Family-owned',
+      'about.missionParagraph': 'At {{name}}, we believe that food is more than just sustenance - it\'s a way to connect with culture, tradition, and community. Our mission is to bring authentic flavors right to your doorstep.',
+      'about.valuesSubtitle': 'These principles guide everything we do at {{name}}',
+      'about.teamSubtitle': 'The passionate people behind {{name}}',
 
       // Contact
       'contact.hero.title': 'Contact Us',
@@ -709,14 +783,14 @@ const resources = {
       'contact.getInTouch.title': 'Get In Touch',
       'contact.getInTouch.subtitle': 'Leave your information and we will contact you soon',
       'contact.address.title': 'Address',
-      'contact.address.content': 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
+      'contact.address.content': '',
       'contact.phone.title': 'Phone',
-      'contact.phone.content': '+421 952 514 268',
+      'contact.phone.content': '',
       'contact.email.title': 'Email',
-      'contact.email.content': 'vietbowlssala666@gmail.com',
+      'contact.email.content': '',
       'contact.openingHours': 'Opening Hours',
-      'contact.weekdays': 'Monday - Saturday: 11:00 - 20:00',
-      'contact.sunday': 'Sunday: 11:00 - 17:00',
+      'contact.weekdays': '',
+      'contact.sunday': '',
       'contact.form.title': 'Send Message',
       'contact.form.fullName': 'Full Name',
       'contact.form.fullNamePlaceholder': 'Enter your full name',
@@ -763,13 +837,13 @@ const resources = {
       'footer.reserveDescription': 'Book your table now and enjoy authentic Vietnamese cuisine',
       'footer.reserveButton': 'Book Now',
       'footer.allRightsReserved': 'All rights reserved.',
-      'footer.brandDescription': 'Viet Bowls brings authentic Vietnamese cuisine right to your doorstep with soulful bowls, fresh ingredients, and attentive service.',
+      'footer.brandDescription': '',
       'footer.cta': 'Order now',
       'footer.navTitle': 'Explore',
       'footer.serviceTitle': 'Services',
       'footer.contactTitle': 'Connect',
       'footer.bottomTagline': 'Fresh bowls crafted daily.',
-      'footer.bottomCopyright': '© 2025 Viet Bowls. All rights reserved.',
+      'footer.bottomCopyright': '',
       'footer.navLinks': [
         { label: 'Home', href: '#hero' },
         { label: 'Menu', href: '#menu' },
@@ -782,11 +856,7 @@ const resources = {
         { label: 'Policies', href: '#policy' },
         { label: 'Support', href: '#support' }
       ],
-      'footer.contactInfo': [
-        { label: 'Email', value: 'vietbowlssala666@gmail.com' },
-        { label: 'Hotline', value: '+421 952 514 268' },
-        { label: 'Address', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
-      ],
+      'footer.contactInfo': [],
       'footer.socialLabels': {
         fb: 'Facebook',
         tw: 'Twitter',
@@ -826,8 +896,8 @@ const resources = {
       'contact.reservation.validation.peopleRequired': 'Number of people is required',
       
       // Contact Reservation Business Hours
-      'contact.reservation.businessHours.weekdays': 'Monday - Saturday: 11:00 - 20:00',
-      'contact.reservation.businessHours.sunday': 'Sunday: 11:00 - 17:00',
+      'contact.reservation.businessHours.weekdays': '',
+      'contact.reservation.businessHours.sunday': '',
       
       // Contact Reservation Success
       'contact.reservation.success.title': 'Reservation Successful!',
@@ -862,7 +932,7 @@ const resources = {
       'footer.getInTouch': 'GET IN TOUCH',
       'footer.phone': 'Phone',
       'footer.email': 'Email',
-      'footer.copyright': 'Copyright 2025 © VietBow - All Right Reserved.',
+      'footer.copyright': '',
 
       // Language Switcher
       'language.switch': 'Switch Language',
@@ -1166,7 +1236,55 @@ const resources = {
       'login.loginHere': 'Login here',
 
       // Explore Menu
-      'exploreMenu.loadingCategories': 'Loading categories...'
+      'exploreMenu.loadingCategories': 'Loading categories...',
+
+      // Booking / Reservation Page
+      'booking.title': 'Make a Reservation',
+      'booking.subtitle': 'Please fill out the form below to reserve your table',
+      'booking.success.inline.title': 'Reservation Submitted Successfully!',
+      'booking.success.inline.message': 'We will contact you soon to confirm your reservation.',
+      'booking.success.inline.emailNote': '📧 Note: Email confirmation is temporarily unavailable. We\'ll contact you via phone instead.',
+      'booking.success.popup.title': 'Reservation Confirmed!',
+      'booking.success.popup.message1': 'Thank you for choosing {{name}}! Your table has been reserved successfully.',
+      'booking.success.popup.message2': 'We will contact you within 2 hours to confirm your booking details.',
+      'booking.success.popup.emailNote': '📧 Note: Email confirmation is temporarily unavailable. We\'ll contact you via phone instead.',
+      'booking.success.popup.close': 'Close',
+      'booking.success.popup.backToHome': 'Back to Home',
+      'booking.form.fullName': 'Full Name *',
+      'booking.form.fullNamePlaceholder': 'Enter your full name',
+      'booking.form.phone': 'Phone Number *',
+      'booking.form.phonePlaceholder': 'Enter your phone number (e.g., +1 555-123-4567)',
+      'booking.form.email': 'Email Address *',
+      'booking.form.emailPlaceholder': 'Enter your email address',
+      'booking.form.date': 'Date *',
+      'booking.form.time': 'Time *',
+      'booking.form.selectTime': 'Select time',
+      'booking.form.selectDateFirst': 'Select date first',
+      'booking.form.numberOfPeople': 'Number of People *',
+      'booking.form.person': 'Person',
+      'booking.form.people': 'People',
+      'booking.form.specialRequests': 'Special Requests',
+      'booking.form.specialRequestsPlaceholder': 'Any special requests or dietary requirements?',
+      'booking.form.cancel': 'Cancel',
+      'booking.form.submit': 'Book Table',
+      'booking.form.submitting': 'Submitting...',
+      'booking.info.hours': 'Restaurant Hours',
+      'booking.info.contact': 'Contact Information',
+      'booking.info.policy': 'Reservation Policy',
+      'booking.info.policy.item1': 'Reservations are held for 15 minutes',
+      'booking.info.policy.item2': 'Please arrive 5 minutes before your reservation time',
+      'booking.info.policy.item3': 'For groups of 8+, please call us directly',
+      'booking.info.policy.item4': 'Cancellations must be made 2 hours in advance',
+      'booking.validation.fullNameRequired': 'Full name is required',
+      'booking.validation.nameMinLength': 'Name must be at least 2 characters long',
+      'booking.validation.phoneRequired': 'Phone number is required',
+      'booking.validation.phoneMinDigits': 'Phone number must contain at least 10 digits',
+      'booking.validation.emailRequired': 'Email is required',
+      'booking.validation.emailInvalid': 'Please enter a valid email address',
+      'booking.validation.dateRequired': 'Date is required',
+      'booking.validation.datePast': 'Cannot select a past date',
+      'booking.validation.timeRequired': 'Time is required',
+      'booking.validation.peopleRequired': 'Number of people is required'
     }
   },
   sk: {
@@ -1280,12 +1398,27 @@ const resources = {
       'cartPopup.recommendedForYou': 'Odporúčané pre vás',
       'cartPopup.perfectWith': 'Dokonalé k vašemu jedlu',
 
+      // Header
+      'header.headline': 'Objednajte si tu svoje obľúbené jedlo',
+      'header.subtext': 'Vyberte si z rozmanitého menu s lahodnými jedlami pripravenými z tých najlepších ingrediencií.',
+      'header.viewMenu': 'Zobraziť menu',
+      'header.bookTable': 'Rezervovať stôl',
+
       // About Us
-      'about.title': 'O VietBowls',
-      'about.subtitle': 'Prinášame autentické vietnamské chute na váš stôl od roku 2020',
+      'about.title': 'O {{name}}',
+      'about.subtitle': 'Prinášame autentické chute na váš stôl od roku {{year}}',
+      'about.heroTitle': 'O {{name}}',
+      'about.heroSubtitle': 'Prinášame autentické chute na váš stôl od roku {{year}}',
+      'about.heroSubtitleNoYear': 'Prinášame autentické chute na váš stôl',
       'about.story': 'Náš príbeh',
-      'about.storyText1': 'Založené s vášňou pre autentickú vietnamskú kuchyňu, VietBowls začali ako malá rodinná reštaurácia s veľkým snom - zdieľať bohaté chute a tradície Vietnamu s našou komunitou.',
-      'about.storyText2': 'Čo začalo ako skromná kuchyňa servírujúca tradičné pho a banh mi sa vyvinulo do obľúbeného miesta pre milovníkov jedla hľadajúcich autentické vietnamské chute.',
+      'about.storyParagraph1': 'Založené s vášňou pre skvelé jedlo, {{name}} začali ako malá rodinná reštaurácia s veľkým snom - zdieľať bohaté chute a tradície s našou komunitou.',
+      'about.storyText1': 'Založené s vášňou pre skvelé jedlo, {{name}} začali ako malá rodinná reštaurácia s veľkým snom - zdieľať bohaté chute a tradície s našou komunitou.',
+      'about.storyText2': 'Čo začalo ako skromná kuchyňa sa vyvinulo do obľúbeného miesta pre milovníkov jedla. Naše recepty sa dedí z generácie na generáciu.',
+      'about.familyOwned': 'Rodinný podnik od roku {{year}}',
+      'about.familyOwnedNoYear': 'Rodinný podnik',
+      'about.missionParagraph': 'V {{name}} veríme, že jedlo je viac než len výživa - je to spôsob, ako sa spojiť s kultúrou, tradíciou a komunitou. Naším poslaním je priniesť autentické chute priamo k vašim dverám.',
+      'about.valuesSubtitle': 'Tieto princípy riadia všetko, čo robíme v {{name}}',
+      'about.teamSubtitle': 'Vášniví ľudia za {{name}}',
 
       // Contact
       'contact.hero.title': 'Kontaktujte nás',
@@ -1293,14 +1426,14 @@ const resources = {
       'contact.getInTouch.title': 'Kontakt',
       'contact.getInTouch.subtitle': 'Zanechajte svoje informácie a my vás budeme kontaktovať čoskoro',
       'contact.address.title': 'Adresa',
-      'contact.address.content': 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
+      'contact.address.content': '',
       'contact.phone.title': 'Telefón',
-      'contact.phone.content': '+421 952 514 268',
+      'contact.phone.content': '',
       'contact.email.title': 'Email',
-      'contact.email.content': 'vietbowlssala666@gmail.com',
+      'contact.email.content': '',
       'contact.openingHours': 'Otvorené hodiny',
-      'contact.weekdays': 'Pondelok - Sobota: 11:00 - 20:00',
-      'contact.sunday': 'Nedeľa: 11:00 - 17:00',
+      'contact.weekdays': '',
+      'contact.sunday': '',
       'contact.form.title': 'Poslať správu',
       'contact.form.fullName': 'Meno a priezvisko',
       'contact.form.fullNamePlaceholder': 'Zadajte svoje meno a priezvisko',
@@ -1350,13 +1483,13 @@ const resources = {
       'footer.reserveDescription': 'Rezervujte si stôl a vychutnajte si autentickú vietnamskú kuchyňu',
       'footer.reserveButton': 'Rezervovať',
       'footer.allRightsReserved': 'Všetky práva vyhradené.',
-      'footer.brandDescription': 'Viet Bowls prináša autentickú vietnamskú kuchyňu priamo k vašim dverám s poctivými miskami, čerstvými surovinami a starostlivým servisom.',
+      'footer.brandDescription': '',
       'footer.cta': 'Objednať teraz',
       'footer.navTitle': 'Preskúmajte',
       'footer.serviceTitle': 'Služby',
       'footer.contactTitle': 'Spojte sa',
       'footer.bottomTagline': 'Čerstvé bowls pripravované každý deň.',
-      'footer.bottomCopyright': '© 2025 Viet Bowls. Všetky práva vyhradené.',
+      'footer.bottomCopyright': '',
       'footer.navLinks': [
         { label: 'Domov', href: '#hero' },
         { label: 'Menu', href: '#menu' },
@@ -1369,11 +1502,7 @@ const resources = {
         { label: 'Zásady', href: '#policy' },
         { label: 'Podpora', href: '#support' }
       ],
-      'footer.contactInfo': [
-        { label: 'Email', value: 'vietbowlssala666@gmail.com' },
-        { label: 'Infolinka', value: '+421 952 514 268' },
-        { label: 'Adresa', value: 'Hlavná 33/36, 927 01 Šaľa, Slovakia' }
-      ],
+      'footer.contactInfo': [],
       'footer.socialLabels': {
         fb: 'Facebook',
         tw: 'Twitter',
@@ -1413,8 +1542,8 @@ const resources = {
       'contact.reservation.validation.peopleRequired': 'Počet ľudí je povinný',
       
       // Contact Reservation Business Hours
-      'contact.reservation.businessHours.weekdays': 'Pondelok - Sobota: 11:00 - 20:00',
-      'contact.reservation.businessHours.sunday': 'Nedeľa: 11:00 - 17:00',
+      'contact.reservation.businessHours.weekdays': '',
+      'contact.reservation.businessHours.sunday': '',
       
       // Contact Reservation Success
       'contact.reservation.success.title': 'Rezervácia bola úspešne odoslaná!',
@@ -1447,7 +1576,7 @@ const resources = {
       'footer.getInTouch': 'KONTAKTUJTE NÁS',
       'footer.phone': 'Telefón',
       'footer.email': 'Email',
-      'footer.copyright': 'Autorské práva 2025 © VietBow - Všetky práva vyhradené.',
+      'footer.copyright': '',
 
       // Language Switcher
       'language.switch': 'Zmeniť jazyk',
@@ -1809,7 +1938,55 @@ const resources = {
       'login.loginHere': 'Prihláste sa tu',
 
       // Explore Menu
-      'exploreMenu.loadingCategories': 'Načítava sa kategórie...'
+      'exploreMenu.loadingCategories': 'Načítava sa kategórie...',
+
+      // Booking / Reservation Page
+      'booking.title': 'Rezervovať stôl',
+      'booking.subtitle': 'Vyplňte prosím formulár nižšie na rezerváciu stola',
+      'booking.success.inline.title': 'Rezervácia odoslaná úspešne!',
+      'booking.success.inline.message': 'Čoskoro vás budeme kontaktovať, aby sme potvrdili vašu rezerváciu.',
+      'booking.success.inline.emailNote': '📧 Poznámka: E-mailové potvrdenie je dočasne nedostupné. Budeme vás kontaktovať telefonicky.',
+      'booking.success.popup.title': 'Rezervácia potvrdená!',
+      'booking.success.popup.message1': 'Ďakujeme, že ste si vybrali {{name}}! Váš stôl bol úspešne rezervovaný.',
+      'booking.success.popup.message2': 'Do 2 hodín vás budeme kontaktovať, aby sme potvrdili detaily rezervácie.',
+      'booking.success.popup.emailNote': '📧 Poznámka: E-mailové potvrdenie je dočasne nedostupné. Budeme vás kontaktovať telefonicky.',
+      'booking.success.popup.close': 'Zavrieť',
+      'booking.success.popup.backToHome': 'Späť na domovskú stránku',
+      'booking.form.fullName': 'Meno a priezvisko *',
+      'booking.form.fullNamePlaceholder': 'Zadajte meno a priezvisko',
+      'booking.form.phone': 'Telefónne číslo *',
+      'booking.form.phonePlaceholder': 'Zadajte telefónne číslo (napr. +421 555-123-4567)',
+      'booking.form.email': 'Emailová adresa *',
+      'booking.form.emailPlaceholder': 'Zadajte emailovú adresu',
+      'booking.form.date': 'Dátum *',
+      'booking.form.time': 'Čas *',
+      'booking.form.selectTime': 'Vyberte čas',
+      'booking.form.selectDateFirst': 'Najprv vyberte dátum',
+      'booking.form.numberOfPeople': 'Počet ľudí *',
+      'booking.form.person': 'Osoba',
+      'booking.form.people': 'Ľudí',
+      'booking.form.specialRequests': 'Špeciálne požiadavky',
+      'booking.form.specialRequestsPlaceholder': 'Akékoľvek špeciálne požiadavky alebo diétne obmedzenia?',
+      'booking.form.cancel': 'Zrušiť',
+      'booking.form.submit': 'Rezervovať stôl',
+      'booking.form.submitting': 'Odosielam...',
+      'booking.info.hours': 'Otváracie hodiny',
+      'booking.info.contact': 'Kontaktné informácie',
+      'booking.info.policy': 'Zásady rezervácie',
+      'booking.info.policy.item1': 'Rezervácie sa držia 15 minút',
+      'booking.info.policy.item2': 'Prosím príďte 5 minút pred rezerváciou',
+      'booking.info.policy.item3': 'Pre skupiny 8+, zavolajte nám priamo',
+      'booking.info.policy.item4': 'Zrušenie rezervácie je potrebné urobiť 2 hodiny vopred',
+      'booking.validation.fullNameRequired': 'Meno a priezvisko je povinné',
+      'booking.validation.nameMinLength': 'Meno musí mať aspoň 2 znaky',
+      'booking.validation.phoneRequired': 'Telefónne číslo je povinné',
+      'booking.validation.phoneMinDigits': 'Telefónne číslo musí obsahovať aspoň 10 číslic',
+      'booking.validation.emailRequired': 'Email je povinný',
+      'booking.validation.emailInvalid': 'Prosím zadajte platnú emailovú adresu',
+      'booking.validation.dateRequired': 'Dátum je povinný',
+      'booking.validation.datePast': 'Nemôžete vybrať dátum v minulosti',
+      'booking.validation.timeRequired': 'Čas je povinný',
+      'booking.validation.peopleRequired': 'Počet ľudí je povinný'
     }
   }
 };

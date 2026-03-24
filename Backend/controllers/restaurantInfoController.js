@@ -19,6 +19,12 @@ const updateRestaurantInfo = async (req, res) => {
   try {
     const {
       restaurantName,
+      logoUrl,
+      faviconUrl,
+      tagline,
+      heroHeadline,
+      heroSubtext,
+      foundingYear,
       phone,
       email,
       address,
@@ -32,6 +38,12 @@ const updateRestaurantInfo = async (req, res) => {
 
     const updates = {}
     if (restaurantName !== undefined) updates.restaurantName = restaurantName
+    if (logoUrl !== undefined) updates.logoUrl = logoUrl
+    if (faviconUrl !== undefined) updates.faviconUrl = faviconUrl
+    if (tagline !== undefined) updates.tagline = tagline
+    if (heroHeadline !== undefined) updates.heroHeadline = heroHeadline
+    if (heroSubtext !== undefined) updates.heroSubtext = heroSubtext
+    if (foundingYear !== undefined) updates.foundingYear = foundingYear
     if (phone !== undefined) updates.phone = phone
     if (email !== undefined) updates.email = email
     if (address !== undefined) updates.address = address
@@ -65,49 +77,34 @@ const resetToDefaults = async (req, res) => {
   try {
     const info = await RestaurantInfo.getSingleton()
 
-    info.restaurantName = "Viet Bowls"
-    info.phone = "+421 123 456 789"
-    info.email = "info@vietbowls.sk"
-    info.address = "Hlavná 33/36, 927 01 Šaľa, Slovakia"
-    info.openingHours = {
-      weekdays: "Thứ 2 - Thứ 7: 11:00 - 20:00",
-      sunday: "Chủ nhật: 11:00 - 17:00"
-    }
-    info.socialMedia = {
-      facebook: "https://facebook.com",
-      twitter: "https://twitter.com",
-      linkedin: "https://linkedin.com",
-      instagram: ""
-    }
-    info.googleMapsUrl =
-      "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12630.561638352605!2d17.871616!3d48.149105!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b6d006b93bc13%3A0x625b631240812045!2sVIET%20BOWLS!5e1!3m2!1svi!2sus!4v1754749939682!5m2!1svi!2sus"
+    info.restaurantName = ""
+    info.logoUrl = ""
+    info.faviconUrl = ""
+    info.tagline = ""
+    info.heroHeadline = ""
+    info.heroSubtext = ""
+    info.foundingYear = ""
+    info.phone = ""
+    info.email = ""
+    info.address = ""
+    info.openingHours = { weekdays: "", sunday: "" }
+    info.socialMedia = { facebook: "", twitter: "", linkedin: "", instagram: "" }
+    info.googleMapsUrl = ""
     info.translations = {
       vi: {
-        restaurantName: "Viet Bowls",
-        address: "Hlavná 33/36, 927 01 Šaľa, Slovakia",
-        openingHours: {
-          weekdays: "Thứ 2 - Thứ 7: 11:00 - 20:00",
-          sunday: "Chủ nhật: 11:00 - 17:00"
-        }
+        restaurantName: "", address: "", tagline: "", heroHeadline: "", heroSubtext: "",
+        openingHours: { weekdays: "", sunday: "" }
       },
       en: {
-        restaurantName: "Viet Bowls",
-        address: "Hlavná 33/36, 927 01 Šaľa, Slovakia",
-        openingHours: {
-          weekdays: "Mon - Sat: 11:00 AM - 8:00 PM",
-          sunday: "Sunday: 11:00 AM - 5:00 PM"
-        }
+        restaurantName: "", address: "", tagline: "", heroHeadline: "", heroSubtext: "",
+        openingHours: { weekdays: "", sunday: "" }
       },
       sk: {
-        restaurantName: "Viet Bowls",
-        address: "Hlavná 33/36, 927 01 Šaľa, Slovakia",
-        openingHours: {
-          weekdays: "Pon - Sob: 11:00 - 20:00",
-          sunday: "Nedeľa: 11:00 - 17:00"
-        }
+        restaurantName: "", address: "", tagline: "", heroHeadline: "", heroSubtext: "",
+        openingHours: { weekdays: "", sunday: "" }
       }
     }
-    info.copyrightText = "© 2024 Viet Bowls. All rights reserved."
+    info.copyrightText = ""
     info.isActive = true
 
     await info.save()
@@ -126,5 +123,19 @@ const resetToDefaults = async (req, res) => {
   }
 }
 
-export { getRestaurantInfo, updateRestaurantInfo, resetToDefaults }
+// Upload logo image (admin only) — returns the Cloudinary URL
+const uploadLogo = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" })
+    }
+    const url = req.file.path || req.file.secure_url || req.file.url
+    return res.json({ success: true, url })
+  } catch (error) {
+    console.error("Error uploading logo:", error)
+    return res.status(500).json({ success: false, message: "Upload failed" })
+  }
+}
+
+export { getRestaurantInfo, updateRestaurantInfo, resetToDefaults, uploadLogo }
 

@@ -341,17 +341,21 @@ const ContactUs = () => {
           <div className="map-container">
             {infoLoading ? (
               <div style={{ textAlign: 'center', padding: '2rem' }}>Loading map...</div>
-            ) : (
-              <iframe 
-                src={restaurantInfo?.googleMapsUrl || "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7259.207931926322!2d17.8716162!3d48.1491049!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b6d006b93bc13%3A0x625b631240812045!2sVIET%20BOWLS!5e1!3m2!1svi!2s!4v1754748088309!5m2!1svi!2s"}
-                width="100%" 
-                height="450" 
-                style={{border:0}} 
-                allowFullScreen="" 
-                loading="lazy" 
+            ) : restaurantInfo?.googleMapsUrl ? (
+              <iframe
+                src={restaurantInfo.googleMapsUrl}
+                width="100%"
+                height="450"
+                style={{border:0}}
+                allowFullScreen=""
+                loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="VIET BOWLS Location"
+                title={`${restaurantInfo.restaurantName || 'Restaurant'} Location`}
               ></iframe>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                {t('contact.map.notConfigured', 'Map not configured yet.')}
+              </div>
             )}
           </div>
         </div>

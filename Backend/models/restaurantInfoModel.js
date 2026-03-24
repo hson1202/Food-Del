@@ -5,34 +5,62 @@ const restaurantInfoSchema = new mongoose.Schema(
     // Basic Information
     restaurantName: {
       type: String,
-      default: "Viet Bowls"
+      default: ""
+    },
+
+    // Branding
+    logoUrl: {
+      type: String,
+      default: ""
+    },
+    faviconUrl: {
+      type: String,
+      default: ""
+    },
+    tagline: {
+      type: String,
+      default: ""
+    },
+    foundingYear: {
+      type: String,
+      default: ""
+    },
+
+    // Hero Section
+    heroHeadline: {
+      type: String,
+      default: ""
+    },
+    heroSubtext: {
+      type: String,
+      default: ""
     },
 
     // Contact Information
     phone: {
       type: String,
-      default: "+421 123 456 789"
+      default: ""
     },
     email: {
       type: String,
-      default: "info@vietbowls.sk"
+      default: ""
     },
 
     // Address
     address: {
       type: String,
-      default: "Hlavná 33/36, 927 01 Šaľa, Slovakia"
+      default: ""
     },
 
     // Opening Hours
     openingHours: {
       weekdays: {
         type: String,
-        default: "Thứ 2 - Thứ 7: 11:00 - 20:00"
+        default: ""
       },
       sunday: {
         type: String,
-        default: "Chủ nhật: 11:00 - 17:00"
+        default: ""
       }
     },
 
@@ -40,15 +68,15 @@ const restaurantInfoSchema = new mongoose.Schema(
     socialMedia: {
       facebook: {
         type: String,
-        default: "https://facebook.com"
+        default: ""
       },
       twitter: {
         type: String,
-        default: "https://twitter.com"
+        default: ""
       },
       linkedin: {
         type: String,
-        default: "https://linkedin.com"
+        default: ""
       },
       instagram: {
         type: String,
@@ -59,34 +87,42 @@ const restaurantInfoSchema = new mongoose.Schema(
     // Google Maps
     googleMapsUrl: {
       type: String,
-      default:
-        "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12630.561638352605!2d17.871616!3d48.149105!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b6d006b93bc13%3A0x625b631240812045!2sVIET%20BOWLS!5e1!3m2!1svi!2sus!4v1754749939682!5m2!1svi!2sus"
+      default: ""
     },
 
     // Multilingual support
     translations: {
       vi: {
-        restaurantName: { type: String, default: "Viet Bowls" },
-        address: { type: String, default: "Hlavná 33/36, 927 01 Šaľa, Slovakia" },
+        restaurantName: { type: String, default: "" },
+        address: { type: String, default: "" },
+        tagline: { type: String, default: "" },
+        heroHeadline: { type: String, default: "" },
+        heroSubtext: { type: String, default: "" },
         openingHours: {
-          weekdays: { type: String, default: "Thứ 2 - Thứ 7: 11:00 - 20:00" },
-          sunday: { type: String, default: "Chủ nhật: 11:00 - 17:00" }
+          weekdays: { type: String, default: "" },
+          sunday: { type: String, default: "" }
         }
       },
       en: {
-        restaurantName: { type: String, default: "Viet Bowls" },
-        address: { type: String, default: "Hlavná 33/36, 927 01 Šaľa, Slovakia" },
+        restaurantName: { type: String, default: "" },
+        address: { type: String, default: "" },
+        tagline: { type: String, default: "" },
+        heroHeadline: { type: String, default: "" },
+        heroSubtext: { type: String, default: "" },
         openingHours: {
-          weekdays: { type: String, default: "Mon - Sat: 11:00 AM - 8:00 PM" },
-          sunday: { type: String, default: "Sunday: 11:00 AM - 5:00 PM" }
+          weekdays: { type: String, default: "" },
+          sunday: { type: String, default: "" }
         }
       },
       sk: {
-        restaurantName: { type: String, default: "Viet Bowls" },
-        address: { type: String, default: "Hlavná 33/36, 927 01 Šaľa, Slovakia" },
+        restaurantName: { type: String, default: "" },
+        address: { type: String, default: "" },
+        tagline: { type: String, default: "" },
+        heroHeadline: { type: String, default: "" },
+        heroSubtext: { type: String, default: "" },
         openingHours: {
-          weekdays: { type: String, default: "Pon - Sob: 11:00 - 20:00" },
-          sunday: { type: String, default: "Nedeľa: 11:00 - 17:00" }
+          weekdays: { type: String, default: "" },
+          sunday: { type: String, default: "" }
         }
       }
     },
@@ -94,7 +130,7 @@ const restaurantInfoSchema = new mongoose.Schema(
     // Copyright text
     copyrightText: {
       type: String,
-      default: "© 2024 Viet Bowls. All rights reserved."
+      default: ""
     },
 
     // Status

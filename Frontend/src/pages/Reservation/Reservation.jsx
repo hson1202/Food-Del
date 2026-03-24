@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import config from '../../config/config';
 import './Reservation.css';
+import { StoreContext } from '../../Context/StoreContext';
 
 const Reservation = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { restaurantInfo } = useContext(StoreContext);
   
   const [reservationData, setReservationData] = useState({
     customerName: '',
@@ -45,44 +47,44 @@ const Reservation = () => {
     const errors = {};
     
     if (!reservationData.customerName.trim()) {
-      errors.customerName = 'Full name is required';
+      errors.customerName = t('booking.validation.fullNameRequired');
     } else if (reservationData.customerName.trim().length < 2) {
-      errors.customerName = 'Name must be at least 2 characters long';
+      errors.customerName = t('booking.validation.nameMinLength');
     }
     
     if (!reservationData.phone.trim()) {
-      errors.phone = 'Phone number is required';
+      errors.phone = t('booking.validation.phoneRequired');
     } else {
       // Remove all non-digit characters for length check
       const digitsOnly = reservationData.phone.replace(/\D/g, '');
       if (digitsOnly.length < 10) {
-        errors.phone = 'Phone number must contain at least 10 digits';
+        errors.phone = t('booking.validation.phoneMinDigits');
       }
     }
     
     if (!reservationData.email.trim()) {
-      errors.email = 'Email is required';
+      errors.email = t('booking.validation.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reservationData.email.trim())) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = t('booking.validation.emailInvalid');
     }
     
     if (!reservationData.reservationDate) {
-      errors.reservationDate = 'Date is required';
+      errors.reservationDate = t('booking.validation.dateRequired');
     } else {
       const selectedDate = new Date(reservationData.reservationDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (selectedDate < today) {
-        errors.reservationDate = 'Cannot select a past date';
+        errors.reservationDate = t('booking.validation.datePast');
       }
     }
     
     if (!reservationData.reservationTime) {
-      errors.reservationTime = 'Time is required';
+      errors.reservationTime = t('booking.validation.timeRequired');
     }
     
     if (!reservationData.numberOfPeople || reservationData.numberOfPeople < 1) {
-      errors.numberOfPeople = 'Number of people is required';
+      errors.numberOfPeople = t('booking.validation.peopleRequired');
     }
     
     return errors;
@@ -145,27 +147,51 @@ const Reservation = () => {
     }
   };
 
+  // Parse a time string like "11:00 AM" or "11:00" into a 24-hour integer hour
+  const parseHour = (timeStr) => {
+    if (!timeStr) return null;
+    const match = timeStr.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
+    if (!match) return null;
+    let hour = parseInt(match[1], 10);
+    const ampm = match[3]?.toUpperCase();
+    if (ampm === 'PM' && hour !== 12) hour += 12;
+    if (ampm === 'AM' && hour === 12) hour = 0;
+    return hour;
+  };
+
+  // Parse open/close hours from restaurantInfo for a given date
+  const getHoursForDate = (selectedDate) => {
+    if (!selectedDate) return { start: 11, end: 20 };
+    const dayOfWeek = new Date(selectedDate).getDay();
+    const isSunday = dayOfWeek === 0;
+    const hoursStr = isSunday
+      ? restaurantInfo?.openingHours?.sunday
+      : restaurantInfo?.openingHours?.weekdays;
+
+    if (hoursStr) {
+      // Try to extract two times separated by "-" or "–"
+      const parts = hoursStr.split(/[-–]/);
+      if (parts.length >= 2) {
+        const startHour = parseHour(parts[parts.length - 2].trim());
+        const endHour = parseHour(parts[parts.length - 1].trim());
+        if (startHour !== null && endHour !== null) {
+          return { start: startHour, end: endHour };
+        }
+      }
+    }
+    // Fallback defaults
+    return { start: 11, end: isSunday ? 17 : 20 };
+  };
+
   // Generate available time slots based on business hours
   const generateTimeSlots = (selectedDate) => {
     if (!selectedDate) return [];
-    
-    const date = new Date(selectedDate);
-    const dayOfWeek = date.getDay();
-    
-    let startHour = 11; // 11:00 AM
-    let endHour = 20; // 8:00 PM
-    
-    // Sunday: 11:00 AM - 5:00 PM
-    if (dayOfWeek === 0) {
-      endHour = 17; // 5:00 PM
-    }
-    
+    const { start, end } = getHoursForDate(selectedDate);
     const timeSlots = [];
-    for (let hour = startHour; hour < endHour; hour++) {
+    for (let hour = start; hour < end; hour++) {
       timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
       timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
     }
-    
     return timeSlots;
   };
 
@@ -178,15 +204,10 @@ const Reservation = () => {
   // Get business hours text for selected date
   const getBusinessHoursText = (selectedDate) => {
     if (!selectedDate) return '';
-    
-    const date = new Date(selectedDate);
-    const dayOfWeek = date.getDay();
-    
-    if (dayOfWeek === 0) {
-      return 'Sunday: 11:00 AM - 5:00 PM';
-    } else {
-      return 'Monday-Saturday: 11:00 AM - 8:00 PM';
-    }
+    const isSunday = new Date(selectedDate).getDay() === 0;
+    return isSunday
+      ? (restaurantInfo?.openingHours?.sunday || '')
+      : (restaurantInfo?.openingHours?.weekdays || '');
   };
 
   // Update time slots when date changes
@@ -231,71 +252,70 @@ const Reservation = () => {
     <div className="reservation-page">
       <div className="reservation-container">
         <div className="reservation-form-section">
-          <h2>Make a Reservation</h2>
-          <p>Please fill out the form below to reserve your table</p>
+          <h2>{t('booking.title')}</h2>
+          <p>{t('booking.subtitle')}</p>
           
-                     {/* Success Message - Inline */}
-           {reservationSuccess && (
-             <div className="success-message">
-               <div className="success-icon">✅</div>
-               <div className="success-content">
-                 <h3>Reservation Submitted Successfully!</h3>
-                 <p>We will contact you soon to confirm your reservation.</p>
-                 <p className="email-note">
-                   <small>📧 Note: Email confirmation is temporarily unavailable. We'll contact you via phone instead.</small>
-                 </p>
-               </div>
-             </div>
-           )}
+          {/* Success Message - Inline */}
+          {reservationSuccess && (
+            <div className="success-message">
+              <div className="success-icon">✅</div>
+              <div className="success-content">
+                <h3>{t('booking.success.inline.title')}</h3>
+                <p>{t('booking.success.inline.message')}</p>
+                <p className="email-note">
+                  <small>{t('booking.success.inline.emailNote')}</small>
+                </p>
+              </div>
+            </div>
+          )}
 
-           {/* Success Popup Modal */}
-           {reservationSuccess && (
-             <div className="success-popup-overlay">
-               <div className="success-popup">
-                 <button 
-                   className="success-popup-close"
-                   onClick={() => setReservationSuccess(false)}
-                 >
-                   ×
-                 </button>
-                 
-                 <div className="success-popup-icon">🎉</div>
-                 
-                 <h3>Reservation Confirmed!</h3>
-                 
-                 <p>
-                   Thank you for choosing Viet Bowls! Your table has been reserved successfully.
-                 </p>
-                 
-                 <p>
-                   We will contact you within 2 hours to confirm your booking details.
-                 </p>
-                 
-                 <div className="email-note">
-                   <strong>📧 Note:</strong> Email confirmation is temporarily unavailable. 
-                   We'll contact you via phone instead.
-                 </div>
-                 
-                 <div className="success-popup-actions">
-                   <button 
-                     className="success-popup-btn secondary"
-                     onClick={() => setReservationSuccess(false)}
-                   >
-                     Close
-                   </button>
-                   <button 
-                     className="success-popup-btn primary"
-                     onClick={() => {
-                       setReservationSuccess(false);
-                       navigate('/');
-                     }}
-                   >
-                     Back to Home
-                   </button>
-                 </div>
-               </div>
-             </div>
-           )}
+          {/* Success Popup Modal */}
+          {reservationSuccess && (
+            <div className="success-popup-overlay">
+              <div className="success-popup">
+                <button 
+                  className="success-popup-close"
+                  onClick={() => setReservationSuccess(false)}
+                >
+                  ×
+                </button>
+                
+                <div className="success-popup-icon">🎉</div>
+                
+                <h3>{t('booking.success.popup.title')}</h3>
+                
+                <p>
+                  {t('booking.success.popup.message1', { name: restaurantInfo?.restaurantName || 'us' })}
+                </p>
+                
+                <p>
+                  {t('booking.success.popup.message2')}
+                </p>
+                
+                <div className="email-note">
+                  {t('booking.success.popup.emailNote')}
+                </div>
+                
+                <div className="success-popup-actions">
+                  <button 
+                    className="success-popup-btn secondary"
+                    onClick={() => setReservationSuccess(false)}
+                  >
+                    {t('booking.success.popup.close')}
+                  </button>
+                  <button 
+                    className="success-popup-btn primary"
+                    onClick={() => {
+                      setReservationSuccess(false);
+                      navigate('/');
+                    }}
+                  >
+                    {t('booking.success.popup.backToHome')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Error Message */}
           {reservationErrors.general && (
@@ -309,7 +329,7 @@ const Reservation = () => {
 
           <form onSubmit={handleReservationSubmit} className="reservation-form">
             <div className="form-group">
-              <label htmlFor="customerName">Full Name *</label>
+              <label htmlFor="customerName">{t('booking.form.fullName')}</label>
               <input
                 type="text"
                 id="customerName"
@@ -317,7 +337,7 @@ const Reservation = () => {
                 value={reservationData.customerName}
                 onChange={handleReservationChange}
                 required
-                placeholder="Enter your full name"
+                placeholder={t('booking.form.fullNamePlaceholder')}
                 className={reservationErrors.customerName ? 'error' : ''}
               />
               {reservationErrors.customerName && (
@@ -325,26 +345,26 @@ const Reservation = () => {
               )}
             </div>
             
-                         <div className="form-group">
-               <label htmlFor="phone">Phone Number *</label>
-               <input
-                 type="tel"
-                 id="phone"
-                 name="phone"
-                 value={reservationData.phone}
-                 onChange={handleReservationChange}
-                 onKeyDown={handlePhoneKeyDown}
-                 required
-                 placeholder="Enter your phone number (e.g., +1 555-123-4567)"
-                 className={reservationErrors.phone ? 'error' : ''}
-               />
-               {reservationErrors.phone && (
-                 <span className="error-text">{reservationErrors.phone}</span>
-               )}
-             </div>
+            <div className="form-group">
+              <label htmlFor="phone">{t('booking.form.phone')}</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={reservationData.phone}
+                onChange={handleReservationChange}
+                onKeyDown={handlePhoneKeyDown}
+                required
+                placeholder={t('booking.form.phonePlaceholder')}
+                className={reservationErrors.phone ? 'error' : ''}
+              />
+              {reservationErrors.phone && (
+                <span className="error-text">{reservationErrors.phone}</span>
+              )}
+            </div>
             
             <div className="form-group">
-              <label htmlFor="email">Email Address *</label>
+              <label htmlFor="email">{t('booking.form.email')}</label>
               <input
                 type="email"
                 id="email"
@@ -352,7 +372,7 @@ const Reservation = () => {
                 value={reservationData.email}
                 onChange={handleReservationChange}
                 required
-                placeholder="Enter your email address"
+                placeholder={t('booking.form.emailPlaceholder')}
                 className={reservationErrors.email ? 'error' : ''}
               />
               {reservationErrors.email && (
@@ -362,7 +382,7 @@ const Reservation = () => {
             
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="reservationDate">Date *</label>
+                <label htmlFor="reservationDate">{t('booking.form.date')}</label>
                 <input
                   type="date"
                   id="reservationDate"
@@ -384,7 +404,7 @@ const Reservation = () => {
               </div>
               
               <div className="form-group">
-                <label htmlFor="reservationTime">Time *</label>
+                <label htmlFor="reservationTime">{t('booking.form.time')}</label>
                 <select
                   id="reservationTime"
                   name="reservationTime"
@@ -395,7 +415,7 @@ const Reservation = () => {
                   disabled={!reservationData.reservationDate}
                 >
                   <option value="">
-                    {reservationData.reservationDate ? 'Select time' : 'Select date first'}
+                    {reservationData.reservationDate ? t('booking.form.selectTime') : t('booking.form.selectDateFirst')}
                   </option>
                   {timeSlots.map((time) => (
                     <option key={time} value={time}>{time}</option>
@@ -408,7 +428,7 @@ const Reservation = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="numberOfPeople">Number of People *</label>
+              <label htmlFor="numberOfPeople">{t('booking.form.numberOfPeople')}</label>
               <select
                 id="numberOfPeople"
                 name="numberOfPeople"
@@ -418,7 +438,9 @@ const Reservation = () => {
                 className={reservationErrors.numberOfPeople ? 'error' : ''}
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <option key={num} value={num}>{num} {num === 1 ? 'Person' : 'People'}</option>
+                  <option key={num} value={num}>
+                    {num} {num === 1 ? t('booking.form.person') : t('booking.form.people')}
+                  </option>
                 ))}
               </select>
               {reservationErrors.numberOfPeople && (
@@ -427,14 +449,14 @@ const Reservation = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="note">Special Requests</label>
+              <label htmlFor="note">{t('booking.form.specialRequests')}</label>
               <textarea
                 id="note"
                 name="note"
                 value={reservationData.note}
                 onChange={handleReservationChange}
                 rows="4"
-                placeholder="Any special requests or dietary requirements?"
+                placeholder={t('booking.form.specialRequestsPlaceholder')}
               ></textarea>
             </div>
             
@@ -444,14 +466,14 @@ const Reservation = () => {
                 className="cancel-btn"
                 onClick={() => navigate('/')}
               >
-                Cancel
+                {t('booking.form.cancel')}
               </button>
               <button 
                 type="submit" 
                 className={`submit-btn ${reservationLoading ? 'loading' : ''}`}
                 disabled={reservationLoading}
               >
-                {reservationLoading ? 'Submitting...' : 'Book Table'}
+                {reservationLoading ? t('booking.form.submitting') : t('booking.form.submit')}
               </button>
             </div>
           </form>
@@ -459,39 +481,37 @@ const Reservation = () => {
 
         <div className="reservation-info">
           <div className="info-card">
-            <h3>Restaurant Hours</h3>
+            <h3>{t('booking.info.hours')}</h3>
             <div className="hours">
-              <div className="day">
-                <span>Monday - Friday</span>
-                <span>11:00 AM - 8:00 PM</span>
-              </div>
-              <div className="day">
-                <span>Saturday</span>
-                <span>11:00 AM - 8:00 PM</span>
-              </div>
-              <div className="day">
-                <span>Sunday</span>
-                <span>11:00 AM - 5:00 PM</span>
-              </div>
+              {restaurantInfo?.openingHours?.weekdays && (
+                <div className="day">
+                  <span>{restaurantInfo.openingHours.weekdays}</span>
+                </div>
+              )}
+              {restaurantInfo?.openingHours?.sunday && (
+                <div className="day">
+                  <span>{restaurantInfo.openingHours.sunday}</span>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="info-card">
-            <h3>Contact Information</h3>
+            <h3>{t('booking.info.contact')}</h3>
             <div className="contact-info">
-              <p>📍 Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
-              <p>📞 +1 (555) 123-4567</p>
-              <p>✉️ vietbowlssala666@gmail.com</p>
+              {restaurantInfo?.address && <p>📍 {restaurantInfo.address}</p>}
+              {restaurantInfo?.phone && <p>📞 {restaurantInfo.phone}</p>}
+              {restaurantInfo?.email && <p>✉️ {restaurantInfo.email}</p>}
             </div>
           </div>
 
           <div className="info-card">
-            <h3>Reservation Policy</h3>
+            <h3>{t('booking.info.policy')}</h3>
             <ul>
-              <li>Reservations are held for 15 minutes</li>
-              <li>Please arrive 5 minutes before your reservation time</li>
-              <li>For groups of 8+, please call us directly</li>
-              <li>Cancellations must be made 2 hours in advance</li>
+              <li>{t('booking.info.policy.item1')}</li>
+              <li>{t('booking.info.policy.item2')}</li>
+              <li>{t('booking.info.policy.item3')}</li>
+              <li>{t('booking.info.policy.item4')}</li>
             </ul>
           </div>
         </div>

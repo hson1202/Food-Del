@@ -1,4 +1,4 @@
-import React , { useState, useEffect }from 'react'
+import React , { useState, useEffect, useContext }from 'react'
 import Navbar from './pages/Navbar/Navbar';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import Home from './pages/Home/Home'
@@ -23,10 +23,30 @@ import ChangePasswordPage from './pages/Account/ChangePasswordPage'
 import AddressBookPage from './pages/Account/AddressBookPage'
 import AccountOrdersPage from './pages/Account/AccountOrdersPage'
 import i18n from './i18n';
+import { StoreContext } from './Context/StoreContext';
 
 const App = () => {
 
   const [showLogin,setShowLogin]=useState(false)
+  const { restaurantInfo } = useContext(StoreContext);
+
+  // Dynamically update browser tab title and favicon from admin settings
+  useEffect(() => {
+    if (!restaurantInfo) return;
+    if (restaurantInfo.restaurantName) {
+      document.title = restaurantInfo.restaurantName;
+    }
+    if (restaurantInfo.faviconUrl) {
+      let link = document.getElementById('favicon');
+      if (!link) {
+        link = document.createElement('link');
+        link.id = 'favicon';
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = restaurantInfo.faviconUrl;
+    }
+  }, [restaurantInfo]);
 
   // Sync HTML language class for font switching (e.g., Montserrat for Vietnamese)
   useEffect(() => {

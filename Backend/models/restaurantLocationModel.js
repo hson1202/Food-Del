@@ -4,7 +4,7 @@ const restaurantLocationSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    default: "VietBowls Restaurant"
+    default: "Restaurant"
   },
   address: {
     type: String,

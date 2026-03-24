@@ -2,6 +2,32 @@ import nodemailer from 'nodemailer'
 import { Resend } from 'resend'
 import foodModel from '../models/foodModel.js'
 import restaurantLocationModel from '../models/restaurantLocationModel.js'
+import RestaurantInfo from '../models/restaurantInfoModel.js'
+
+/**
+ * Fetches current restaurant branding from DB.
+ * Returns a safe object with fallback-empty strings so templates never show undefined.
+ */
+const getRestaurantBranding = async () => {
+  try {
+    const info = await RestaurantInfo.getSingleton()
+    return {
+      name: info.restaurantName || 'Restaurant',
+      address: info.address || '',
+      email: info.email || '',
+      phone: info.phone || '',
+      copyrightText: info.copyrightText || `© ${new Date().getFullYear()} Restaurant. All rights reserved.`
+    }
+  } catch {
+    return {
+      name: 'Restaurant',
+      address: '',
+      email: '',
+      phone: '',
+      copyrightText: `© ${new Date().getFullYear()} Restaurant. All rights reserved.`
+    }
+  }
+}
 
 // Create transporter (supports Gmail, Resend, and custom SMTP)
 export const createTransporter = () => {
@@ -165,10 +191,13 @@ export const sendTestEmail = async (toEmail) => {
       }
     }
 
+    const branding = await getRestaurantBranding()
+    const brandName = branding.name
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: toEmail,
-      subject: '✅ VIET BOWLS - Email Service Test',
+      subject: `✅ ${brandName} - Email Service Test`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -183,7 +212,7 @@ export const sendTestEmail = async (toEmail) => {
           
           <div style="background: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 8px;">
             <h2>🎉 Success!</h2>
-            <p>This is a test email from <strong>VIET BOWLS Backend</strong>.</p>
+            <p>This is a test email from <strong>${brandName} Backend</strong>.</p>
             <p>If you're receiving this email, it means the email service is configured correctly and working.</p>
             
             <div style="background: white; padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #27ae60;">
@@ -203,7 +232,7 @@ export const sendTestEmail = async (toEmail) => {
             </ul>
             
             <p style="color: #666; font-size: 14px; margin-top: 30px;">
-              <em>This is an automated test email from VIET BOWLS Backend.<br>
+              <em>This is an automated test email from ${brandName} Backend.<br>
               Timestamp: ${new Date().toLocaleString()}</em>
             </p>
           </div>
@@ -211,9 +240,9 @@ export const sendTestEmail = async (toEmail) => {
         </html>
       `,
       text: `
-✅ VIET BOWLS - Email Service Test
+✅ ${brandName} - Email Service Test
 
-Success! This is a test email from VIET BOWLS Backend.
+Success! This is a test email from ${brandName} Backend.
 
 If you're receiving this email, it means the email service is configured correctly and working.
 
@@ -230,7 +259,7 @@ What this means:
 ✅ Admin notification emails will be sent
 
 ---
-This is an automated test email from VIET BOWLS Backend.
+This is an automated test email from ${brandName} Backend.
 Timestamp: ${new Date().toLocaleString()}
       `
     }
@@ -269,13 +298,15 @@ export const sendReservationConfirmation = async (reservation) => {
         message: 'Reservation saved but email not sent (email service not configured)'
       }
     }
+
+    const branding = await getRestaurantBranding()
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: reservation.email,
-      subject: 'Reservation Confirmation - VIET BOWLS',
-      html: generateConfirmationEmailHTML(reservation),
-      text: generateConfirmationEmailText(reservation)
+      subject: `Reservation Confirmation - ${branding.name}`,
+      html: generateConfirmationEmailHTML(reservation, branding),
+      text: generateConfirmationEmailText(reservation, branding)
     }
     
     const result = await transporter.sendMail(mailOptions)
@@ -303,12 +334,14 @@ export const sendStatusUpdateEmail = async (reservation, oldStatus, newStatus) =
       }
     }
     
+    const branding = await getRestaurantBranding()
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: reservation.email,
-      subject: `Reservation Status Updated - VIET BOWLS`,
-      html: generateStatusUpdateEmailHTML(reservation, oldStatus, newStatus),
-      text: generateStatusUpdateEmailText(reservation, oldStatus, newStatus)
+      subject: `Reservation Status Updated - ${branding.name}`,
+      html: generateStatusUpdateEmailHTML(reservation, oldStatus, newStatus, branding),
+      text: generateStatusUpdateEmailText(reservation, oldStatus, newStatus, branding)
     }
     
     const result = await transporter.sendMail(mailOptions)
@@ -336,12 +369,14 @@ export const sendContactConfirmation = async (contactMessage, adminResponse = nu
       }
     }
     
+    const branding = await getRestaurantBranding()
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: contactMessage.email,
-      subject: adminResponse ? 'Response to Your Message - VIET BOWLS' : 'Message Received - VIET BOWLS',
-      html: generateContactConfirmationEmailHTML(contactMessage, adminResponse),
-      text: generateContactConfirmationEmailText(contactMessage, adminResponse)
+      subject: adminResponse ? `Response to Your Message - ${branding.name}` : `Message Received - ${branding.name}`,
+      html: generateContactConfirmationEmailHTML(contactMessage, adminResponse, branding),
+      text: generateContactConfirmationEmailText(contactMessage, adminResponse, branding)
     }
     
     const result = await transporter.sendMail(mailOptions)
@@ -369,12 +404,14 @@ export const sendAdminNotification = async (contactMessage) => {
       }
     }
     
+    const branding = await getRestaurantBranding()
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-      subject: `📬 Message #${contactMessage.messageNumber || contactMessage._id.toString().slice(-6)} - ${contactMessage.subject.toUpperCase()} - VIET BOWLS`,
-      html: generateAdminNotificationEmailHTML(contactMessage),
-      text: generateAdminNotificationEmailText(contactMessage)
+      subject: `📬 Message #${contactMessage.messageNumber || contactMessage._id.toString().slice(-6)} - ${contactMessage.subject.toUpperCase()} - ${branding.name}`,
+      html: generateAdminNotificationEmailHTML(contactMessage, branding),
+      text: generateAdminNotificationEmailText(contactMessage, branding)
     }
     
     const result = await transporter.sendMail(mailOptions)
@@ -426,12 +463,13 @@ export const sendOrderConfirmation = async (order) => {
       }
     }
     
+    const branding = await getRestaurantBranding()
     const lang = order.language || 'vi';
     const t = getEmailTranslations(lang);
     const subjectMap = {
-      vi: `Cảm ơn bạn đã đặt hàng #${order.trackingCode} - VIET BOWLS`,
-      en: `Thanks for your order #${order.trackingCode} - VIET BOWLS`,
-      sk: `Ďakujeme za objednávku #${order.trackingCode} - VIET BOWLS`
+      vi: `Cảm ơn bạn đã đặt hàng #${order.trackingCode} - ${branding.name}`,
+      en: `Thanks for your order #${order.trackingCode} - ${branding.name}`,
+      sk: `Ďakujeme za objednávku #${order.trackingCode} - ${branding.name}`
     };
     const langCode = lang?.split('-')[0] || 'vi';
     const subject = subjectMap[langCode] || subjectMap['vi'];
@@ -440,8 +478,8 @@ export const sendOrderConfirmation = async (order) => {
       from: process.env.EMAIL_USER,
       to: order.customerInfo.email,
       subject: subject,
-      html: generateOrderConfirmationEmailHTML(order),
-      text: generateOrderConfirmationEmailText(order)
+      html: generateOrderConfirmationEmailHTML(order, branding),
+      text: generateOrderConfirmationEmailText(order, branding)
     }
     
     const result = await transporter.sendMail(mailOptions)
@@ -486,12 +524,14 @@ export const sendAdminOrderNotification = async (order) => {
       }
     }
     
+    const branding = await getRestaurantBranding()
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: adminEmail,
       subject: `Đơn hàng mới #${order.trackingCode} - ${order.customerInfo.name}`,
-      html: await generateAdminOrderNotificationEmailHTML(order),
-      text: await generateAdminOrderNotificationEmailText(order)
+      html: await generateAdminOrderNotificationEmailHTML(order, branding),
+      text: await generateAdminOrderNotificationEmailText(order, branding)
     }
     
     console.log(`📤 Sending admin order notification email to: ${adminEmail}`);
@@ -513,7 +553,11 @@ export const sendAdminOrderNotification = async (order) => {
 }
 
 // Generate HTML email content for confirmation
-const generateConfirmationEmailHTML = (reservation) => {
+const generateConfirmationEmailHTML = (reservation, branding = {}) => {
+  const name = branding.name || 'Restaurant'
+  const address = branding.address || ''
+  const email = branding.email || ''
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${name}. All rights reserved.`
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -549,14 +593,14 @@ const generateConfirmationEmailHTML = (reservation) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🍜 VIET BOWLS</h1>
+          <h1>${name}</h1>
           <h2>Reservation Confirmation</h2>
         </div>
         
         <div class="content">
           <p>Dear <strong>${reservation.customerName}</strong>,</p>
           
-          <p>Thank you for choosing VIET BOWLS! Your reservation has been received and is currently being reviewed.</p>
+          <p>Thank you for choosing ${name}! Your reservation has been received and is currently being reviewed.</p>
           
           <div class="reservation-details">
             <h3>📅 Reservation Details</h3>
@@ -582,8 +626,8 @@ const generateConfirmationEmailHTML = (reservation) => {
           
           <div class="contact-info">
             <h4>📍 Restaurant Information</h4>
-            <p><strong>Address:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
-            <p><strong>Email:</strong> vietbowlssala666@gmail.com</p>
+            ${address ? `<p><strong>Address:</strong> ${address}</p>` : ''}
+            ${email ? `<p><strong>Email:</strong> ${email}</p>` : ''}
           </div>
           
           <p><strong>Important Notes:</strong></p>
@@ -597,12 +641,12 @@ const generateConfirmationEmailHTML = (reservation) => {
           <p>We look forward to serving you!</p>
           
           <p>Best regards,<br>
-          <strong>The VIET BOWLS Team</strong></p>
+          <strong>The ${name} Team</strong></p>
         </div>
         
         <div class="footer">
           <p>This is an automated email. Please do not reply directly to this message.</p>
-          <p>© 2024 VIET BOWLS. All rights reserved.</p>
+          <p>${copyrightText}</p>
         </div>
       </div>
     </body>
@@ -611,7 +655,11 @@ const generateConfirmationEmailHTML = (reservation) => {
 }
 
 // Generate plain text email content for confirmation
-const generateConfirmationEmailText = (reservation) => {
+const generateConfirmationEmailText = (reservation, branding = {}) => {
+  const name = branding.name || 'Restaurant'
+  const address = branding.address || ''
+  const email = branding.email || ''
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${name}. All rights reserved.`
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -622,11 +670,11 @@ const generateConfirmationEmailText = (reservation) => {
   }
   
   return `
-VIET BOWLS - Reservation Confirmation
+${name} - Reservation Confirmation
 
 Dear ${reservation.customerName},
 
-Thank you for choosing VIET BOWLS! Your reservation has been received and is currently being reviewed.
+Thank you for choosing ${name}! Your reservation has been received and is currently being reviewed.
 
 RESERVATION DETAILS:
 Date: ${formatDate(reservation.reservationDate)}
@@ -635,8 +683,8 @@ Number of Guests: ${reservation.numberOfPeople} ${reservation.numberOfPeople ===
 ${reservation.note ? `Special Requests: ${reservation.note}` : ''}
 
 RESTAURANT INFORMATION:
-Address: Hlavná 33/36, 927 01 Šaľa, Slovakia
-Email: vietbowlssala666@gmail.com
+${address ? `Address: ${address}` : ''}
+${email ? `Email: ${email}` : ''}
 
 IMPORTANT NOTES:
 - Please arrive 5-10 minutes before your reservation time
@@ -647,16 +695,20 @@ IMPORTANT NOTES:
 We look forward to serving you!
 
 Best regards,
-The VIET BOWLS Team
+The ${name} Team
 
 ---
 This is an automated email. Please do not reply directly to this message.
-© 2024 VIET BOWLS. All rights reserved.
+${copyrightText}
   `
 }
 
 // Generate HTML email content for status updates
-const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus) => {
+const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus, branding = {}) => {
+  const name = branding.name || 'Restaurant'
+  const address = branding.address || ''
+  const email = branding.email || ''
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${name}. All rights reserved.`
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -696,7 +748,7 @@ const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🍜 VIET BOWLS</h1>
+          <h1>${name}</h1>
           <h2>Reservation Status Update</h2>
         </div>
         
@@ -739,16 +791,16 @@ const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus) => {
           ` : ''}
           
           <p>If you have any questions, please contact us:</p>
-          <p><strong>Email:</strong> vietbowlssala666@gmail.com<br>
-          <strong>Address:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
+          <p>${email ? `<strong>Email:</strong> ${email}<br>` : ''}
+          ${address ? `<strong>Address:</strong> ${address}` : ''}</p>
           
           <p>Best regards,<br>
-          <strong>The VIET BOWLS Team</strong></p>
+          <strong>The ${name} Team</strong></p>
         </div>
         
         <div class="footer">
           <p>This is an automated email. Please do not reply directly to this message.</p>
-          <p>© 2024 VIET BOWLS. All rights reserved.</p>
+          <p>${copyrightText}</p>
         </div>
       </div>
     </body>
@@ -757,7 +809,11 @@ const generateStatusUpdateEmailHTML = (reservation, oldStatus, newStatus) => {
 }
 
 // Generate plain text email content for status updates
-const generateStatusUpdateEmailText = (reservation, oldStatus, newStatus) => {
+const generateStatusUpdateEmailText = (reservation, oldStatus, newStatus, branding = {}) => {
+  const name = branding.name || 'Restaurant'
+  const address = branding.address || ''
+  const email = branding.email || ''
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${name}. All rights reserved.`
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -777,7 +833,7 @@ const generateStatusUpdateEmailText = (reservation, oldStatus, newStatus) => {
   }
   
   return `
-VIET BOWLS - Reservation Status Update
+${name} - Reservation Status Update
 
 Dear ${reservation.customerName},
 
@@ -804,20 +860,22 @@ We hope you enjoyed your meal. Please visit us again soon!
 ` : ''}
 
 If you have any questions, please contact us:
-Email: vietbowlssala666@gmail.com
-Address: Hlavná 33/36, 927 01 Šaľa, Slovakia
+${email ? `Email: ${email}` : ''}
+${address ? `Address: ${address}` : ''}
 
 Best regards,
-The VIET BOWLS Team
+The ${name} Team
 
 ---
 This is an automated email. Please do not reply directly to this message.
-© 2024 VIET BOWLS. All rights reserved.
+${copyrightText}
   `
 }
 
 // Generate HTML email content for contact confirmation
-const generateContactConfirmationEmailHTML = (contactMessage, adminResponse = null) => {
+const generateContactConfirmationEmailHTML = (contactMessage, adminResponse = null, branding = {}) => {
+  const name = branding.name || 'Restaurant'
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${name}. All rights reserved.`
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -864,7 +922,7 @@ const generateContactConfirmationEmailHTML = (contactMessage, adminResponse = nu
     <body>
       <div class="container">
         <div class="header">
-          <h1>🍜 VIET BOWLS</h1>
+          <h1>${name}</h1>
           <p>${adminResponse ? 'Response to Your Message' : 'Message Received'}</p>
         </div>
         
@@ -881,7 +939,7 @@ const generateContactConfirmationEmailHTML = (contactMessage, adminResponse = nu
           
           <p>If you have any further questions or need additional assistance, please don't hesitate to contact us again.</p>
           ` : `
-          <p>Thank you for contacting VIET BOWLS. We have received your message and will get back to you as soon as possible.</p>
+          <p>Thank you for contacting ${name}. We have received your message and will get back to you as soon as possible.</p>
           
           <p>Here are the details of your message:</p>
           `}
@@ -903,17 +961,17 @@ const generateContactConfirmationEmailHTML = (contactMessage, adminResponse = nu
           
           <div class="contact-info">
             <h3>Contact Information</h3>
-            <p><strong>Email:</strong> vietbowlssala666@gmail.com<br>
-            <strong>Address:</strong> Hlavná 33/36, 927 01 Šaľa, Slovakia</p>
+            <p>${branding.email ? `<strong>Email:</strong> ${branding.email}<br>` : ''}
+            ${branding.address ? `<strong>Address:</strong> ${branding.address}` : ''}</p>
           </div>
           
           <p>Best regards,<br>
-          <strong>The VIET BOWLS Team</strong></p>
+          <strong>The ${name} Team</strong></p>
         </div>
         
         <div class="footer">
           <p>This is an automated email. Please do not reply directly to this message.</p>
-          <p>© 2024 VIET BOWLS. All rights reserved.</p>
+          <p>${copyrightText}</p>
         </div>
       </div>
     </body>
@@ -922,7 +980,11 @@ const generateContactConfirmationEmailHTML = (contactMessage, adminResponse = nu
 }
 
 // Generate plain text email content for contact confirmation
-const generateContactConfirmationEmailText = (contactMessage, adminResponse = null) => {
+const generateContactConfirmationEmailText = (contactMessage, adminResponse = null, branding = {}) => {
+  const name = branding.name || 'Restaurant'
+  const address = branding.address || ''
+  const email = branding.email || ''
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${name}. All rights reserved.`
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -947,7 +1009,7 @@ const generateContactConfirmationEmailText = (contactMessage, adminResponse = nu
   }
   
   return `
-VIET BOWLS - ${adminResponse ? 'Response to Your Message' : 'Message Received'}
+${name} - ${adminResponse ? 'Response to Your Message' : 'Message Received'}
 
 Dear ${contactMessage.name},
 
@@ -959,7 +1021,7 @@ ${adminResponse}
 
 If you have any further questions or need additional assistance, please don't hesitate to contact us again.
 ` : `
-Thank you for contacting VIET BOWLS. We have received your message and will get back to you as soon as possible.
+Thank you for contacting ${name}. We have received your message and will get back to you as soon as possible.
 
 Here are the details of your message:
 `}
@@ -970,20 +1032,22 @@ Message: ${contactMessage.message}
 Sent: ${formatDate(contactMessage.createdAt)}
 
 CONTACT INFORMATION:
-Email: vietbowlssala666@gmail.com
-Address: Hlavná 33/36, 927 01 Šaľa, Slovakia
+${email ? `Email: ${email}` : ''}
+${address ? `Address: ${address}` : ''}
 
 Best regards,
-The VIET BOWLS Team
+The ${name} Team
 
 ---
 This is an automated email. Please do not reply directly to this message.
-© 2024 VIET BOWLS. All rights reserved.
+${copyrightText}
   `
 }
 
 // Generate HTML email content for admin notification
-const generateAdminNotificationEmailHTML = (contactMessage) => {
+const generateAdminNotificationEmailHTML = (contactMessage, branding = {}) => {
+  const name = branding.name || 'Restaurant'
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${name}. All rights reserved.`
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -1049,7 +1113,7 @@ const generateAdminNotificationEmailHTML = (contactMessage) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🍜 VIET BOWLS</h1>
+          <h1>${name}</h1>
           <p>Admin Notification - New Contact Message</p>
           <div class="message-number">MESSAGE #${contactMessage.messageNumber || 'N/A'}</div>
         </div>
@@ -1105,9 +1169,9 @@ const generateAdminNotificationEmailHTML = (contactMessage) => {
         </div>
         
         <div class="footer">
-          <p><strong>VIET BOWLS - Admin Panel</strong></p>
+          <p><strong>${name} - Admin Panel</strong></p>
           <p>This is an automated notification email for Message #${contactMessage.messageNumber || 'N/A'}</p>
-          <p style="margin: 10px 0 0 0; font-size: 12px;">© ${new Date().getFullYear()} VIET BOWLS. All rights reserved.</p>
+          <p style="margin: 10px 0 0 0; font-size: 12px;">${copyrightText}</p>
         </div>
       </div>
     </body>
@@ -1116,7 +1180,9 @@ const generateAdminNotificationEmailHTML = (contactMessage) => {
 }
 
 // Generate plain text email content for admin notification
-const generateAdminNotificationEmailText = (contactMessage) => {
+const generateAdminNotificationEmailText = (contactMessage, branding = {}) => {
+  const name = branding.name || 'Restaurant'
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${name}. All rights reserved.`
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -1142,7 +1208,7 @@ const generateAdminNotificationEmailText = (contactMessage) => {
   
   return `
 ========================================
-🍜 VIET BOWLS - ADMIN NOTIFICATION
+${name} - ADMIN NOTIFICATION
 ========================================
 
 📬 NEW CONTACT MESSAGE #${contactMessage.messageNumber || 'N/A'}
@@ -1173,19 +1239,19 @@ ${contactMessage.message}
 ========================================
 
 This is an automated notification for Message #${contactMessage.messageNumber || 'N/A'}
-© ${new Date().getFullYear()} VIET BOWLS. All rights reserved.
+${copyrightText}
   `
 }
 
 // Email translations for customer order confirmation
-const getEmailTranslations = (lang) => {
+const getEmailTranslations = (lang, brandName = 'Restaurant') => {
   const langCode = lang?.split('-')[0] || 'vi'; // Extract base language code (vi, en, sk)
   
   const translations = {
     vi: {
       title: 'Xác nhận đơn hàng',
       greeting: 'Chào bạn',
-      thankYou: 'Cảm ơn bạn đã đặt hàng tại VIET BOWLS! Chúng tôi đã nhận được đơn hàng và đang chuẩn bị món ăn tươi ngon cho bạn.',
+      thankYou: `Cảm ơn bạn đã đặt hàng tại ${brandName}! Chúng tôi đã nhận được đơn hàng và đang chuẩn bị món ăn tươi ngon cho bạn.`,
       trackingCode: 'Mã theo dõi đơn hàng',
       orderDetails: 'Thông tin đơn hàng',
       orderDate: 'Ngày đặt',
@@ -1207,22 +1273,22 @@ const getEmailTranslations = (lang) => {
       contactInfo: 'Liên hệ với chúng tôi',
       emailLabel: 'Email',
       storeAddressLabel: 'Địa chỉ cửa hàng',
-      storeAddress: 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
+      storeAddress: '',
       importantNotes: 'Một vài lưu ý nhỏ',
       note1: 'Bạn có thể theo dõi đơn hàng bằng mã',
       note2: 'Thanh toán bằng tiền mặt khi nhận hàng nhé',
       note3: 'Đơn hàng sẽ được giao trong vòng 30-60 phút',
       note4: 'Nếu có thắc mắc gì, đừng ngại liên hệ với chúng tôi nhé!',
-      closing: 'Cảm ơn bạn đã tin tưởng VIET BOWLS. Chúc bạn ngon miệng! 🍜',
+      closing: `Cảm ơn bạn đã tin tưởng ${brandName}. Chúc bạn ngon miệng! 🍜`,
       regards: 'Thân mến,',
-      team: 'Đội ngũ VIET BOWLS',
+      team: `Đội ngũ ${brandName}`,
       footer1: 'Email này được gửi tự động. Nếu cần hỗ trợ, vui lòng liên hệ trực tiếp với chúng tôi.',
-      footer2: '© 2024 VIET BOWLS'
+      footer2: `© ${new Date().getFullYear()} ${brandName}`
     },
     en: {
       title: 'Order Confirmation',
       greeting: 'Hi there',
-      thankYou: 'Thank you for ordering from VIET BOWLS! We\'ve received your order and our kitchen is already preparing your delicious meal.',
+      thankYou: `Thank you for ordering from ${brandName}! We've received your order and our kitchen is already preparing your delicious meal.`,
       trackingCode: 'Your Order Tracking Code',
       orderDetails: 'Order Information',
       orderDate: 'Order Date',
@@ -1244,22 +1310,22 @@ const getEmailTranslations = (lang) => {
       contactInfo: 'Get in Touch',
       emailLabel: 'Email',
       storeAddressLabel: 'Store Address',
-      storeAddress: 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
+      storeAddress: '',
       importantNotes: 'A Few Quick Notes',
       note1: 'You can track your order using code',
       note2: 'Please have cash ready for payment upon delivery',
       note3: 'Your order will arrive within 30-60 minutes',
       note4: 'If you have any questions, feel free to reach out to us anytime!',
-      closing: 'Thanks for choosing VIET BOWLS. Enjoy your meal! 🍜',
+      closing: `Thanks for choosing ${brandName}. Enjoy your meal! 🍜`,
       regards: 'Warm regards,',
-      team: 'The VIET BOWLS Team',
+      team: `The ${brandName} Team`,
       footer1: 'This is an automated email. For support, please contact us directly.',
-      footer2: '© 2024 VIET BOWLS'
+      footer2: `© ${new Date().getFullYear()} ${brandName}`
     },
     sk: {
       title: 'Potvrdenie objednávky',
       greeting: 'Ahoj',
-      thankYou: 'Ďakujeme, že ste si objednali z VIET BOWLS! Vašu objednávku sme prijali a naša kuchyňa už pripravuje vaše chutné jedlo.',
+      thankYou: `Ďakujeme, že ste si objednali z ${brandName}! Vašu objednávku sme prijali a naša kuchyňa už pripravuje vaše chutné jedlo.`,
       trackingCode: 'Váš sledovací kód',
       orderDetails: 'Informácie o objednávke',
       orderDate: 'Dátum objednávky',
@@ -1281,17 +1347,17 @@ const getEmailTranslations = (lang) => {
       contactInfo: 'Kontakt',
       emailLabel: 'Email',
       storeAddressLabel: 'Adresa prevádzky',
-      storeAddress: 'Hlavná 33/36, 927 01 Šaľa, Slovakia',
+      storeAddress: '',
       importantNotes: 'Niekoľko rýchlych poznámok',
       note1: 'Svoju objednávku môžete sledovať pomocou kódu',
       note2: 'Prosím, pripravte hotovosť na platbu pri doručení',
       note3: 'Vaša objednávka dorazí do 30-60 minút',
       note4: 'Ak máte akékoľvek otázky, neváhajte nás kontaktovať!',
-      closing: 'Ďakujeme, že ste si vybrali VIET BOWLS. Dobrú chuť! 🍜',
+      closing: `Ďakujeme, že ste si vybrali ${brandName}. Dobrú chuť! 🍜`,
       regards: 'S pozdravom,',
-      team: 'Tím VIET BOWLS',
+      team: `Tím ${brandName}`,
       footer1: 'Toto je automatický email. Pre podporu nás prosím kontaktujte priamo.',
-      footer2: '© 2024 VIET BOWLS'
+      footer2: `© ${new Date().getFullYear()} ${brandName}`
     }
   };
   
@@ -1356,10 +1422,14 @@ const calculateItemPrice = async (item, globalBoxFee = 0.3) => {
 };
 
 // Generate HTML email content for order confirmation
-const generateOrderConfirmationEmailHTML = (order) => {
+const generateOrderConfirmationEmailHTML = (order, branding = {}) => {
+  const brandName = branding.name || 'Restaurant'
+  const storeAddress = branding.address || ''
+  const storeEmail = branding.email || ''
+  const copyrightText = branding.copyrightText || `© ${new Date().getFullYear()} ${brandName}. All rights reserved.`
   const lang = order.language || 'vi';
   const langCode = lang?.split('-')[0] || 'vi';
-  const t = getEmailTranslations(lang);
+  const t = getEmailTranslations(lang, brandName);
   
   const formatDate = (date) => {
     const localeMap = { vi: 'vi-VN', en: 'en-US', sk: 'sk-SK' };
@@ -1413,7 +1483,7 @@ const generateOrderConfirmationEmailHTML = (order) => {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>${t.title} - VIET BOWLS</title>
+      <title>${t.title} - ${brandName}</title>
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -1440,7 +1510,7 @@ const generateOrderConfirmationEmailHTML = (order) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🍜 VIET BOWLS</h1>
+          <h1>${brandName}</h1>
           <h2>${t.title}</h2>
         </div>
         
@@ -1520,8 +1590,8 @@ const generateOrderConfirmationEmailHTML = (order) => {
           
           <div class="contact-info">
             <h4>📞 ${t.contactInfo}</h4>
-            <p><strong>${t.emailLabel}:</strong> vietbowlssala666@gmail.com</p>
-            <p><strong>${t.storeAddressLabel}:</strong> ${t.storeAddress}</p>
+            ${storeEmail ? `<p><strong>${t.emailLabel}:</strong> ${storeEmail}</p>` : ''}
+            ${storeAddress ? `<p><strong>${t.storeAddressLabel}:</strong> ${storeAddress}</p>` : ''}
           </div>
           
           <p><strong>${t.importantNotes}:</strong></p>
@@ -1549,10 +1619,13 @@ const generateOrderConfirmationEmailHTML = (order) => {
 }
 
 // Generate plain text email content for order confirmation
-const generateOrderConfirmationEmailText = (order) => {
+const generateOrderConfirmationEmailText = (order, branding = {}) => {
+  const brandName = branding.name || 'Restaurant'
+  const storeAddress = branding.address || ''
+  const storeEmail = branding.email || ''
   const lang = order.language || 'vi';
   const langCode = lang?.split('-')[0] || 'vi';
-  const t = getEmailTranslations(lang);
+  const t = getEmailTranslations(lang, brandName);
   
   const formatDate = (date) => {
     const localeMap = { vi: 'vi-VN', en: 'en-US', sk: 'sk-SK' };
@@ -1586,7 +1659,7 @@ const generateOrderConfirmationEmailText = (order) => {
   const subtotal = order.amount - deliveryFee;
   
   return `
-VIET BOWLS - ${t.title}
+${brandName} - ${t.title}
 
 ${t.greeting} ${order.customerInfo.name},
 
@@ -1615,8 +1688,8 @@ ${[addressZip, addressCountry].filter(Boolean).join(', ')}` : fulfillmentLabel}
 ${t.phone}: ${order.customerInfo.phone}
 
 ${t.contactInfo.toUpperCase()}:
-${t.emailLabel}: vietbowlssala666@gmail.com
-${t.storeAddressLabel}: ${t.storeAddress}
+${storeEmail ? `${t.emailLabel}: ${storeEmail}` : ''}
+${storeAddress ? `${t.storeAddressLabel}: ${storeAddress}` : ''}
 
 ${t.importantNotes.toUpperCase()}:
 - ${t.note1}: ${order.trackingCode}
@@ -1786,7 +1859,8 @@ function formatSelectedOptions(item, langCode = 'vi') {
 
 // Generate HTML email content for admin order notification
 // LUÔN LUÔN BẰNG TIẾNG VIỆT, không phụ thuộc vào ngôn ngữ của khách hàng
-const generateAdminOrderNotificationEmailHTML = async (order) => {
+const generateAdminOrderNotificationEmailHTML = async (order, branding = {}) => {
+  const brandName = branding.name || 'Restaurant'
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('vi-VN', {
       day: '2-digit',
@@ -1865,7 +1939,7 @@ const generateAdminOrderNotificationEmailHTML = async (order) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🍜 Đơn hàng mới - VIET BOWLS</h1>
+          <h1>🍜 Đơn hàng mới - ${brandName}</h1>
         </div>
         
         <div class="content">
@@ -1992,7 +2066,8 @@ const generateAdminOrderNotificationEmailHTML = async (order) => {
 
 // Generate plain text email content for admin order notification
 // LUÔN LUÔN BẰNG TIẾNG VIỆT, không phụ thuộc vào ngôn ngữ của khách hàng
-const generateAdminOrderNotificationEmailText = async (order) => {
+const generateAdminOrderNotificationEmailText = async (order, branding = {}) => {
+  const brandName = branding.name || 'Restaurant'
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('vi-VN', {
       day: '2-digit',
@@ -2039,7 +2114,7 @@ const generateAdminOrderNotificationEmailText = async (order) => {
   const deliveryEta = order.deliveryInfo?.estimatedTime;
   
   return `
-🍜 ĐƠN HÀNG MỚI - VIET BOWLS
+🍜 ĐƠN HÀNG MỚI - ${brandName}
 
 Đơn hàng #${order.trackingCode}
 
@@ -2073,6 +2148,6 @@ Loại đơn: ${order.orderType === 'registered' ? 'Thành viên' : 'Khách vãn
 ${customerNote ? `Ghi chú: ${customerNote}\n` : ''}${preferredTime ? `Giờ nhận: ${preferredTime}\n` : ''}${deliveryZone ? `Khu vực: ${deliveryZone}\n` : ''}${typeof deliveryDistance === 'number' ? `Khoảng cách: ${deliveryDistance} km\n` : ''}${typeof deliveryEta === 'number' ? `Thời gian dự kiến: ${deliveryEta} phút\n` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Email tự động từ hệ thống VIET BOWLS
+Email tự động từ hệ thống ${brandName}
   `
 }
