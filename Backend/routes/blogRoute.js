@@ -1,5 +1,5 @@
 import express from "express"
-import { upload } from "../middleware/upload.js"
+import { r2Upload as upload } from "../middleware/r2Upload.js"
 import {
   getAllBlogs,
   getPublicBlogs,

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Navbar from '../Navbar/Navbar';
 import Sidebar from '../Sidebar/Sidebar';
 import './MainLayout.css';
+import config from '../../config/config';
 
 const MainLayout = ({ children, setIsAuthenticated }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [restaurantInfo, setRestaurantInfo] = useState(null);
 
   useEffect(() => {
     // Load sidebar state from localStorage on mount
@@ -13,6 +16,38 @@ const MainLayout = ({ children, setIsAuthenticated }) => {
       setSidebarOpen(savedSidebarState === 'true');
     }
   }, []);
+
+  useEffect(() => {
+    const fetchRestaurantInfo = async () => {
+      try {
+        const res = await axios.get(`${config.BACKEND_URL}/api/restaurant-info`);
+        if (res.data?.data) {
+          setRestaurantInfo(res.data.data);
+        }
+      } catch {
+        // silently fail — sidebar will show fallback text
+      }
+    };
+    fetchRestaurantInfo();
+  }, []);
+
+  useEffect(() => {
+    if (!restaurantInfo) return;
+    if (restaurantInfo.restaurantName) {
+      document.title = `${restaurantInfo.restaurantName} — Admin`;
+    }
+    const iconUrl = restaurantInfo.faviconUrl || restaurantInfo.logoUrl;
+    if (iconUrl) {
+      let link = document.getElementById('favicon');
+      if (!link) {
+        link = document.createElement('link');
+        link.id = 'favicon';
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = iconUrl;
+    }
+  }, [restaurantInfo]);
 
   useEffect(() => {
     // Handle keyboard shortcuts
@@ -62,7 +97,7 @@ const MainLayout = ({ children, setIsAuthenticated }) => {
   return (
     <div className={`admin-layout ${sidebarOpen ? 'sidebar-open' : ''}`}>
       <aside className="layout-sidebar">
-        <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose} />
+        <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose} restaurantInfo={restaurantInfo} />
       </aside>
       
       <div className="layout-content">

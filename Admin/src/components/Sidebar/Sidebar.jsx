@@ -3,7 +3,7 @@ import './Sidebar.css'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, onClose, restaurantInfo }) => {
   const { t } = useTranslation();
 
   const menuItems = [
@@ -138,7 +138,17 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <div className="sidebar-container">
       <div className="sidebar-header">
-        <h2 className="brand-logo">View Bowls</h2>
+        {restaurantInfo?.logoUrl ? (
+          <div className="brand-logo-wrap">
+            <img
+              src={restaurantInfo.logoUrl}
+              alt={restaurantInfo.restaurantName || 'Logo'}
+              className="brand-logo-img"
+            />
+          </div>
+        ) : (
+          <h2 className="brand-logo">{restaurantInfo?.restaurantName || 'Admin Panel'}</h2>
+        )}
         <span className="brand-subtitle">Admin Panel</span>
       </div>
 
@@ -159,7 +169,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       <div className="sidebar-footer">
         <div className="footer-info">
-          <span>© {new Date().getFullYear()} Viet Bowls</span>
+          <span>© {new Date().getFullYear()} {restaurantInfo?.restaurantName || 'Viet Bowls'}</span>
           <span className="version">v1.2.0</span>
         </div>
       </div>

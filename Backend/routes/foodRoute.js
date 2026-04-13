@@ -1,6 +1,6 @@
 import express from "express"
 import { addFood, listFood, removeFood, updateFoodStatus, updateFood, updateFoodQuantity, quickUpdateFood, processOrder } from "../controllers/foodController.js"
-import { upload } from "../middleware/upload.js"
+import { r2Upload as upload } from "../middleware/r2Upload.js"
 
 const foodRouter = express.Router();
 

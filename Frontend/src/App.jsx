@@ -36,7 +36,8 @@ const App = () => {
     if (restaurantInfo.restaurantName) {
       document.title = restaurantInfo.restaurantName;
     }
-    if (restaurantInfo.faviconUrl) {
+    const iconUrl = restaurantInfo.faviconUrl || restaurantInfo.logoUrl;
+    if (iconUrl) {
       let link = document.getElementById('favicon');
       if (!link) {
         link = document.createElement('link');
@@ -44,7 +45,7 @@ const App = () => {
         link.rel = 'icon';
         document.head.appendChild(link);
       }
-      link.href = restaurantInfo.faviconUrl;
+      link.href = iconUrl;
     }
   }, [restaurantInfo]);
 

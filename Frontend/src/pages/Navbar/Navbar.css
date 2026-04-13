@@ -43,7 +43,12 @@
 }
 
 .navbar .logo {
-    width: 150px;
+    width: auto;
+    max-width: 150px;
+    max-height: 50px;
+    height: auto;
+    object-fit: contain;
+    display: block;
     flex-shrink: 0;
 }
 
@@ -359,7 +364,8 @@
 /* Responsive Design */
 @media (max-width:1050px) {
     .navbar .logo{
-        width: 140px;
+        max-width: 140px;
+        max-height: 46px;
         flex-shrink: 0;
     }
     .navbar-menu{
@@ -382,7 +388,8 @@
 
 @media (max-width:900px) {
     .navbar .logo{
-        width: 120px;
+        max-width: 120px;
+        max-height: 42px;
         flex-shrink: 0;
     }
     .navbar-menu{
@@ -455,7 +462,8 @@
     }
     
     .navbar .logo {
-        width: 80px;
+        max-width: 80px;
+        max-height: 36px;
         flex-shrink: 0;
     }
     

@@ -6,7 +6,7 @@ import {
   resetToDefaults,
   uploadLogo
 } from "../controllers/restaurantInfoController.js"
-import { upload } from "../middleware/upload.js"
+import { r2Upload as upload } from "../middleware/r2Upload.js"
 
 const router = express.Router()
 

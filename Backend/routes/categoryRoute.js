@@ -11,7 +11,7 @@ import {
     getMenuStructure,
     bulkUpdateCategorySortOrder
 } from "../controllers/categoryController.js";
-import { upload } from "../middleware/upload.js";
+import { r2Upload as upload } from "../middleware/r2Upload.js";
 
 const categoryRouter = express.Router();
 

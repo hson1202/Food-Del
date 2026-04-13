@@ -20,7 +20,6 @@ import reservationRouter from "./routes/reservationRoute.js"
 import contactMessageRouter from "./routes/contactMessageRoute.js"
 import uploadRouter from "./routes/uploadRoute.js"
 import localUploadRouter from "./routes/localUploadRoute.js"
-import cloudinarySignRouter from "./routes/cloudinarySignRoute.js"
 import emailTestRouter from "./routes/emailTestRoute.js"
 import deliveryRouter from "./routes/deliveryRoute.js"
 import restaurantInfoRouter from "./routes/restaurantInfoRoutes.js"
@@ -160,8 +159,7 @@ app.use("/api/reservation", reservationRouter)
 app.use("/api/contact", contactMessageRouter)
 app.use("/api/email", emailTestRouter)
 app.use("/api/upload", localUploadRouter)
-app.use("/api/upload-cloud", uploadRouter)  // Keep Cloudinary as backup
-app.use("/api/cloudinary", cloudinarySignRouter)
+app.use("/api/upload-cloud", uploadRouter)
 app.use("/api/delivery", deliveryRouter)
 app.use("/api/restaurant-info", restaurantInfoRouter)
 app.use("/api/error-logs", errorLogRouter)
@@ -356,39 +354,6 @@ if (process.env.NODE_ENV !== "production") {
     }
   })
 
-  app.get("/debug-cloudinary", async (req, res) => {
-    try {
-      const cloudinary = (await import("./config/cloudinary.js")).default
-
-      // Test cloudinary config
-      const config = {
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET ? "***configured***" : "missing"
-      }
-
-      // Test API call
-      const result = await cloudinary.api.ping()
-
-      res.json({
-        success: true,
-        message: "Cloudinary connection working",
-        config: config,
-        ping: result
-      })
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message,
-        config: {
-          cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "missing",
-          api_key: process.env.CLOUDINARY_API_KEY ? "***configured***" : "missing",
-          api_secret: process.env.CLOUDINARY_API_SECRET ? "***configured***" : "missing"
-        }
-      })
-    }
-  })
-
   app.get("/debug-email", async (req, res) => {
     try {
       const { createTransporter } = await import("./services/emailService.js")
@@ -415,51 +380,6 @@ if (process.env.NODE_ENV !== "production") {
     }
   })
 
-  app.post("/test-upload", async (req, res) => {
-    try {
-      const { upload } = await import("./middleware/upload.js")
-      const uploadSingle = upload.single("image")
-
-      uploadSingle(req, res, (err) => {
-        if (err) {
-          console.error("=== UPLOAD ERROR ===", err)
-          return res.status(500).json({
-            success: false,
-            error: "Upload failed: " + err.message,
-            details: err
-          })
-        }
-
-        console.log("=== UPLOAD TEST DEBUG ===")
-        console.log("File received:", req.file ? "YES" : "NO")
-        console.log("File details:", req.file)
-
-        if (!req.file) {
-          return res.status(400).json({
-            success: false,
-            error: "No file uploaded"
-          })
-        }
-
-        res.json({
-          success: true,
-          message: "Upload successful",
-          file: {
-            url: req.file.path,
-            public_id: req.file.filename,
-            size: req.file.size,
-            originalname: req.file.originalname
-          }
-        })
-      })
-    } catch (error) {
-      console.error("Test upload error:", error)
-      res.status(500).json({
-        success: false,
-        error: error.message
-      })
-    }
-  })
 }
 
 // 404 handler - phải để cuối cùng

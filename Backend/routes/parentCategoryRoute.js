@@ -8,7 +8,7 @@ import {
     deleteParentCategory,
     toggleParentCategoryStatus
 } from "../controllers/parentCategoryController.js";
-import { upload } from "../middleware/upload.js";
+import { r2Upload as upload } from "../middleware/r2Upload.js";
 
 const parentCategoryRouter = express.Router();
 
