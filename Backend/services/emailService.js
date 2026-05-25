@@ -354,6 +354,137 @@ export const sendStatusUpdateEmail = async (reservation, oldStatus, newStatus) =
   }
 }
 
+// Send admin notification for new reservation (with Accept button)
+export const sendAdminReservationNotification = async (reservation, confirmToken) => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER
+    if (!adminEmail) {
+      console.log('⚠️ Admin reservation notification not sent: ADMIN_EMAIL not configured')
+      return { success: false, message: 'ADMIN_EMAIL not configured' }
+    }
+
+    const transporter = createTransporter()
+    if (!transporter) {
+      console.log('⚠️ Admin reservation notification not sent: Email service not configured')
+      return { success: false, message: 'Email service not configured' }
+    }
+
+    const branding = await getRestaurantBranding()
+    const baseUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 4000}`
+    const acceptUrl = `${baseUrl}/api/reservation/${reservation._id}/accept?token=${confirmToken}`
+
+    const formatDate = (date) => new Date(date).toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    })
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>New Reservation - ${branding.name}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #e74c3c; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+          .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+          .reservation-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #e74c3c; }
+          .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
+          .label { font-weight: bold; color: #555; }
+          .value { color: #333; }
+          .accept-btn { display: inline-block; background: #27ae60; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-size: 16px; font-weight: bold; margin: 20px 0; }
+          .accept-btn:hover { background: #219150; }
+          .btn-wrapper { text-align: center; margin: 24px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${branding.name}</h1>
+            <h2>🍽️ New Table Reservation</h2>
+          </div>
+          <div class="content">
+            <p>A new reservation has been submitted and is waiting for your approval.</p>
+            <div class="reservation-details">
+              <h3>📋 Reservation Details</h3>
+              <div class="detail-row">
+                <span class="label">Customer:</span>
+                <span class="value">${reservation.customerName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Phone:</span>
+                <span class="value">${reservation.phone}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Email:</span>
+                <span class="value">${reservation.email}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Date:</span>
+                <span class="value">${formatDate(reservation.reservationDate)}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Time:</span>
+                <span class="value">${reservation.reservationTime}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Guests:</span>
+                <span class="value">${reservation.numberOfPeople} ${reservation.numberOfPeople === 1 ? 'person' : 'people'}</span>
+              </div>
+              ${reservation.note ? `
+              <div class="detail-row">
+                <span class="label">Note:</span>
+                <span class="value">${reservation.note}</span>
+              </div>` : ''}
+            </div>
+            <div class="btn-wrapper">
+              <a href="${acceptUrl}" class="accept-btn">✅ Accept Reservation</a>
+            </div>
+            <p style="font-size:13px;color:#888;text-align:center;">This link can only be used once. To cancel or manage reservations, visit the admin panel.</p>
+          </div>
+          <div class="footer">
+            <p>${branding.copyrightText}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+
+    const text = `
+New Table Reservation - ${branding.name}
+
+Customer: ${reservation.customerName}
+Phone: ${reservation.phone}
+Email: ${reservation.email}
+Date: ${formatDate(reservation.reservationDate)}
+Time: ${reservation.reservationTime}
+Guests: ${reservation.numberOfPeople}
+${reservation.note ? `Note: ${reservation.note}` : ''}
+
+To accept this reservation, open the link below:
+${acceptUrl}
+
+(This link can only be used once.)
+    `.trim()
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: adminEmail,
+      subject: `🍽️ New Reservation - ${reservation.customerName} - ${formatDate(reservation.reservationDate)}`,
+      html,
+      text
+    }
+
+    const result = await transporter.sendMail(mailOptions)
+    console.log('✅ Admin reservation notification sent:', result.messageId)
+    return { success: true, messageId: result.messageId }
+  } catch (error) {
+    console.error('❌ Error sending admin reservation notification:', error)
+    return { success: false, error: error.message }
+  }
+}
+
 // Send contact message confirmation email
 export const sendContactConfirmation = async (contactMessage, adminResponse = null) => {
   try {

@@ -1,5 +1,6 @@
+import crypto from "crypto"
 import reservationModel from "../models/reservationModel.js"
-import { sendReservationConfirmation, sendStatusUpdateEmail } from "../services/emailService.js"
+import { sendReservationConfirmation, sendStatusUpdateEmail, sendAdminReservationNotification } from "../services/emailService.js"
 
 // Helper function to validate email
 const isValidEmail = (email) => {
@@ -149,6 +150,8 @@ export const createReservation = async (req, res) => {
             })
         }
 
+        const confirmToken = crypto.randomBytes(32).toString('hex')
+
         const newReservation = new reservationModel({
             customerName: customerName.trim(),
             phone: phone.trim(),
@@ -156,14 +159,15 @@ export const createReservation = async (req, res) => {
             reservationDate: reservationDateTime,
             reservationTime,
             numberOfPeople,
-            note: note ? note.trim() : ''
+            note: note ? note.trim() : '',
+            confirmToken
         })
 
         console.log('💾 Saving reservation to database...')
         await newReservation.save()
         console.log('✅ Reservation saved successfully with ID:', newReservation._id)
 
-        // Send confirmation email
+        // Send confirmation email to customer
         try {
             const emailResult = await sendReservationConfirmation(newReservation)
             if (emailResult && emailResult.success) {
@@ -174,6 +178,19 @@ export const createReservation = async (req, res) => {
         } catch (emailError) {
             console.error('❌ Error sending confirmation email:', emailError)
             // Don't fail the reservation if email fails
+        }
+
+        // Send notification email to admin with Accept button
+        try {
+            const adminEmailResult = await sendAdminReservationNotification(newReservation, confirmToken)
+            if (adminEmailResult && adminEmailResult.success) {
+                console.log('✅ Admin reservation notification sent successfully')
+            } else {
+                console.log('⚠️ Admin notification not sent:', adminEmailResult?.message || 'Unknown error')
+            }
+        } catch (adminEmailError) {
+            console.error('❌ Error sending admin reservation notification:', adminEmailError)
+            // Don't fail the reservation if admin email fails
         }
 
         const response = {
@@ -452,5 +469,104 @@ export const getAvailableTimeSlots = async (req, res) => {
             message: "Internal server error. Please try again later.",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         })
+    }
+}
+
+// Accept reservation via email link (public, token-protected)
+export const acceptReservationByEmail = async (req, res) => {
+    const htmlPage = (title, heading, message, color) => `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+            .card { background: white; border-radius: 12px; padding: 48px 40px; max-width: 480px; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+            .icon { font-size: 56px; margin-bottom: 16px; }
+            h1 { color: ${color}; margin-bottom: 12px; }
+            p { color: #555; font-size: 16px; line-height: 1.6; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="icon">${color === '#27ae60' ? '✅' : color === '#e67e22' ? 'ℹ️' : '❌'}</div>
+            <h1>${heading}</h1>
+            <p>${message}</p>
+          </div>
+        </body>
+        </html>
+    `
+
+    try {
+        const { id } = req.params
+        const { token } = req.query
+
+        if (!token) {
+            return res.status(400).send(htmlPage(
+                'Invalid Link',
+                'Invalid Link',
+                'This acceptance link is missing a security token.',
+                '#e74c3c'
+            ))
+        }
+
+        const reservation = await reservationModel.findById(id)
+        if (!reservation) {
+            return res.status(404).send(htmlPage(
+                'Not Found',
+                'Reservation Not Found',
+                'This reservation does not exist or has been deleted.',
+                '#e74c3c'
+            ))
+        }
+
+        if (reservation.status === 'confirmed') {
+            return res.send(htmlPage(
+                'Already Confirmed',
+                'Already Confirmed',
+                `The reservation for <strong>${reservation.customerName}</strong> on ${new Date(reservation.reservationDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${reservation.reservationTime} was already confirmed.`,
+                '#e67e22'
+            ))
+        }
+
+        if (!reservation.confirmToken || reservation.confirmToken !== token) {
+            return res.status(403).send(htmlPage(
+                'Invalid Token',
+                'Invalid or Expired Link',
+                'This acceptance link is invalid or has already been used.',
+                '#e74c3c'
+            ))
+        }
+
+        await reservationModel.findByIdAndUpdate(id, {
+            status: 'confirmed',
+            confirmToken: null,
+            confirmedAt: new Date()
+        })
+
+        const updatedReservation = await reservationModel.findById(id)
+
+        try {
+            await sendStatusUpdateEmail(updatedReservation, 'pending', 'confirmed')
+            console.log('✅ Status update email sent to customer after email acceptance')
+        } catch (emailError) {
+            console.error('❌ Error sending status update email:', emailError)
+        }
+
+        return res.send(htmlPage(
+            'Reservation Confirmed',
+            'Reservation Confirmed!',
+            `The reservation for <strong>${reservation.customerName}</strong> on ${new Date(reservation.reservationDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${reservation.reservationTime} has been confirmed. A confirmation email has been sent to the customer.`,
+            '#27ae60'
+        ))
+    } catch (error) {
+        console.error('❌ Error accepting reservation by email:', error)
+        return res.status(500).send(htmlPage(
+            'Error',
+            'Something Went Wrong',
+            'An unexpected error occurred. Please try again or confirm the reservation from the admin panel.',
+            '#e74c3c'
+        ))
     }
 }

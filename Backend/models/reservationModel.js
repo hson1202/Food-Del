@@ -15,7 +15,8 @@ const reservationSchema = new mongoose.Schema({
     },
     adminNote: { type: String, default: '' },
     confirmedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-    confirmedAt: { type: Date }
+    confirmedAt: { type: Date },
+    confirmToken: { type: String, default: null }
 }, { 
     timestamps: true 
 })

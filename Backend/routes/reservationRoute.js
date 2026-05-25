@@ -6,7 +6,8 @@ import {
     updateReservationStatus, 
     deleteReservation,
     getReservationsByDateRange,
-    getAvailableTimeSlots
+    getAvailableTimeSlots,
+    acceptReservationByEmail
 } from "../controllers/reservationController.js"
 import authMiddleware, { verifyAdmin } from "../middleware/auth.js"
 
@@ -14,6 +15,7 @@ const router = express.Router()
 
 // Public routes
 router.post("/", createReservation)
+router.get("/:id/accept", acceptReservationByEmail)
 router.get("/:id", getReservationById)
 router.get("/time-slots/:date", getAvailableTimeSlots)
 
