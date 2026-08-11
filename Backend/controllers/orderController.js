@@ -87,11 +87,21 @@ const placeOrder = async (req, res) => {
             return patterns.some(pattern => pattern.test(addr));
         };
 
-        // If street looks like coordinates, never treat digits as a "house number"
         if (isDelivery) {
+            const streetValue = normalizedAddress.street || '';
+            const fullAddressValue = normalizedAddress.fullAddress || address?.fullAddress || '';
+
+            if (isCoordinateString(streetValue) || isCoordinateString(fullAddressValue)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid address. Please enter a real street address, not map coordinates."
+                });
+            }
+
+            // If street looks like coordinates, never treat digits as a "house number"
             const addressHasNumber =
-                !isCoordinateString(normalizedAddress.street) &&
-                hasHouseNumber(normalizedAddress.street);
+                !isCoordinateString(streetValue) &&
+                hasHouseNumber(streetValue);
             const hasManualHouseNumber = normalizedAddress.houseNumber && normalizedAddress.houseNumber.trim().length > 0;
 
             if (!addressHasNumber && !hasManualHouseNumber) {

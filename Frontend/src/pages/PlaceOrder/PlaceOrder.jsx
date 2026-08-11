@@ -231,8 +231,13 @@ const PlaceOrder = () => {
   }, [isAuthenticated, token, url, restaurantLocation]);
 
   // Helper function to check if address has house number
+  const isCoordinateString = (s) => {
+    if (!s) return false;
+    return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(String(s).trim());
+  };
+
   const hasHouseNumber = (address) => {
-    if (!address) return false;
+    if (!address || isCoordinateString(address)) return false;
     // Regex để tìm số nhà: số đứng đầu hoặc sau ký tự đặc biệt
     const patterns = [
       /^\d+/,                    // Số ở đầu: "123 Main St"
@@ -300,6 +305,12 @@ const PlaceOrder = () => {
       // Validate delivery address first (most important)
       if (!deliveryAddress || !deliveryAddress.address) {
         alert(t('placeOrder.errors.invalidAddress'));
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (isCoordinateString(deliveryAddress.address) || isCoordinateString(deliveryAddress.street)) {
+        alert(t('placeOrder.form.reverseGeocodeFailed'));
         setIsSubmitting(false);
         return;
       }

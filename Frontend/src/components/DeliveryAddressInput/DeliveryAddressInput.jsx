@@ -7,6 +7,19 @@ import ManualLocationPicker from '../ManualLocationPicker/ManualLocationPicker';
 
 const DEFAULT_COORDS = { latitude: 48.148598, longitude: 17.107748 }; // Bratislava (fallback)
 
+const isCoordinateString = (s) => {
+  if (!s) return false;
+  return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(String(s).trim());
+};
+
+const pickLocalizedMessage = (data, fallback) => {
+  const currentLang = i18n.language || 'vi';
+  if (currentLang === 'en' && data?.messageEn) return data.messageEn;
+  if (currentLang === 'sk' && data?.messageSk) return data.messageSk;
+  if (data?.message) return data.message;
+  return fallback;
+};
+
 const buildAddressPayload = ({ address = '', components = {}, latitude, longitude }) => {
   const hasCoords =
     typeof latitude === 'number' &&
@@ -120,6 +133,17 @@ const DeliveryAddressInput = ({
         const deliveryData = response.data.data;
         console.log('✅ Delivery available:', deliveryData.zone.name, `- €${deliveryData.zone.deliveryFee}`);
 
+        const safeAddress = deliveryData.address || address || '';
+        if (isCoordinateString(safeAddress)) {
+          setQuery('');
+          setSelectedAddress(null);
+          setDeliveryInfo(null);
+          setError(t('placeOrder.form.reverseGeocodeFailed'));
+          if (onDeliveryCalculated) onDeliveryCalculated(null);
+          if (onChange) onChange(buildAddressPayload({ address: '' }));
+          return;
+        }
+
         setDeliveryInfo(deliveryData);
         if (onDeliveryCalculated) {
           onDeliveryCalculated(deliveryData);
@@ -127,7 +151,7 @@ const DeliveryAddressInput = ({
 
         const mergedComponents = components || deliveryData.addressComponents || {};
         const normalized = buildAddressPayload({
-          address: deliveryData.address || address || '',
+          address: safeAddress,
           components: mergedComponents,
           latitude: deliveryData.coordinates?.latitude ?? latitude,
           longitude: deliveryData.coordinates?.longitude ?? longitude
@@ -153,21 +177,14 @@ const DeliveryAddressInput = ({
         console.warn('⚠️ Delivery NOT available. Distance:', deliveryData.distance, 'km');
         console.warn('Reason:', deliveryData.outOfRange ? 'Out of range' : 'Unknown');
 
-        // Lấy thông báo phù hợp với ngôn ngữ hiện tại
-        let errorMessage = deliveryData.message || t('placeOrder.form.deliveryNotAvailable');
-        const currentLang = i18n.language || 'vi';
-        if (currentLang === 'en' && deliveryData.messageEn) {
-          errorMessage = deliveryData.messageEn;
-        } else if (currentLang === 'sk' && deliveryData.messageSk) {
-          errorMessage = deliveryData.messageSk;
-        } else if (currentLang === 'vi' && deliveryData.message) {
-          errorMessage = deliveryData.message;
-        }
+        const errorMessage = pickLocalizedMessage(
+          deliveryData,
+          t('placeOrder.form.deliveryNotAvailable')
+        );
 
         console.log('❌ Error message to display:', errorMessage);
 
-        if (deliveryData.address) {
-          // Use coordinates from selectedAddress if available, otherwise from request
+        if (deliveryData.address && !isCoordinateString(deliveryData.address)) {
           const currentCoords = selectedAddress?.latitude && selectedAddress?.longitude
             ? { latitude: selectedAddress.latitude, longitude: selectedAddress.longitude }
             : { latitude, longitude };
@@ -199,6 +216,18 @@ const DeliveryAddressInput = ({
     } catch (err) {
       console.error('❌ Error calculating delivery:', err);
       console.error('Response:', err.response?.data);
+      const data = err.response?.data;
+
+      if (data?.reverseGeocodeFailed) {
+        setQuery('');
+        setSelectedAddress(null);
+        setDeliveryInfo(null);
+        setError(pickLocalizedMessage(data, t('placeOrder.form.reverseGeocodeFailed')));
+        if (onChange) onChange(buildAddressPayload({ address: '' }));
+        if (onDeliveryCalculated) onDeliveryCalculated(null);
+        return;
+      }
+
       setError(t('placeOrder.form.deliveryCalculationError'));
       setDeliveryInfo(null);
       if (onDeliveryCalculated) {
@@ -207,7 +236,7 @@ const DeliveryAddressInput = ({
     } finally {
       setIsLoading(false);
     }
-  }, [url, onDeliveryCalculated, onChange]);
+  }, [url, onDeliveryCalculated, onChange, t]);
 
   // Handle suggestion selection
   const handleSelectSuggestion = (suggestion) => {
@@ -437,6 +466,7 @@ const DeliveryAddressInput = ({
             isOpen={isManualPickerOpen}
             onClose={() => setIsManualPickerOpen(false)}
             onConfirm={handleManualLocationConfirm}
+            url={url}
             initialCoords={
               restaurantLocation?.latitude && restaurantLocation?.longitude
                 ? { latitude: restaurantLocation.latitude, longitude: restaurantLocation.longitude }

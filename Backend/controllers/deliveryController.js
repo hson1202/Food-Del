@@ -1,12 +1,85 @@
 import deliveryZoneModel from "../models/deliveryZoneModel.js";
 import restaurantLocationModel from "../models/restaurantLocationModel.js";
 
-// ========== OPENSTREETMAP/NOMINATIM CONFIG ==========
-// Nominatim API không cần API key, nhưng cần User-Agent header
-const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
-const DEFAULT_MAP_CENTER = { latitude: 50.08804, longitude: 14.42076 };
-// User-Agent header bắt buộc cho Nominatim (theo policy của họ)
-const NOMINATIM_USER_AGENT = process.env.NOMINATIM_USER_AGENT || 'FoodDeliveryApp/1.0';
+// ========== OPENSTREETMAP CONFIG ==========
+// Autocomplete: Photon (OSM). Geocode/reverse: Nominatim (hardened).
+const NOMINATIM_BASE_URL = process.env.NOMINATIM_BASE_URL || 'https://nominatim.openstreetmap.org';
+const PHOTON_BASE_URL = process.env.PHOTON_BASE_URL || 'https://photon.komoot.io';
+const DEFAULT_MAP_CENTER = { latitude: 48.148598, longitude: 17.107748 }; // Bratislava
+const NOMINATIM_USER_AGENT = process.env.NOMINATIM_USER_AGENT || 'FoodDeliveryApp/1.0 (checkout; contact@vietbowls.local)';
+const NOMINATIM_MIN_INTERVAL_MS = 1100; // public Nominatim policy ~1 req/s
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+const suggestionCache = new Map(); // key -> { expires, data }
+const reverseCache = new Map();
+let nominatimQueue = Promise.resolve();
+let lastNominatimAt = 0;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getCached = (map, key) => {
+  const hit = map.get(key);
+  if (!hit) return null;
+  if (Date.now() > hit.expires) {
+    map.delete(key);
+    return null;
+  }
+  return hit.data;
+};
+
+const setCached = (map, key, data, ttl = CACHE_TTL_MS) => {
+  map.set(key, { expires: Date.now() + ttl, data });
+};
+
+const roundCoord = (n) => Math.round(Number(n) * 10000) / 10000;
+
+/** Serialize Nominatim calls + retry on 429/5xx */
+async function nominatimFetch(url, { retries = 2 } = {}) {
+  const run = async () => {
+    const wait = Math.max(0, NOMINATIM_MIN_INTERVAL_MS - (Date.now() - lastNominatimAt));
+    if (wait > 0) await sleep(wait);
+
+    let lastError;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      lastNominatimAt = Date.now();
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': NOMINATIM_USER_AGENT,
+            Accept: 'application/json',
+          },
+        });
+
+        if (response.status === 429 || response.status >= 500) {
+          lastError = new Error(`Nominatim API error: ${response.status} ${response.statusText}`);
+          if (attempt < retries) {
+            await sleep(NOMINATIM_MIN_INTERVAL_MS * (attempt + 1));
+            continue;
+          }
+          throw lastError;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Nominatim API error: ${response.status} ${response.statusText}`);
+        }
+
+        return response.json();
+      } catch (err) {
+        lastError = err;
+        if (attempt < retries) {
+          await sleep(NOMINATIM_MIN_INTERVAL_MS * (attempt + 1));
+          continue;
+        }
+        throw lastError;
+      }
+    }
+    throw lastError;
+  };
+
+  const next = nominatimQueue.then(run, run);
+  nominatimQueue = next.catch(() => {});
+  return next;
+}
 
 // Parse địa chỉ từ Nominatim response format
 const extractAddressComponents = (nominatimResult = {}) => {
@@ -246,10 +319,159 @@ const nominatimResultToAddress = (result = {}) => {
   };
 };
 
+// Photon (komoot) feature → same address shape as Nominatim path
+const photonFeatureToAddress = (feature = {}) => {
+  const props = feature.properties || {};
+  const [longitude, latitude] = feature.geometry?.coordinates || [];
+
+  const components = {
+    street: props.street || props.name || "",
+    streetLine: "",
+    houseNumber: props.housenumber || "",
+    city: props.city || props.town || props.village || props.municipality || "",
+    village: props.village || props.locality || "",
+    town: props.city || props.town || "",
+    state: props.state || props.county || props.district || "",
+    zipcode: props.postcode || "",
+    country: props.country || "",
+  };
+
+  // Prefer street name over POI name when both exist
+  if (props.street) {
+    components.street = props.street;
+  }
+
+  components.streetLine = [components.houseNumber, components.street]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  if (!components.streetLine && props.name) {
+    components.streetLine = props.name;
+  }
+
+  const formattedAddress = formatShortAddress(components) || props.name || "";
+
+  return {
+    latitude: parseFloat(latitude) || DEFAULT_MAP_CENTER.latitude,
+    longitude: parseFloat(longitude) || DEFAULT_MAP_CENTER.longitude,
+    formattedAddress,
+    components,
+    osmId: props.osm_id,
+    osmType: props.osm_type,
+    osmKey: props.osm_key,
+    countrycode: (props.countrycode || "").toUpperCase(),
+    hasHouseNumber: Boolean(components.houseNumber && components.houseNumber.trim()),
+    isPlace: !props.street && !props.housenumber,
+  };
+};
+
+const suggestionFromParsed = (parsed, id, priority) => ({
+  id,
+  address: parsed.formattedAddress,
+  shortAddress: parsed.formattedAddress || parsed.components.streetLine || parsed.components.street,
+  latitude: parsed.latitude,
+  longitude: parsed.longitude,
+  components: parsed.components,
+  priority,
+  hasHouseNumber: Boolean(parsed.components?.houseNumber?.trim()),
+});
+
+const sortAndLimitSuggestions = (suggestions, limit = 5) => {
+  suggestions.sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    return 0;
+  });
+  return suggestions.slice(0, limit);
+};
+
+async function autocompleteFromPhoton(query, proximity) {
+  const params = new URLSearchParams({
+    q: query,
+    limit: "15",
+    lang: "en",
+  });
+
+  if (proximity) {
+    const [lng, lat] = proximity.split(",").map(parseFloat);
+    if (!Number.isNaN(lng) && !Number.isNaN(lat)) {
+      params.set("lon", String(lng));
+      params.set("lat", String(lat));
+    }
+  }
+
+  const url = `${PHOTON_BASE_URL}/api/?${params.toString()}`;
+  console.log("🔎 Photon autocomplete:", query);
+
+  const response = await fetch(url, {
+    headers: { Accept: "application/json", "User-Agent": NOMINATIM_USER_AGENT },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Photon API error: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  const features = Array.isArray(data?.features) ? data.features : [];
+
+  const suggestions = features
+    .map((feature, index) => {
+      const parsed = photonFeatureToAddress(feature);
+      // Prefer SK; still allow nearby if country missing
+      if (parsed.countrycode && parsed.countrycode !== "SK") {
+        return null;
+      }
+      const priority = parsed.hasHouseNumber ? 1 : parsed.isPlace ? 3 : 2;
+      return suggestionFromParsed(
+        parsed,
+        parsed.osmId ? `photon-${parsed.osmType}-${parsed.osmId}` : `photon-${index}`,
+        priority
+      );
+    })
+    .filter(Boolean);
+
+  return sortAndLimitSuggestions(suggestions);
+}
+
+async function autocompleteFromNominatim(query, proximity) {
+  const encodedQuery = encodeURIComponent(query);
+  let url = `${NOMINATIM_BASE_URL}/search?q=${encodedQuery}&format=json&limit=15&countrycodes=sk&addressdetails=1&accept-language=en`;
+
+  if (proximity) {
+    const [lng, lat] = proximity.split(",").map(parseFloat);
+    if (!Number.isNaN(lng) && !Number.isNaN(lat)) {
+      const offset = 0.5;
+      const viewbox = `${lng - offset},${lat - offset},${lng + offset},${lat + offset}`;
+      url += `&viewbox=${viewbox}`;
+    }
+  }
+
+  console.log("🔎 Nominatim autocomplete fallback:", query);
+  const data = await nominatimFetch(url);
+  if (!data || data.length === 0) return [];
+
+  const suggestions = data.map((result, index) => {
+    const parsed = nominatimResultToAddress(result);
+    const hasHouseNumber = Boolean(parsed.components.houseNumber?.trim());
+    const isPlace =
+      result.type === "administrative" ||
+      result.type === "city" ||
+      result.type === "town" ||
+      result.type === "village";
+    const priority = hasHouseNumber ? 1 : isPlace ? 3 : 2;
+    return suggestionFromParsed(
+      parsed,
+      result.place_id || result.osm_id || `nominatim-${index}`,
+      priority
+    );
+  });
+
+  return sortAndLimitSuggestions(suggestions);
+}
+
 // ========== HAVERSINE FORMULA ==========
-// Tính khoảng cách thẳng giữa 2 điểm trên trái đất (km)
 function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Bán kính trái đất (km)
+  const R = 6371;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
 
@@ -259,9 +481,7 @@ function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-
-  return distance;
+  return R * c;
 }
 
 function toRad(value) {
@@ -272,42 +492,23 @@ function toRad(value) {
 async function geocodeAddress(address) {
   try {
     const encodedAddress = encodeURIComponent(address);
-    // Nominatim API: search endpoint
-    // countrycodes=sk: giới hạn trong Slovakia
-    // addressdetails=1: lấy chi tiết địa chỉ
-    // limit=5: lấy 5 kết quả để tìm địa chỉ có số nhà
     const url = `${NOMINATIM_BASE_URL}/search?q=${encodedAddress}&format=json&limit=5&countrycodes=sk&addressdetails=1&accept-language=en`;
 
     console.log("🔍 Geocoding address with Nominatim:", address);
-
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': NOMINATIM_USER_AGENT
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Nominatim API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = await nominatimFetch(url);
 
     if (!data || data.length === 0) {
       throw new Error("Address not found");
     }
 
-    // ✨ Ưu tiên chọn địa chỉ có số nhà cụ thể
-    let bestResult = data[0];
-    let bestParsed = nominatimResultToAddress(bestResult);
+    let bestParsed = nominatimResultToAddress(data[0]);
 
-    // Tìm địa chỉ có số nhà trong các kết quả
     for (const result of data) {
       const parsed = nominatimResultToAddress(result);
       if (parsed.components.houseNumber && parsed.components.houseNumber.trim().length > 0) {
-        bestResult = result;
         bestParsed = parsed;
         console.log("✅ Found address with house number:", parsed.components.houseNumber);
-        break; // Dừng khi tìm thấy địa chỉ có số nhà
+        break;
       }
     }
 
@@ -326,28 +527,29 @@ async function geocodeAddress(address) {
 }
 
 async function reverseGeocodeCoordinates(latitude, longitude) {
+  const cacheKey = `${roundCoord(latitude)},${roundCoord(longitude)}`;
+  const cached = getCached(reverseCache, cacheKey);
+  if (cached) {
+    console.log("♻️ Reverse geocode cache hit:", cacheKey);
+    return cached;
+  }
+
   try {
-    // Nominatim reverse geocoding
     const url = `${NOMINATIM_BASE_URL}/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1&accept-language=en`;
     console.log("🔄 Reverse geocoding coordinates with Nominatim:", latitude, longitude);
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': NOMINATIM_USER_AGENT
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Nominatim API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = await nominatimFetch(url);
 
     if (!data || !data.lat || !data.lon) {
       throw new Error("Reverse geocoding failed");
     }
 
     const parsedResult = nominatimResultToAddress(data);
+    if (!parsedResult.formattedAddress || !String(parsedResult.formattedAddress).trim()) {
+      throw new Error("Reverse geocoding returned empty address");
+    }
+
+    setCached(reverseCache, cacheKey, parsedResult);
 
     console.log("✅ Reverse geocoding successful:", {
       latitude: parsedResult.latitude,
@@ -401,8 +603,18 @@ const calculateDeliveryFee = async (req, res) => {
           formattedAddress = reverse.formattedAddress;
           addressComponents = reverse.components;
         } catch (geoErr) {
-          console.warn("⚠️ Reverse geocode failed, falling back to raw coordinates:", geoErr?.message);
-          formattedAddress = `${latitude}, ${longitude}`;
+          console.warn("⚠️ Reverse geocode failed (no coordinate fallback):", geoErr?.message);
+          return res.status(422).json({
+            success: false,
+            reverseGeocodeFailed: true,
+            message: "Không xác định được địa chỉ từ vị trí này. Vui lòng nhập địa chỉ hoặc chọn lại trên bản đồ.",
+            messageEn: "Could not determine an address for this location. Please enter an address or pick again on the map.",
+            messageSk: "Nepodarilo sa určiť adresu pre túto polohu. Prosím zadajte adresu alebo vyberte znova na mape.",
+            coordinates: {
+              latitude: customerLat,
+              longitude: customerLng
+            }
+          });
         }
       }
     }
@@ -537,10 +749,10 @@ const calculateDeliveryFee = async (req, res) => {
   }
 };
 
-// ========== AUTOCOMPLETE ADDRESS (NOMINATIM/OPENSTREETMAP) ==========
+// ========== AUTOCOMPLETE ADDRESS (PHOTON → NOMINATIM FALLBACK) ==========
 const autocompleteAddress = async (req, res) => {
   try {
-    const { query, proximity } = req.query; // proximity: "lng,lat" để ưu tiên kết quả gần nhà hàng
+    const { query, proximity } = req.query;
 
     if (!query || query.length < 3) {
       return res.json({
@@ -549,83 +761,31 @@ const autocompleteAddress = async (req, res) => {
       });
     }
 
-    const encodedQuery = encodeURIComponent(query);
-    // Nominatim search API
-    // countrycodes=sk: giới hạn trong Slovakia
-    // addressdetails=1: lấy chi tiết địa chỉ
-    // limit=15: lấy nhiều kết quả để filter
-    let url = `${NOMINATIM_BASE_URL}/search?q=${encodedQuery}&format=json&limit=15&countrycodes=sk&addressdetails=1&accept-language=en`;
-
-    // Thêm proximity nếu có (Nominatim dùng viewbox thay vì proximity)
-    // viewbox=min_lon,min_lat,max_lon,max_lat
-    if (proximity) {
-      const [lng, lat] = proximity.split(',').map(parseFloat);
-      if (!isNaN(lng) && !isNaN(lat)) {
-        // Tạo viewbox xung quanh điểm proximity (~50km) để ưu tiên kết quả gần nhà hàng
-        // KHÔNG dùng bounded=1 vì sẽ chặn hoàn toàn địa chỉ ngoài viewbox,
-        // làm các zone giao hàng mới (khoảng cách xa hơn) không tìm được địa chỉ
-        const offset = 0.5; // ~55km - đủ rộng để bao phủ mọi zone giao hàng thực tế
-        const viewbox = `${lng - offset},${lat - offset},${lng + offset},${lat + offset}`;
-        url += `&viewbox=${viewbox}`;
-      }
+    const cacheKey = `${String(query).trim().toLowerCase()}|${proximity || ""}`;
+    const cached = getCached(suggestionCache, cacheKey);
+    if (cached) {
+      return res.json({ success: true, data: cached, cached: true });
     }
-
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': NOMINATIM_USER_AGENT
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Nominatim API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
 
     let suggestions = [];
-
-    // Parse kết quả từ Nominatim
-    if (data && data.length > 0) {
-      suggestions = data.map((result, index) => {
-        const parsed = nominatimResultToAddress(result);
-
-        // Phân loại ưu tiên:
-        // Priority 1: Có số nhà rõ ràng
-        // Priority 2: Address nhưng không có số nhà (chỉ tên đường)
-        // Priority 3: Place (địa chỉ chung chung)
-        const hasHouseNumber = parsed.components.houseNumber &&
-          parsed.components.houseNumber.trim().length > 0;
-        const isPlace = result.type === 'administrative' ||
-          result.type === 'city' ||
-          result.type === 'town' ||
-          result.type === 'village';
-        const priority = hasHouseNumber ? 1 : (isPlace ? 3 : 2);
-
-        return {
-          id: result.place_id || result.osm_id || `nominatim-${index}`,
-          address: parsed.formattedAddress, // Địa chỉ đã được format ngắn gọn
-          shortAddress: parsed.formattedAddress || parsed.components.streetLine || parsed.components.street || result.display_name.split(',')[0],
-          latitude: parsed.latitude,
-          longitude: parsed.longitude,
-          components: parsed.components,
-          priority: priority,
-          hasHouseNumber: hasHouseNumber
-        };
-      });
+    try {
+      suggestions = await autocompleteFromPhoton(query, proximity);
+    } catch (photonErr) {
+      console.warn("⚠️ Photon autocomplete failed:", photonErr?.message);
     }
 
-    // ✨ Sắp xếp: ưu tiên địa chỉ có số nhà trước
-    suggestions.sort((a, b) => {
-      // Ưu tiên theo priority (1 = có số nhà, 2 = address không có số nhà, 3 = place)
-      if (a.priority !== b.priority) {
-        return a.priority - b.priority;
+    if (!suggestions.length) {
+      try {
+        suggestions = await autocompleteFromNominatim(query, proximity);
+      } catch (nominatimErr) {
+        console.error("❌ Nominatim autocomplete fallback failed:", nominatimErr?.message);
+        if (!suggestions.length) {
+          throw nominatimErr;
+        }
       }
-      // Nếu cùng priority, giữ nguyên thứ tự từ Nominatim
-      return 0;
-    });
+    }
 
-    // Chỉ trả về 5 kết quả tốt nhất
-    suggestions = suggestions.slice(0, 5);
+    setCached(suggestionCache, cacheKey, suggestions);
 
     res.json({
       success: true,
@@ -634,15 +794,10 @@ const autocompleteAddress = async (req, res) => {
 
   } catch (error) {
     console.error("❌ Autocomplete error:", error);
-    console.error("Error details:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
     res.status(500).json({
       success: false,
       message: error.message,
-      details: error.response?.data || "Network error or Nominatim API issue"
+      details: "Network error or OSM geocoding API issue"
     });
   }
 };
